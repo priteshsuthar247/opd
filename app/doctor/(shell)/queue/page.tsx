@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  CircleCheckIcon,
+  ListChecksIcon,
+  StethoscopeIcon,
+} from "lucide-react";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { doctors } from "@/db/schema";
@@ -8,7 +13,14 @@ import { listDoctorQueue, listFollowUpsDue } from "@/db/queries/clinical";
 import { flagNoShows } from "@/lib/no-show";
 import { CallNextButton } from "@/components/consultation/call-next-button";
 import { StatusBadge } from "@/components/queue/status-badge";
+import { StatCard } from "@/components/shell/stat-card";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -42,47 +54,61 @@ export default async function DoctorQueuePage() {
   ]);
   const waiting = rows.filter((r) => r.status === "waiting").length;
   const inProgress = rows.find((r) => r.status === "in_progress");
+  const completed = rows.filter((r) => r.status === "completed").length;
 
   return (
-    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">My Queue · {date}</h1>
-          <p className="text-xs text-muted-foreground">
-            {waiting} waiting
-            {inProgress ? ` · token ${inProgress.tokenNumber} in consultation` : ""}
-            {flagged > 0 && ` · ${flagged} marked no-show`}
-          </p>
-        </div>
+    <div className="flex flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard title="Waiting" value={String(waiting)} icon={ListChecksIcon} />
+        <StatCard
+          title="In consultation"
+          value={inProgress ? `Token ${inProgress.tokenNumber}` : "—"}
+          icon={StethoscopeIcon}
+        />
+        <StatCard title="Completed" value={String(completed)} icon={CircleCheckIcon} />
+      </div>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">
+          {date}
+          {flagged > 0 && ` · ${flagged} marked no-show`}
+        </p>
         <CallNextButton disabled={waiting === 0} />
       </div>
       {followUps.length > 0 && (
-        <div className="mb-4 border p-3">
-          <h2 className="mb-2 text-sm font-semibold">
-            Follow-ups due ({followUps.length})
-          </h2>
-          <ul className="flex flex-col gap-1 text-xs">
-            {followUps.map((f) => (
-              <li key={f.appointmentId} className="flex justify-between gap-2">
-                <span className="font-medium">
-                  {f.patientName} · {f.patientPhone}
-                </span>
-                <span className="text-muted-foreground">
-                  due {f.followUpDate} (visit {f.date})
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Follow-ups due ({followUps.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="flex flex-col gap-2 text-xs">
+              {followUps.map((f) => (
+                <li key={f.appointmentId} className="flex justify-between gap-2">
+                  <span className="font-medium">
+                    {f.patientName} · {f.patientPhone}
+                  </span>
+                  <span className="text-muted-foreground">
+                    due {f.followUpDate} (visit {f.date})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
       {rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 border py-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            No appointments today. New bookings appear here live.
-          </p>
-        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              No appointments today. New bookings appear here live.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
-        <Table>
+        <Card>
+          <CardContent className="pt-4">
+            <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Token</TableHead>
@@ -115,9 +141,11 @@ export default async function DoctorQueuePage() {
                 </TableCell>
               </TableRow>
             ))}
-          </TableBody>
-        </Table>
+            </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
-    </main>
+    </div>
   );
 }

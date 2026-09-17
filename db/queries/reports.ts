@@ -16,6 +16,7 @@ export function listAppointmentsInRange(range: DateRange) {
       doctor: { with: { user: true, department: true } },
       consultation: true,
       statusLogs: true,
+      invoice: true,
     },
     orderBy: (t, { asc }) => [asc(t.date), asc(t.tokenNumber)],
   });

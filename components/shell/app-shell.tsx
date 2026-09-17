@@ -19,8 +19,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { NavUser } from "@/components/nav-user";
-import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { NotificationsBell } from "@/components/shell/notifications-bell";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { NotificationRow } from "@/db/queries/notifications";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -37,6 +37,42 @@ import {
 } from "@/components/ui/sidebar";
 
 export type ShellRole = "admin" | "doctor" | "receptionist";
+
+// Header title per route, Sigil-style (single title, no breadcrumb trail).
+// Dynamic ids fall back to a titleized segment.
+const titleMap: Record<string, string> = {
+  "/admin": "Overview",
+  "/admin/departments": "Departments",
+  "/admin/doctors": "Doctors",
+  "/admin/medicines": "Medicines",
+  "/admin/categories": "Categories",
+  "/admin/billing-items": "Billing Items",
+  "/admin/queue": "Queue Configuration",
+  "/admin/settings": "Settings",
+  "/admin/reports": "Reports",
+  "/admin/reports/daily": "Daily Summary",
+  "/admin/reports/doctor-performance": "Doctor Performance",
+  "/admin/reports/patient-visit": "Patient Visits",
+  "/admin/reports/diagnosis-trend": "Diagnosis Trend",
+  "/admin/reports/custom": "Custom Report",
+  "/doctor/queue": "My Queue",
+  "/reception": "Front Desk",
+  "/reception/patients": "Patients",
+  "/reception/book": "Book Appointment",
+  "/reception/queue": "Queue Board",
+};
+
+function titleFor(pathname: string): string {
+  if (titleMap[pathname]) return titleMap[pathname];
+  if (pathname.startsWith("/reception/invoices/")) return "Invoice";
+  if (pathname.startsWith("/doctor/consultation/")) return "Consultation";
+  const last = pathname.split("/").filter(Boolean).pop() ?? "";
+  if (/^\d+$/.test(last)) return "Detail";
+  return last
+    .split("-")
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
 
 type NavItem = { href: string; label: string; icon: LucideIcon };
 
@@ -171,13 +207,14 @@ export function AppShell({
               orientation="vertical"
               className="mx-2 h-4 data-vertical:self-auto"
             />
-            <div className="min-w-0 flex-1">
-              <Breadcrumbs />
+            <h1 className="text-base font-medium">{titleFor(pathname)}</h1>
+            <div className="ml-auto flex items-center gap-1">
+              <NotificationsBell
+                unreadCount={unreadCount}
+                items={notifications}
+              />
+              <ThemeToggle />
             </div>
-            <NotificationsBell
-              unreadCount={unreadCount}
-              items={notifications}
-            />
           </div>
         </header>
         <div className="flex flex-1 flex-col">

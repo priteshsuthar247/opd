@@ -1,55 +1,87 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  ArrowRightIcon,
+  CalendarPlusIcon,
+  ListChecksIcon,
+  CircleCheckIcon,
+} from "lucide-react";
 import { requireRole } from "@/lib/roles";
+import { listAppointmentsInRange } from "@/db/queries/reports";
+import { StatCard } from "@/components/shell/stat-card";
+import { StatusBadge } from "@/components/queue/status-badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardDescription,
+  CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
-const sections = [
-  {
-    href: "/reception/patients",
-    title: "Patients",
-    description: "Register and find patients by name or phone.",
-  },
-  {
-    href: "/reception/book",
-    title: "Book Appointment",
-    description: "Walk-in or scheduled token against a doctor.",
-  },
-  {
-    href: "/reception/queue",
-    title: "Queue Board",
-    description: "Live per-doctor queue for today.",
-  },
-];
+function todayStr(): string {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
 
 export default async function ReceptionHome() {
   const session = await requireRole("receptionist", "admin");
   if (!session) redirect("/");
 
+  const date = todayStr();
+  const rows = await listAppointmentsInRange({ from: date, to: date });
+  const waiting = rows.filter((r) => r.status === "waiting").length;
+  const done = rows.filter((r) => r.status === "completed").length;
+
+  const recent = [...rows]
+    .sort((a, b) => b.tokenNumber - a.tokenNumber)
+    .slice(0, 5);
+
   return (
-    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
-      <div className="mb-4">
-        <h1 className="text-lg font-semibold">Front Desk</h1>
-        <p className="text-xs text-muted-foreground">
-          Signed in as {session.user.name ?? session.user.email}.
-        </p>
+    <div className="flex flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard title="Booked today" value={String(rows.length)} icon={CalendarPlusIcon} />
+        <StatCard title="Waiting" value={String(waiting)} icon={ListChecksIcon} />
+        <StatCard title="Completed" value={String(done)} icon={CircleCheckIcon} />
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {sections.map((s) => (
-          <Link key={s.href} href={s.href}>
-            <Card className="h-full transition-colors hover:border-ring">
-              <CardHeader>
-                <CardTitle>{s.title}</CardTitle>
-                <CardDescription>{s.description}</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </main>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-medium">Recent bookings</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            render={<Link href="/reception/queue">View all</Link>}
+          >
+            View all
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {recent.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nothing booked today yet.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {recent.map((r) => (
+                <div key={r.id} className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">
+                      Token {r.tokenNumber} · {r.patient.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {r.doctor.user.name}
+                    </span>
+                  </div>
+                  <StatusBadge status={r.status} />
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
