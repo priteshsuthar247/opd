@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { hash } from "bcryptjs";
-import { db } from "./index";
+import { db } from "./db/index";
 import {
   users,
   departments,
@@ -10,7 +10,8 @@ import {
   categories,
   queueConfigurations,
   billingItems,
-} from "./schema";
+  settings,
+} from "./db/schema";
 
 async function main() {
   console.log("Seeding database...");
@@ -156,6 +157,27 @@ async function main() {
       { name: "Dressing", type: "Procedure", amount: "150" },
       { name: "Minor Procedure", type: "Procedure", amount: "300" },
       { name: "Injection Administration", type: "Procedure", amount: "100" },
+    ])
+    .onConflictDoNothing();
+
+  /* ------------------------------------------------------------ */
+  /* Settings — Spec Section 8 toggles                            */
+  /* ------------------------------------------------------------ */
+  await db
+    .insert(settings)
+    .values([
+      { key: "no_show_minutes", value: { minutes: 30 } },
+      { key: "no_show_token_gap", value: { gap: 3 } },
+      { key: "auto_fee_enabled", value: { enabled: true } },
+      {
+        key: "notifications",
+        value: {
+          appointment_booked: true,
+          turn_approaching: true,
+          prescription_finalized: true,
+          follow_up_due: true,
+        },
+      },
     ])
     .onConflictDoNothing();
 
