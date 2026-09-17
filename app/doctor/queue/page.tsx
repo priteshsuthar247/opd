@@ -1,33 +1,98 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { db } from "@/db";
+import { doctors } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { listDoctorQueue } from "@/db/queries/clinical";
+import { CallNextButton } from "@/components/consultation/call-next-button";
+import { StatusBadge } from "@/components/queue/status-badge";
+import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-export default async function DoctorQueue() {
+function todayStr(): string {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+export default async function DoctorQueuePage() {
   const session = await auth();
   if (session?.user?.role !== "doctor") redirect("/");
+  const doctor = await db.query.doctors.findFirst({
+    where: eq(doctors.userId, Number(session.user.id)),
+    with: { department: true },
+  });
+  if (!doctor) redirect("/");
+
+  const date = todayStr();
+  const rows = await listDoctorQueue(doctor.id, date);
+  const waiting = rows.filter((r) => r.status === "waiting").length;
+  const inProgress = rows.find((r) => r.status === "in_progress");
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Doctor Queue</CardTitle>
-          <CardDescription>
-            Signed in as {session.user.name ?? session.user.email}.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No patients in queue. The live queue board, call-next flow and
-            consultation workspace land here in Phase 4.
+    <main className="mx-auto w-full max-w-4xl p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-semibold">My Queue · {date}</h1>
+          <p className="text-xs text-muted-foreground">
+            {waiting} waiting
+            {inProgress ? ` · token ${inProgress.tokenNumber} in consultation` : ""}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+        <CallNextButton disabled={waiting === 0} />
+      </div>
+      {rows.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 border py-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            No appointments today. New bookings appear here live.
+          </p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Token</TableHead>
+              <TableHead>Patient</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((r) => (
+              <TableRow key={r.id}>
+                <TableCell>{r.tokenNumber}</TableCell>
+                <TableCell>
+                  <span className="font-medium">{r.patient.name}</span>
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={r.status} />
+                </TableCell>
+                <TableCell className="text-right">
+                  {r.status === "in_progress" && (
+                    <Button
+                      size="sm"
+                      render={
+                        <Link href={`/doctor/consultation/${r.id}`}>
+                          Consult
+                        </Link>
+                      }
+                    />
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </main>
   );
 }
