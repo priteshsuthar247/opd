@@ -3,9 +3,13 @@
 import { useMemo, useState } from "react";
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +28,7 @@ import { PatientDialog } from "@/components/reception/patient-dialog";
 import type { PatientRow } from "@/db/queries/patients";
 import { setPatientStatus } from "@/app/reception/patients/actions";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, PatientRow>();
 
 function ageOn(dob: string | null): string {
@@ -50,21 +54,21 @@ async function toggleStatus(row: PatientRow) {
 
 const columns = helper.columns([
   helper.accessor("name", {
-    header: "Name",
+    header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
-  helper.accessor("phone", { header: "Phone" }),
+  helper.accessor("phone", { header: sortHeader("Phone") }),
   helper.display({
     id: "age",
     header: "Age",
     cell: ({ row }) => ageOn(row.original.dob),
   }),
   helper.accessor("gender", {
-    header: "Gender",
+    header: sortHeader("Gender"),
     cell: ({ getValue }) => getValue() ?? "—",
   }),
   helper.accessor("status", {
-    header: "Status",
+    header: sortHeader("Status"),
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -112,7 +116,12 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
         p.name.toLowerCase().includes(q) || p.phone.toLowerCase().includes(q)
     );
   }, [data, query]);
-  const table = useTable({ features, columns, data: filtered });
+  const table = useTable({
+    features,
+    columns,
+    data: filtered,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
+  });
 
   return (
     <div className="flex flex-col gap-3">
@@ -132,7 +141,8 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
           {data.length === 0 && <PatientDialog />}
         </div>
       ) : (
-        <Table>
+        <>
+          <Table>
           <TableHeader>
             {table.getHeaderGroups().map((group) => (
               <TableRow key={group.id}>
@@ -157,7 +167,9 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+          </Table>
+          <TablePagination table={table} total={filtered.length} />
+        </>
       )}
     </div>
   );

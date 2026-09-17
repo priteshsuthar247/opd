@@ -3,9 +3,13 @@
 import { useMemo } from "react";
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +27,7 @@ import { DoctorDialog } from "@/components/admin/doctor-dialog";
 import type { DoctorRow } from "@/db/queries/doctors";
 import { setDoctorStatus } from "@/app/admin/doctors/actions";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, DoctorRow>();
 
 async function toggleStatus(row: DoctorRow) {
@@ -40,20 +44,20 @@ const columns = (departments: { id: number; name: string }[]) =>
   helper.columns([
   helper.accessor((r) => r.user.name, {
     id: "name",
-    header: "Doctor",
+    header: sortHeader("Doctor"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
   helper.accessor((r) => r.department.name, {
     id: "department",
-    header: "Department",
+    header: sortHeader("Department"),
   }),
-  helper.accessor("qualification", { header: "Qualification" }),
+  helper.accessor("qualification", { header: sortHeader("Qualification") }),
   helper.accessor("consultationFee", {
-    header: "Fee (₹)",
+    header: sortHeader("Fee (₹)"),
     cell: ({ getValue }) => Number(getValue()).toFixed(2),
   }),
   helper.accessor("status", {
-    header: "Status",
+    header: sortHeader("Status"),
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -102,6 +106,7 @@ export function DoctorsTable({
     features,
     columns: useMemo(() => columns(departments), [departments]),
     data,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
 
   if (data.length === 0) {
@@ -116,7 +121,8 @@ export function DoctorsTable({
   }
 
   return (
-    <Table>
+    <>
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -141,6 +147,8 @@ export function DoctorsTable({
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      <TablePagination table={table} total={data.length} />
+    </>
   );
 }

@@ -2,9 +2,13 @@
 
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +26,7 @@ import { BillingItemDialog } from "@/components/admin/billing-item-dialog";
 import type { BillingItemRow } from "@/db/queries/billing-items";
 import { setBillingItemStatus } from "@/app/admin/billing-items/actions";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, BillingItemRow>();
 
 async function toggleStatus(row: BillingItemRow) {
@@ -37,16 +41,16 @@ async function toggleStatus(row: BillingItemRow) {
 
 const columns = helper.columns([
   helper.accessor("name", {
-    header: "Name",
+    header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
-  helper.accessor("type", { header: "Type" }),
+  helper.accessor("type", { header: sortHeader("Type") }),
   helper.accessor("amount", {
-    header: "Amount (₹)",
+    header: sortHeader("Amount (₹)"),
     cell: ({ getValue }) => Number(getValue()).toFixed(2),
   }),
   helper.accessor("status", {
-    header: "Status",
+    header: sortHeader("Status"),
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -85,7 +89,12 @@ const columns = helper.columns([
 ]);
 
 export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
-  const table = useTable({ features, columns, data });
+  const table = useTable({
+    features,
+    columns,
+    data,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
+  });
 
   if (data.length === 0) {
     return (
@@ -99,7 +108,8 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
   }
 
   return (
-    <Table>
+    <>
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -124,6 +134,8 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      <TablePagination table={table} total={data.length} />
+    </>
   );
 }

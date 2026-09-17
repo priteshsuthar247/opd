@@ -2,9 +2,13 @@
 
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +26,7 @@ import { MedicineDialog } from "@/components/admin/medicine-dialog";
 import type { MedicineRow } from "@/db/queries/medicines";
 import { setMedicineStatus } from "@/app/admin/medicines/actions";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, MedicineRow>();
 
 async function toggleStatus(row: MedicineRow) {
@@ -37,13 +41,13 @@ async function toggleStatus(row: MedicineRow) {
 
 const columns = helper.columns([
   helper.accessor("name", {
-    header: "Name",
+    header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
-  helper.accessor("genericName", { header: "Generic name" }),
-  helper.accessor("form", { header: "Form" }),
+  helper.accessor("genericName", { header: sortHeader("Generic name") }),
+  helper.accessor("form", { header: sortHeader("Form") }),
   helper.accessor("status", {
-    header: "Status",
+    header: sortHeader("Status"),
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -82,7 +86,12 @@ const columns = helper.columns([
 ]);
 
 export function MedicinesTable({ data }: { data: MedicineRow[] }) {
-  const table = useTable({ features, columns, data });
+  const table = useTable({
+    features,
+    columns,
+    data,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
+  });
 
   if (data.length === 0) {
     return (
@@ -96,7 +105,8 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
   }
 
   return (
-    <Table>
+    <>
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -121,6 +131,8 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      <TablePagination table={table} total={data.length} />
+    </>
   );
 }

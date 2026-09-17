@@ -3,9 +3,13 @@
 import { useMemo } from "react";
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +27,7 @@ import { QueueConfigDialog } from "@/components/admin/queue-config-dialog";
 import type { QueueConfigRow } from "@/db/queries/queue-configs";
 import { setQueueConfigStatus } from "@/app/admin/queue/actions";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, QueueConfigRow>();
 
 async function toggleStatus(row: QueueConfigRow) {
@@ -39,18 +43,18 @@ async function toggleStatus(row: QueueConfigRow) {
 const columns = (doctors: { id: number; name: string }[]) =>
   helper.columns([
     helper.accessor((r) => r.doctor.user.name, {
-      id: "doctor",
-      header: "Doctor",
+    id: "doctor",
+    header: sortHeader("Doctor"),
       cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
     }),
     helper.accessor((r) => r.doctor.department.name, {
-      id: "department",
-      header: "Department",
+    id: "department",
+    header: sortHeader("Department"),
     }),
-    helper.accessor("slotDurationMinutes", { header: "Slot (min)" }),
-    helper.accessor("maxTokensPerDay", { header: "Max tokens/day" }),
-    helper.accessor("status", {
-      header: "Status",
+    helper.accessor("slotDurationMinutes", { header: sortHeader("Slot (min)") }),
+    helper.accessor("maxTokensPerDay", { header: sortHeader("Max tokens/day") }),
+  helper.accessor("status", {
+    header: sortHeader("Status"),
       cell: ({ getValue }) =>
         getValue() === "active" ? (
           <Badge variant="secondary">
@@ -99,6 +103,7 @@ export function QueueConfigsTable({
     features,
     columns: useMemo(() => columns(doctors), [doctors]),
     data,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
 
   if (data.length === 0) {
@@ -114,7 +119,8 @@ export function QueueConfigsTable({
   }
 
   return (
-    <Table>
+    <>
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -139,6 +145,8 @@ export function QueueConfigsTable({
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      <TablePagination table={table} total={data.length} />
+    </>
   );
 }

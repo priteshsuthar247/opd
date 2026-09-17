@@ -2,9 +2,13 @@
 
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +26,7 @@ import { CategoryDialog } from "@/components/admin/category-dialog";
 import type { CategoryRow } from "@/db/queries/categories";
 import { setCategoryStatus } from "@/app/admin/categories/actions";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, CategoryRow>();
 
 const typeLabels = {
@@ -43,15 +47,15 @@ async function toggleStatus(row: CategoryRow) {
 
 const columns = helper.columns([
   helper.accessor("name", {
-    header: "Name",
+    header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
   helper.accessor("type", {
-    header: "Type",
+    header: sortHeader("Type"),
     cell: ({ getValue }) => typeLabels[getValue()],
   }),
   helper.accessor("status", {
-    header: "Status",
+    header: sortHeader("Status"),
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -90,7 +94,12 @@ const columns = helper.columns([
 ]);
 
 export function CategoriesTable({ data }: { data: CategoryRow[] }) {
-  const table = useTable({ features, columns, data });
+  const table = useTable({
+    features,
+    columns,
+    data,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
+  });
 
   if (data.length === 0) {
     return (
@@ -104,7 +113,8 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
   }
 
   return (
-    <Table>
+    <>
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -129,6 +139,8 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      <TablePagination table={table} total={data.length} />
+    </>
   );
 }

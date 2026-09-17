@@ -2,9 +2,13 @@
 
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import {
   Table,
   TableBody,
@@ -17,12 +21,12 @@ import { SettingDialog } from "@/components/admin/setting-dialog";
 import type { SettingRow } from "@/db/queries/settings";
 import { settingDescriptions } from "@/lib/validations/settings";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, SettingRow>();
 
 const columns = helper.columns([
   helper.accessor("key", {
-    header: "Key",
+    header: sortHeader("Key"),
     cell: ({ getValue }) => (
       <span className="font-medium">{getValue()}</span>
     ),
@@ -39,7 +43,7 @@ const columns = helper.columns([
     ),
   }),
   helper.accessor("value", {
-    header: "Value",
+    header: sortHeader("Value"),
     cell: ({ getValue }) => (
       <code className="text-xs">{JSON.stringify(getValue())}</code>
     ),
@@ -56,10 +60,16 @@ const columns = helper.columns([
 ]);
 
 export function SettingsTable({ data }: { data: SettingRow[] }) {
-  const table = useTable({ features, columns, data });
+  const table = useTable({
+    features,
+    columns,
+    data,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
+  });
 
   return (
-    <Table>
+    <>
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -84,6 +94,8 @@ export function SettingsTable({ data }: { data: SettingRow[] }) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      <TablePagination table={table} total={data.length} />
+    </>
   );
 }

@@ -2,9 +2,13 @@
 
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,7 +26,7 @@ import { StatusBadge } from "@/components/queue/status-badge";
 import type { QueueRow } from "@/db/queries/appointments";
 import { cancelAppointment } from "@/app/reception/queue/actions";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, QueueRow>();
 
 async function cancel(row: QueueRow) {
@@ -32,22 +36,22 @@ async function cancel(row: QueueRow) {
 }
 
 const columns = helper.columns([
-  helper.accessor("tokenNumber", { header: "Token" }),
+  helper.accessor("tokenNumber", { header: sortHeader("Token") }),
   helper.accessor((r) => r.patient.name, {
     id: "patient",
-    header: "Patient",
+    header: sortHeader("Patient"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
   helper.accessor((r) => r.doctor.user.name, {
     id: "doctor",
-    header: "Doctor",
+    header: sortHeader("Doctor"),
   }),
   helper.accessor("type", {
-    header: "Type",
+    header: sortHeader("Type"),
     cell: ({ getValue }) => (getValue() === "walk_in" ? "Walk-in" : "Scheduled"),
   }),
   helper.accessor("status", {
-    header: "Status",
+    header: sortHeader("Status"),
     cell: ({ getValue }) => <StatusBadge status={getValue()} />,
   }),
   helper.display({
@@ -79,7 +83,12 @@ const columns = helper.columns([
 ]);
 
 export function QueueTable({ data }: { data: QueueRow[] }) {
-  const table = useTable({ features, columns, data });
+  const table = useTable({
+    features,
+    columns,
+    data,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
+  });
 
   if (data.length === 0) {
     return (
@@ -92,7 +101,8 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
   }
 
   return (
-    <Table>
+    <>
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -117,6 +127,8 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      <TablePagination table={table} total={data.length} />
+    </>
   );
 }

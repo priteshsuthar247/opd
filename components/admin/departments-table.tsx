@@ -2,13 +2,17 @@
 
 import {
   createColumnHelper,
-  tableFeatures,
   useTable,
 } from "@tanstack/react-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  sortHeader,
+  tableFeaturesFull,
+  TablePagination,
+} from "@/components/table/table-helpers";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   Table,
@@ -22,7 +26,7 @@ import { DepartmentDialog } from "@/components/admin/department-dialog";
 import type { DepartmentRow } from "@/db/queries/departments";
 import { setDepartmentStatus } from "@/app/admin/departments/actions";
 
-const features = tableFeatures({});
+const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, DepartmentRow>();
 
 async function toggleStatus(row: DepartmentRow) {
@@ -37,12 +41,12 @@ async function toggleStatus(row: DepartmentRow) {
 
 const columns = helper.columns([
   helper.accessor("name", {
-    header: "Name",
+    header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
-  helper.accessor("code", { header: "Code" }),
+  helper.accessor("code", { header: sortHeader("Code") }),
   helper.accessor("status", {
-    header: "Status",
+    header: sortHeader("Status"),
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -81,7 +85,12 @@ const columns = helper.columns([
 ]);
 
 export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
-  const table = useTable({ features, columns, data });
+  const table = useTable({
+    features,
+    columns,
+    data,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
+  });
 
   if (data.length === 0) {
     return (
@@ -95,7 +104,8 @@ export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
   }
 
   return (
-    <Table>
+    <>
+      <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id}>
@@ -120,6 +130,8 @@ export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      <TablePagination table={table} total={data.length} />
+    </>
   );
 }
