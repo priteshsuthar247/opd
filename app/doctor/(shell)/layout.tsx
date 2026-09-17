@@ -23,6 +23,7 @@ export default async function DoctorShellLayout({
     <AppShell
       role="doctor"
       userName={session.user.name ?? session.user.email ?? "Doctor"}
+      userEmail={session.user.email ?? ""}
       unreadCount={unreadCount}
       notifications={notifications}
     >

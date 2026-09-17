@@ -19,7 +19,7 @@ export default async function QueuePage() {
     .map((d) => ({ id: d.id, name: d.user.name }));
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-4">
+    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Queue Configuration</h1>

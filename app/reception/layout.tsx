@@ -27,6 +27,7 @@ export default async function ReceptionLayout({
     <AppShell
       role={session.user.role === "admin" ? "admin" : "receptionist"}
       userName={session.user.name ?? session.user.email ?? "Front Desk"}
+      userEmail={session.user.email ?? ""}
       unreadCount={unreadCount}
       notifications={notifications}
     >

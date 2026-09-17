@@ -18,15 +18,15 @@ import {
   UsersIcon,
   type LucideIcon,
 } from "lucide-react";
+import { NavUser } from "@/components/nav-user";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
-import {
-  NotificationsBell,
-} from "@/components/shell/notifications-bell";
-import { UserMenu } from "@/components/shell/user-menu";
+import { NotificationsBell } from "@/components/shell/notifications-bell";
 import type { NotificationRow } from "@/db/queries/notifications";
+import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -88,12 +88,14 @@ const navByRole: Record<ShellRole, { section: string; items: NavItem[] }[]> = {
 export function AppShell({
   role,
   userName,
+  userEmail,
   unreadCount,
   notifications,
   children,
 }: {
   role: ShellRole;
   userName: string;
+  userEmail: string;
   unreadCount: number;
   notifications: NotificationRow[];
   children: React.ReactNode;
@@ -102,12 +104,27 @@ export function AppShell({
   const groups = navByRole[role];
 
   return (
-    <SidebarProvider>
-      <Sidebar>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <Sidebar variant="inset">
         <SidebarHeader>
-          <p className="px-2 py-1 font-heading text-sm font-medium">
-            OPD Clinic
-          </p>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="data-[slot=sidebar-menu-button]:p-1.5!"
+                render={<Link href="/" />}
+              >
+                <StethoscopeIcon className="size-5!" />
+                <span className="text-base font-semibold">OPD Clinic</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
           {groups.map((g) => (
@@ -127,6 +144,7 @@ export function AppShell({
                             : pathname === item.href ||
                               pathname.startsWith(`${item.href}/`)
                         }
+                        tooltip={item.label}
                         render={
                           <Link href={item.href}>
                             <Icon />
@@ -141,17 +159,32 @@ export function AppShell({
             </div>
           ))}
         </SidebarContent>
+        <SidebarFooter>
+          <NavUser user={{ name: userName, email: userEmail }} />
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center gap-2 border-b px-2 py-1.5">
-          <SidebarTrigger />
-          <div className="min-w-0 flex-1">
-            <Breadcrumbs />
+        <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">
+          <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mx-2 h-4 data-vertical:self-auto"
+            />
+            <div className="min-w-0 flex-1">
+              <Breadcrumbs />
+            </div>
+            <NotificationsBell
+              unreadCount={unreadCount}
+              items={notifications}
+            />
           </div>
-          <NotificationsBell unreadCount={unreadCount} items={notifications} />
-          <UserMenu userName={userName} role={role} />
         </header>
-        {children}
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            {children}
+          </div>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

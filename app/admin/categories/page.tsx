@@ -11,7 +11,7 @@ export default async function CategoriesPage() {
   const categories = await listCategories();
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-4">
+    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Categories</h1>

@@ -23,6 +23,7 @@ export default async function AdminLayout({
     <AppShell
       role="admin"
       userName={session.user.name ?? session.user.email ?? "Admin"}
+      userEmail={session.user.email ?? ""}
       unreadCount={unreadCount}
       notifications={notifications}
     >

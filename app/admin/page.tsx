@@ -57,7 +57,7 @@ export default async function AdminHome() {
   if (session?.user?.role !== "admin") redirect("/");
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-4">
+    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4">
         <h1 className="text-lg font-semibold">Administration</h1>
         <p className="text-xs text-muted-foreground">

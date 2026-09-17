@@ -99,7 +99,7 @@ export default async function CustomReportPage({
   }));
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-4">
+    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="text-lg font-semibold">Custom Report</h1>

@@ -11,7 +11,7 @@ export default async function DepartmentsPage() {
   const departments = await listDepartments();
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-4">
+    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Departments</h1>

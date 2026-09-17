@@ -45,7 +45,7 @@ export default async function DiagnosisTrendPage({
     .map((t) => ({ Diagnosis: t.label, Visits: t.count }));
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-4">
+    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="text-lg font-semibold">Diagnosis Trend</h1>

@@ -56,7 +56,7 @@ export default async function QueuePage({
     flagged > 0 ? await listQueue(date, doctorId) : rows;
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-4">
+    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4">
         <h1 className="text-lg font-semibold">Queue Board</h1>
         <p className="text-xs text-muted-foreground">

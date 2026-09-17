@@ -16,7 +16,7 @@ export default async function DoctorsPage() {
   const activeDepartments = departments.filter((d) => d.status === "active");
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-4">
+    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Doctors</h1>
