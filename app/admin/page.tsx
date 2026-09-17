@@ -45,6 +45,11 @@ const sections = [
     title: "Settings",
     description: "No-show rules, auto fee and notifications.",
   },
+  {
+    href: "/admin/reports",
+    title: "Reports",
+    description: "Daily summary, performance, visits and trends.",
+  },
 ];
 
 export default async function AdminHome() {
