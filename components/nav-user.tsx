@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react"
 import {
   Avatar,
@@ -20,7 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { EllipsisVerticalIcon, LogOutIcon } from "lucide-react"
+import { EllipsisVerticalIcon, LogOutIcon, Settings2Icon } from "lucide-react"
 
 function initials(name: string): string {
   return name
@@ -34,13 +35,16 @@ function initials(name: string): string {
 
 export function NavUser({
   user,
+  role,
 }: {
   user: {
     name: string
     email: string
   }
+  role: "admin" | "doctor" | "receptionist"
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -87,6 +91,14 @@ export function NavUser({
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            {role === "admin" && (
+              <DropdownMenuItem
+                onClick={() => router.push("/admin/settings")}
+              >
+                <Settings2Icon />
+                Settings
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={() => void signOut({ redirectTo: "/login" })}>
               <LogOutIcon
               />

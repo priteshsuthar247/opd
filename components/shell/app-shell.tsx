@@ -12,7 +12,6 @@ import {
   ListOrderedIcon,
   PillIcon,
   ReceiptIcon,
-  SettingsIcon,
   StethoscopeIcon,
   TagsIcon,
   UsersIcon,
@@ -88,7 +87,6 @@ const navByRole: Record<ShellRole, { section: string; items: NavItem[] }[]> = {
         { href: "/admin/categories", label: "Categories", icon: TagsIcon },
         { href: "/admin/billing-items", label: "Billing Items", icon: ReceiptIcon },
         { href: "/admin/queue", label: "Queue Config", icon: ListOrderedIcon },
-        { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
         { href: "/admin/reports", label: "Reports", icon: BarChart3Icon },
       ],
     },
@@ -196,7 +194,7 @@ export function AppShell({
           ))}
         </SidebarContent>
         <SidebarFooter>
-          <NavUser user={{ name: userName, email: userEmail }} />
+          <NavUser user={{ name: userName, email: userEmail }} role={role} />
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>

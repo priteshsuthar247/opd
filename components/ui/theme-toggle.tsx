@@ -1,15 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
+// Mounted-guard without useEffect: the set-state-in-effect rule rejects
+// the usual mounted-flag effect. Server snapshot is false (render
+// nothing), client snapshot true.
+function subscribe() {
+  return () => {};
+}
+
+function getSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
 export function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = React.useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
 
   if (!mounted) return null;
 
