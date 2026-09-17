@@ -58,6 +58,7 @@ export default async function AdminHome() {
           <Button
             variant="ghost"
             size="sm"
+            nativeButton={false}
             render={<Link href="/admin/reports/daily">View all</Link>}
           >
             View all

@@ -52,6 +52,7 @@ export default async function ReceptionHome() {
           <Button
             variant="ghost"
             size="sm"
+            nativeButton={false}
             render={<Link href="/reception/queue">View all</Link>}
           >
             View all

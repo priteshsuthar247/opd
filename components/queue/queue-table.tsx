@@ -57,6 +57,7 @@ const columns = helper.columns([
         <Button
           variant="ghost"
           size="sm"
+          nativeButton={false}
           render={<Link href={`/reception/invoices/${row.original.id}`}>Bill</Link>}
         />
         {row.original.status === "waiting" && (

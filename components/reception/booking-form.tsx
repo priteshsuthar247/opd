@@ -126,6 +126,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
           <Button onClick={bookAnother}>Book another</Button>
           <Button
             variant="outline"
+            nativeButton={false}
             render={<Link href="/reception/queue">View queue</Link>}
           />
         </CardContent>
