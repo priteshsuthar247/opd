@@ -27,14 +27,19 @@ import { Textarea } from "@/components/ui/textarea";
 import type { PatientRow } from "@/db/queries/patients";
 import { patientSchema, type PatientFormValues } from "@/lib/validations/patient";
 import { createPatient, updatePatient } from "@/app/reception/patients/actions";
+import { bloodGroups } from "@/lib/options";
 
 function defaults(patient?: PatientRow): PatientFormValues {
+  // DB stores free-text history; only carry over values in the enum.
+  const bg = patient?.bloodGroup ?? "";
   return {
     name: patient?.name ?? "",
     phone: patient?.phone ?? "",
     dob: patient?.dob ?? "",
     gender: patient?.gender ?? undefined,
-    bloodGroup: patient?.bloodGroup ?? "",
+    bloodGroup: (bloodGroups as readonly string[]).includes(bg)
+      ? (bg as (typeof bloodGroups)[number])
+      : undefined,
     address: patient?.address ?? "",
     emergencyContact: patient?.emergencyContact ?? "",
     status: patient?.status ?? "active",
@@ -154,12 +159,31 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
                 <FieldError errors={[errors.gender]} />
               </Field>
               <Field data-invalid={!!errors.bloodGroup}>
-                <FieldLabel htmlFor="pat-bg">Blood grp</FieldLabel>
-                <Input
-                  id="pat-bg"
-                  placeholder="O+"
-                  aria-invalid={!!errors.bloodGroup}
-                  {...register("bloodGroup")}
+                <FieldLabel>Blood group</FieldLabel>
+                <Controller
+                  control={control}
+                  name="bloodGroup"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ?? ""}
+                      onValueChange={(v) =>
+                        field.onChange(
+                          v === "" ? undefined : (v as (typeof bloodGroups)[number])
+                        )
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="—" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {bloodGroups.map((b) => (
+                          <SelectItem key={b} value={b}>
+                            {b}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
                 <FieldError errors={[errors.bloodGroup]} />
               </Field>

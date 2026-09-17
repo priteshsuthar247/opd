@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/shell/app-shell";
+import {
+  countUnreadNotifications,
+  listRecentNotifications,
+} from "@/db/queries/notifications";
 
 export default async function ReceptionLayout({
   children,
@@ -14,10 +18,17 @@ export default async function ReceptionLayout({
   )
     redirect("/");
 
+  const [unreadCount, notifications] = await Promise.all([
+    countUnreadNotifications(),
+    listRecentNotifications(),
+  ]);
+
   return (
     <AppShell
       role={session.user.role === "admin" ? "admin" : "receptionist"}
       userName={session.user.name ?? session.user.email ?? "Front Desk"}
+      unreadCount={unreadCount}
+      notifications={notifications}
     >
       {children}
     </AppShell>

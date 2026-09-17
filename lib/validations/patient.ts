@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { bloodGroups } from "@/lib/options";
 
 const optionalText = (max: number) =>
   z
@@ -26,7 +27,7 @@ export const patientSchema = z.object({
       message: "Enter a valid date",
     }),
   gender: z.enum(["male", "female", "other"]).optional(),
-  bloodGroup: optionalText(5),
+  bloodGroup: z.enum(bloodGroups).optional(),
   address: optionalText(2000),
   emergencyContact: optionalText(20),
   status: z.enum(["active", "inactive"]),

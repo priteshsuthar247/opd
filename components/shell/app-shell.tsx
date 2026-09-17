@@ -2,12 +2,31 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignOutButton } from "@/components/auth/sign-out-button";
-import { Badge } from "@/components/ui/badge";
+import {
+  BarChart3Icon,
+  Building2Icon,
+  CalendarPlusIcon,
+  ClipboardListIcon,
+  LayoutDashboardIcon,
+  ListChecksIcon,
+  ListOrderedIcon,
+  PillIcon,
+  ReceiptIcon,
+  SettingsIcon,
+  StethoscopeIcon,
+  TagsIcon,
+  UsersIcon,
+  type LucideIcon,
+} from "lucide-react";
+import { Breadcrumbs } from "@/components/shell/breadcrumbs";
+import {
+  NotificationsBell,
+} from "@/components/shell/notifications-bell";
+import { UserMenu } from "@/components/shell/user-menu";
+import type { NotificationRow } from "@/db/queries/notifications";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -19,48 +38,48 @@ import {
 
 export type ShellRole = "admin" | "doctor" | "receptionist";
 
-type NavItem = { href: string; label: string };
+type NavItem = { href: string; label: string; icon: LucideIcon };
 
 const navByRole: Record<ShellRole, { section: string; items: NavItem[] }[]> = {
   admin: [
     {
       section: "Administration",
       items: [
-        { href: "/admin", label: "Overview" },
-        { href: "/admin/departments", label: "Departments" },
-        { href: "/admin/doctors", label: "Doctors" },
-        { href: "/admin/medicines", label: "Medicines" },
-        { href: "/admin/categories", label: "Categories" },
-        { href: "/admin/billing-items", label: "Billing Items" },
-        { href: "/admin/queue", label: "Queue Config" },
-        { href: "/admin/settings", label: "Settings" },
-        { href: "/admin/reports", label: "Reports" },
+        { href: "/admin", label: "Overview", icon: LayoutDashboardIcon },
+        { href: "/admin/departments", label: "Departments", icon: Building2Icon },
+        { href: "/admin/doctors", label: "Doctors", icon: StethoscopeIcon },
+        { href: "/admin/medicines", label: "Medicines", icon: PillIcon },
+        { href: "/admin/categories", label: "Categories", icon: TagsIcon },
+        { href: "/admin/billing-items", label: "Billing Items", icon: ReceiptIcon },
+        { href: "/admin/queue", label: "Queue Config", icon: ListOrderedIcon },
+        { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
+        { href: "/admin/reports", label: "Reports", icon: BarChart3Icon },
       ],
     },
     {
       section: "Front Desk",
       items: [
-        { href: "/reception", label: "Desk Home" },
-        { href: "/reception/patients", label: "Patients" },
-        { href: "/reception/book", label: "Book" },
-        { href: "/reception/queue", label: "Queue Board" },
+        { href: "/reception", label: "Desk Home", icon: ClipboardListIcon },
+        { href: "/reception/patients", label: "Patients", icon: UsersIcon },
+        { href: "/reception/book", label: "Book", icon: CalendarPlusIcon },
+        { href: "/reception/queue", label: "Queue Board", icon: ListChecksIcon },
       ],
     },
   ],
   doctor: [
     {
       section: "Clinical",
-      items: [{ href: "/doctor/queue", label: "My Queue" }],
+      items: [{ href: "/doctor/queue", label: "My Queue", icon: ListChecksIcon }],
     },
   ],
   receptionist: [
     {
       section: "Front Desk",
       items: [
-        { href: "/reception", label: "Desk Home" },
-        { href: "/reception/patients", label: "Patients" },
-        { href: "/reception/book", label: "Book" },
-        { href: "/reception/queue", label: "Queue Board" },
+        { href: "/reception", label: "Desk Home", icon: ClipboardListIcon },
+        { href: "/reception/patients", label: "Patients", icon: UsersIcon },
+        { href: "/reception/book", label: "Book", icon: CalendarPlusIcon },
+        { href: "/reception/queue", label: "Queue Board", icon: ListChecksIcon },
       ],
     },
   ],
@@ -69,10 +88,14 @@ const navByRole: Record<ShellRole, { section: string; items: NavItem[] }[]> = {
 export function AppShell({
   role,
   userName,
+  unreadCount,
+  notifications,
   children,
 }: {
   role: ShellRole;
   userName: string;
+  unreadCount: number;
+  notifications: NotificationRow[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -93,36 +116,40 @@ export function AppShell({
                 {g.section}
               </p>
               <SidebarMenu>
-                {g.items.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      isActive={
-                        item.href === "/admin" || item.href === "/reception"
-                          ? pathname === item.href
-                          : pathname === item.href ||
-                            pathname.startsWith(`${item.href}/`)
-                      }
-                      render={<Link href={item.href}>{item.label}</Link>}
-                    />
-                  </SidebarMenuItem>
-                ))}
+                {g.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        isActive={
+                          item.href === "/admin" || item.href === "/reception"
+                            ? pathname === item.href
+                            : pathname === item.href ||
+                              pathname.startsWith(`${item.href}/`)
+                        }
+                        render={
+                          <Link href={item.href}>
+                            <Icon />
+                            <span>{item.label}</span>
+                          </Link>
+                        }
+                      />
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </div>
           ))}
         </SidebarContent>
-        <SidebarFooter>
-          <div className="flex flex-col gap-1 px-1">
-            <p className="truncate px-2 text-xs font-medium">{userName}</p>
-            <Badge variant="secondary" className="w-fit">
-              {role}
-            </Badge>
-            <SignOutButton />
-          </div>
-        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center gap-2 border-b p-2">
+        <header className="flex items-center gap-2 border-b px-2 py-1.5">
           <SidebarTrigger />
+          <div className="min-w-0 flex-1">
+            <Breadcrumbs />
+          </div>
+          <NotificationsBell unreadCount={unreadCount} items={notifications} />
+          <UserMenu userName={userName} role={role} />
         </header>
         {children}
       </SidebarInset>
