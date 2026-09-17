@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,20 +22,20 @@ function PickerInner({
   const [open, setOpen] = useState(false);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
+  // Debounced in the change handler (not an effect): the set-state-in
+  // effect rule rejects the useEffect + setTimeout shape.
+  function handleQueryChange(value: string) {
+    setQuery(value);
     if (debounce.current) clearTimeout(debounce.current);
-    if (query.trim().length < 2) {
+    if (value.trim().length < 2) {
       setOptions([]);
       return;
     }
     debounce.current = setTimeout(async () => {
-      setOptions(await searchPatientOptions(query.trim()));
+      setOptions(await searchPatientOptions(value.trim()));
       setOpen(true);
     }, 250);
-    return () => {
-      if (debounce.current) clearTimeout(debounce.current);
-    };
-  }, [query]);
+  }
 
   function pick(id: number) {
     if (preserveParams) {
@@ -52,7 +52,7 @@ function PickerInner({
       <Input
         placeholder="Search patient by name or phone…"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => handleQueryChange(e.target.value)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onFocus={() => options.length > 0 && setOpen(true)}
         autoComplete="off"

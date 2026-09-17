@@ -4,7 +4,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { doctors } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { listDoctorQueue } from "@/db/queries/clinical";
+import { listDoctorQueue, listFollowUpsDue } from "@/db/queries/clinical";
+import { flagNoShows } from "@/lib/no-show";
 import { CallNextButton } from "@/components/consultation/call-next-button";
 import { StatusBadge } from "@/components/queue/status-badge";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,11 @@ export default async function DoctorQueuePage() {
   if (!doctor) redirect("/");
 
   const date = todayStr();
-  const rows = await listDoctorQueue(doctor.id, date);
+  const flagged = await flagNoShows(doctor.id, date);
+  const [rows, followUps] = await Promise.all([
+    listDoctorQueue(doctor.id, date),
+    listFollowUpsDue(doctor.id, date),
+  ]);
   const waiting = rows.filter((r) => r.status === "waiting").length;
   const inProgress = rows.find((r) => r.status === "in_progress");
 
@@ -46,10 +51,30 @@ export default async function DoctorQueuePage() {
           <p className="text-xs text-muted-foreground">
             {waiting} waiting
             {inProgress ? ` · token ${inProgress.tokenNumber} in consultation` : ""}
+            {flagged > 0 && ` · ${flagged} marked no-show`}
           </p>
         </div>
         <CallNextButton disabled={waiting === 0} />
       </div>
+      {followUps.length > 0 && (
+        <div className="mb-4 border p-3">
+          <h2 className="mb-2 text-sm font-semibold">
+            Follow-ups due ({followUps.length})
+          </h2>
+          <ul className="flex flex-col gap-1 text-xs">
+            {followUps.map((f) => (
+              <li key={f.appointmentId} className="flex justify-between gap-2">
+                <span className="font-medium">
+                  {f.patientName} · {f.patientPhone}
+                </span>
+                <span className="text-muted-foreground">
+                  due {f.followUpDate} (visit {f.date})
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {rows.length === 0 ? (
         <div className="flex flex-col items-center gap-3 border py-12 text-center">
           <p className="text-sm text-muted-foreground">

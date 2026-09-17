@@ -12,6 +12,7 @@ import {
   prescriptionItems,
   prescriptions,
   queueStatusLogs,
+  settings,
 } from "@/db/schema";
 import { consultationSchema, completeVisitSchema } from "@/lib/validations/consultation";
 import {
@@ -80,6 +81,33 @@ export async function callNextToken(): Promise<CallNextResult> {
       newStatus: "in_progress",
       changedBy: Number.isInteger(changedBy) ? changedBy : null,
     });
+    // Turn-approaching nudge for the token now on deck (in-app minimum
+    // per Spec Section 8), honoring the notification toggle.
+    const notifyRow = await tx.query.settings.findFirst({
+      where: eq(settings.key, "notifications"),
+    });
+    const toggles =
+      notifyRow && typeof notifyRow.value === "object" && notifyRow.value !== null
+        ? (notifyRow.value as Record<string, unknown>)
+        : null;
+    if (toggles?.turn_approaching !== false) {
+      const onDeck = await tx.query.appointments.findFirst({
+        where: and(
+          eq(appointments.doctorId, ctx.doctor.id),
+          eq(appointments.date, todayStr()),
+          eq(appointments.status, "waiting")
+        ),
+        orderBy: (t, { asc }) => [asc(t.tokenNumber)],
+      });
+      if (onDeck) {
+        await tx.insert(notifications).values({
+          patientId: onDeck.patientId,
+          appointmentId: onDeck.id,
+          type: "turn_approaching",
+          message: `Token ${onDeck.tokenNumber} is next — please proceed for consultation.`,
+        });
+      }
+    }
   });
   revalidatePath("/doctor/queue");
   return { ok: true, appointmentId: next.id, token: next.tokenNumber };

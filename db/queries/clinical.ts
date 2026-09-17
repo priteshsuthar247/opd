@@ -66,3 +66,28 @@ export async function findConsultationByAppointment(appointmentId: number) {
     where: eq(consultations.appointmentId, appointmentId),
   });
 }
+
+// Follow-ups due for a doctor's patients on or before today — surfaced on
+// the doctor queue (Spec Section 8 follow-up reminder). Filtered in code:
+// the predicate spans the consultation join and clinic-scale volumes.
+export async function listFollowUpsDue(doctorId: number, today: string) {
+  const rows = await db.query.appointments.findMany({
+    where: eq(appointments.doctorId, doctorId),
+    with: { patient: true, consultation: true },
+    orderBy: (t, { asc }) => [asc(t.date)],
+  });
+  return rows
+    .filter(
+      (a) =>
+        a.consultation?.followUpRequired === true &&
+        a.consultation.followUpDate !== null &&
+        a.consultation.followUpDate <= today
+    )
+    .map((a) => ({
+      appointmentId: a.id,
+      date: a.date,
+      followUpDate: a.consultation!.followUpDate as string,
+      patientName: a.patient.name,
+      patientPhone: a.patient.phone,
+    }));
+}

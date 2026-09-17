@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/roles";
+import { flagNoShows } from "@/lib/no-show";
 import { listDoctors } from "@/db/queries/doctors";
 import { listQueue } from "@/db/queries/appointments";
 import { QueueTable } from "@/components/queue/queue-table";
@@ -42,13 +43,25 @@ export default async function QueuePage({
     listQueue(date, doctorId),
   ]);
   const activeDoctors = doctors.filter((d) => d.status === "active");
+  // Lazy no-show pass over the visible scope before rendering.
+  const flagged = (
+    await Promise.all(
+      (doctorId !== undefined
+        ? activeDoctors.filter((d) => d.id === doctorId)
+        : activeDoctors
+      ).map((d) => flagNoShows(d.id, date))
+    )
+  ).reduce((s, n) => s + n, 0);
+  const rowsAfterFlag =
+    flagged > 0 ? await listQueue(date, doctorId) : rows;
 
   return (
     <main className="mx-auto w-full max-w-4xl p-4">
       <div className="mb-4">
         <h1 className="text-lg font-semibold">Queue Board</h1>
         <p className="text-xs text-muted-foreground">
-          {rows.length} appointment{rows.length === 1 ? "" : "s"} · {date}
+          {rowsAfterFlag.length} appointment{rowsAfterFlag.length === 1 ? "" : "s"} · {date}
+          {flagged > 0 && ` · ${flagged} marked no-show`}
         </p>
       </div>
       {/* Plain GET form: filter without client JS. */}
@@ -84,7 +97,7 @@ export default async function QueuePage({
           Apply
         </Button>
       </form>
-      <QueueTable data={rows} />
+      <QueueTable data={rowsAfterFlag} />
     </main>
   );
 }

@@ -34,10 +34,6 @@ import {
   removePrescriptionItem,
 } from "@/app/doctor/consultation/actions";
 
-type Prescription = NonNullable<
-  NonNullable<ConsultationBundle>["consultation"]
->["prescription"];
-
 const FREE_TEXT = "__free_text__";
 
 type Consultation = NonNullable<ConsultationBundle>["consultation"];

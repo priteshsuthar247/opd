@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,22 +72,25 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
       type: "walk_in",
     },
   });
-  const patientId = watch("patientId");
 
-  useEffect(() => {
+
+  // Debounced in the change handler (not an effect): the set-state-in
+  // effect rule rejects the useEffect + setTimeout shape.
+  function handlePatientQueryChange(value: string) {
+    setPatientQuery(value);
+    // A new keystroke after a pick invalidates the picked patient.
+    if (watch("patientId") !== 0)
+      setValue("patientId", 0, { shouldValidate: true });
     if (debounce.current) clearTimeout(debounce.current);
-    if (patientQuery.trim().length < 2) {
+    if (value.trim().length < 2) {
       setOptions([]);
       return;
     }
     debounce.current = setTimeout(async () => {
-      setOptions(await searchPatientOptions(patientQuery.trim()));
+      setOptions(await searchPatientOptions(value.trim()));
       setPickerOpen(true);
     }, 250);
-    return () => {
-      if (debounce.current) clearTimeout(debounce.current);
-    };
-  }, [patientQuery]);
+  }
 
   function pickPatient(p: PatientOption) {
     setValue("patientId", p.id, { shouldValidate: true });
@@ -148,11 +151,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                   id="book-patient"
                   placeholder="Type at least 2 letters of name or phone…"
                   value={patientQuery}
-                  onChange={(e) => {
-                    setPatientQuery(e.target.value);
-                    if (patientId !== 0)
-                      setValue("patientId", 0, { shouldValidate: true });
-                  }}
+                  onChange={(e) => handlePatientQueryChange(e.target.value)}
                   onBlur={() => setTimeout(() => setPickerOpen(false), 150)}
                   onFocus={() => options.length > 0 && setPickerOpen(true)}
                   autoComplete="off"
