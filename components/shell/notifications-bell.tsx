@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -66,19 +67,21 @@ export function NotificationsBell({
         }
       />
       <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuLabel className="flex items-center justify-between">
-          Notifications
-          {unreadCount > 0 && (
-            <button
-              type="button"
-              className="text-xs font-normal text-muted-foreground underline underline-offset-2"
-              disabled={clearing}
-              onClick={onClear}
-            >
-              Mark all read
-            </button>
-          )}
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex items-center justify-between">
+            Notifications
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                className="text-xs font-normal text-muted-foreground underline underline-offset-2"
+                disabled={clearing}
+                onClick={onClear}
+              >
+                Mark all read
+              </button>
+            )}
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {items.length === 0 && (
           <p className="px-2 py-4 text-center text-xs text-muted-foreground">

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -48,12 +49,14 @@ export function UserMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuLabel className="flex flex-col gap-1">
-          <span className="truncate">{userName}</span>
-          <Badge variant="secondary" className="w-fit">
-            {role}
-          </Badge>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex flex-col gap-1">
+            <span className="truncate">{userName}</span>
+            <Badge variant="secondary" className="w-fit">
+              {role}
+            </Badge>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => void signOut({ redirectTo: "/login" })}
