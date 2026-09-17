@@ -1,0 +1,153 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  createColumnHelper,
+  tableFeatures,
+  useTable,
+} from "@tanstack/react-table";
+import { Check } from "lucide-react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { PatientDialog } from "@/components/reception/patient-dialog";
+import type { PatientRow } from "@/db/queries/patients";
+import { setPatientStatus } from "@/app/reception/patients/actions";
+
+const features = tableFeatures({});
+const helper = createColumnHelper<typeof features, PatientRow>();
+
+function ageOn(dob: string | null): string {
+  if (!dob) return "—";
+  const birth = new Date(dob);
+  if (Number.isNaN(birth.getTime())) return "—";
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+  return age < 0 ? "—" : String(age);
+}
+
+async function toggleStatus(row: PatientRow) {
+  const next = row.status === "active" ? "inactive" : "active";
+  const result = await setPatientStatus({ id: row.id, status: next });
+  if (!result.ok) toast.error(result.error);
+  else
+    toast.success(
+      next === "active" ? "Patient activated." : "Patient deactivated."
+    );
+}
+
+const columns = helper.columns([
+  helper.accessor("name", {
+    header: "Name",
+    cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
+  }),
+  helper.accessor("phone", { header: "Phone" }),
+  helper.display({
+    id: "age",
+    header: "Age",
+    cell: ({ row }) => ageOn(row.original.dob),
+  }),
+  helper.accessor("gender", {
+    header: "Gender",
+    cell: ({ getValue }) => getValue() ?? "—",
+  }),
+  helper.accessor("status", {
+    header: "Status",
+    cell: ({ getValue }) =>
+      getValue() === "active" ? (
+        <Badge variant="secondary">
+          <Check className="size-3" /> Active
+        </Badge>
+      ) : (
+        <Badge variant="outline">Inactive</Badge>
+      ),
+  }),
+  helper.display({
+    id: "actions",
+    header: "",
+    cell: ({ row }) => (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => void toggleStatus(row.original)}
+        >
+          {row.original.status === "active" ? "Deactivate" : "Activate"}
+        </Button>
+        <PatientDialog patient={row.original} />
+      </div>
+    ),
+  }),
+]);
+
+export function PatientsTable({ data }: { data: PatientRow[] }) {
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return data;
+    return data.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) || p.phone.toLowerCase().includes(q)
+    );
+  }, [data, query]);
+  const table = useTable({ features, columns, data: filtered });
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Input
+        placeholder="Search by name or phone…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="max-w-xs"
+      />
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 border py-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            {data.length === 0
+              ? "No patients registered yet."
+              : "No patients match this search."}
+          </p>
+          {data.length === 0 && <PatientDialog />}
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((group) => (
+              <TableRow key={group.id}>
+                {group.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : (
+                      <table.FlexRender header={header} />
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getAllCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    <table.FlexRender cell={cell} />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+}

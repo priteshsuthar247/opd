@@ -1,34 +1,55 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireRole } from "@/lib/roles";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
+const sections = [
+  {
+    href: "/reception/patients",
+    title: "Patients",
+    description: "Register and find patients by name or phone.",
+  },
+  {
+    href: "/reception/book",
+    title: "Book Appointment",
+    description: "Walk-in or scheduled token against a doctor.",
+  },
+  {
+    href: "/reception/queue",
+    title: "Queue Board",
+    description: "Live per-doctor queue for today.",
+  },
+];
+
 export default async function ReceptionHome() {
-  const session = await auth();
-  if (session?.user?.role !== "receptionist" && session?.user?.role !== "admin")
-    redirect("/");
+  const session = await requireRole("receptionist", "admin");
+  if (!session) redirect("/");
 
   return (
     <main className="mx-auto w-full max-w-3xl p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Front Desk</CardTitle>
-          <CardDescription>
-            Signed in as {session.user.name ?? session.user.email}.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No patients registered yet. Patient registration, booking and the
-            queue board land here in Phase 3.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="mb-4">
+        <h1 className="text-lg font-semibold">Front Desk</h1>
+        <p className="text-xs text-muted-foreground">
+          Signed in as {session.user.name ?? session.user.email}.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {sections.map((s) => (
+          <Link key={s.href} href={s.href}>
+            <Card className="h-full transition-colors hover:border-ring">
+              <CardHeader>
+                <CardTitle>{s.title}</CardTitle>
+                <CardDescription>{s.description}</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </main>
   );
 }
