@@ -10,6 +10,8 @@ import {
   date,
   jsonb,
   pgEnum,
+  index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -41,6 +43,10 @@ export const prescriptionStatusEnum = pgEnum("prescription_status", [
   "finalized",
 ]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "paid"]);
+export const notificationStatusEnum = pgEnum("notification_status", [
+  "unread",
+  "read",
+]);
 
 /* -------------------------------------------------------------------------- */
 /*  Master Data                                                                */
@@ -135,20 +141,38 @@ export const billingItems = pgTable("billing_items", {
 /*  Transactional Data                                                         */
 /* -------------------------------------------------------------------------- */
 
-export const appointments = pgTable("appointments", {
-  id: serial("id").primaryKey(),
-  patientId: integer("patient_id")
-    .notNull()
-    .references(() => patients.id),
-  doctorId: integer("doctor_id")
-    .notNull()
-    .references(() => doctors.id),
-  date: date("date").notNull(),
-  tokenNumber: integer("token_number").notNull(),
-  type: appointmentTypeEnum("type").notNull().default("walk_in"),
-  status: appointmentStatusEnum("status").notNull().default("waiting"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const appointments = pgTable(
+  "appointments",
+  {
+    id: serial("id").primaryKey(),
+    patientId: integer("patient_id")
+      .notNull()
+      .references(() => patients.id),
+    doctorId: integer("doctor_id")
+      .notNull()
+      .references(() => doctors.id),
+    date: date("date").notNull(),
+    tokenNumber: integer("token_number").notNull(),
+    type: appointmentTypeEnum("type").notNull().default("walk_in"),
+    status: appointmentStatusEnum("status").notNull().default("waiting"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    // Backs the per-doctor-per-day token transaction: the unique index is
+    // the final guard against duplicate tokens under concurrent bookings,
+    // the status index drives the live queue board queries.
+    uniqueIndex("appointments_doctor_date_token_unique").on(
+      t.doctorId,
+      t.date,
+      t.tokenNumber
+    ),
+    index("appointments_doctor_date_status_idx").on(
+      t.doctorId,
+      t.date,
+      t.status
+    ),
+  ]
+);
 
 // Audit trail of every status change on an Appointment — drives wait-time
 // reporting and the No-show auto-flag rule from Spec Section 8.
@@ -237,6 +261,34 @@ export const invoiceItems = pgTable("invoice_items", {
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
 });
 
+// Clinic-wide toggles from Spec Section 8: no-show thresholds, auto fee
+// calculation, and per-event notification switches. One row per key.
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: jsonb("value").notNull().default({}),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// In-app notification feed (Spec Section 8: booked confirmation, turn
+// approaching, prescription finalized, follow-up due). Email/SMS stays
+// optional; this table is the minimum deliverable.
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: serial("id").primaryKey(),
+    patientId: integer("patient_id").references(() => patients.id),
+    appointmentId: integer("appointment_id").references(() => appointments.id, {
+      onDelete: "cascade",
+    }),
+    type: varchar("type", { length: 50 }).notNull(),
+    message: text("message").notNull(),
+    status: notificationStatusEnum("status").notNull().default("unread"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [index("notifications_appointment_idx").on(t.appointmentId)]
+);
+
 /* -------------------------------------------------------------------------- */
 /*  Relations (enables db.query.<table>.findMany({ with: {...} }))            */
 /* -------------------------------------------------------------------------- */
@@ -287,6 +339,7 @@ export const appointmentsRelations = relations(appointments, ({ one, many }) => 
     references: [invoices.appointmentId],
   }),
   statusLogs: many(queueStatusLogs),
+  notifications: many(notifications),
 }));
 
 export const consultationsRelations = relations(consultations, ({ one }) => ({
@@ -335,5 +388,16 @@ export const invoiceItemsRelations = relations(invoiceItems, ({ one }) => ({
   billingItem: one(billingItems, {
     fields: [invoiceItems.billingItemId],
     references: [billingItems.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  appointment: one(appointments, {
+    fields: [notifications.appointmentId],
+    references: [appointments.id],
+  }),
+  patient: one(patients, {
+    fields: [notifications.patientId],
+    references: [patients.id],
   }),
 }));
