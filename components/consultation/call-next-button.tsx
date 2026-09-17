@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { callNextToken } from "@/app/doctor/consultation/actions";
+import { callNextToken } from "@/app/doctor/(shell)/consultation/actions";
 
 export function CallNextButton({ disabled }: { disabled?: boolean }) {
   const router = useRouter();

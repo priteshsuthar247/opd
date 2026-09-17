@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { completeVisit } from "@/app/doctor/consultation/actions";
+import { completeVisit } from "@/app/doctor/(shell)/consultation/actions";
 
 export function CompleteVisitButton({
   appointmentId,

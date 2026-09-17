@@ -32,7 +32,7 @@ import {
   addPrescriptionItem,
   finalizePrescription,
   removePrescriptionItem,
-} from "@/app/doctor/consultation/actions";
+} from "@/app/doctor/(shell)/consultation/actions";
 
 const FREE_TEXT = "__free_text__";
 

@@ -21,7 +21,7 @@ import {
   consultationSchema,
   type ConsultationFormValues,
 } from "@/lib/validations/consultation";
-import { saveConsultation } from "@/app/doctor/consultation/actions";
+import { saveConsultation } from "@/app/doctor/(shell)/consultation/actions";
 
 type Vitals = {
   bp?: string;
