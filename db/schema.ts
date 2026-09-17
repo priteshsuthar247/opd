@@ -411,3 +411,14 @@ export const queueConfigurationsRelations = relations(
     }),
   })
 );
+
+export const queueStatusLogsRelations = relations(queueStatusLogs, ({ one }) => ({
+  appointment: one(appointments, {
+    fields: [queueStatusLogs.appointmentId],
+    references: [appointments.id],
+  }),
+  changedByUser: one(users, {
+    fields: [queueStatusLogs.changedBy],
+    references: [users.id],
+  }),
+}));
