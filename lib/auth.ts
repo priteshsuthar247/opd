@@ -6,6 +6,8 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Required outside Vercel hosting (Auth.js v5); harmless on localhost.
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
