@@ -401,3 +401,13 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
     references: [patients.id],
   }),
 }));
+
+export const queueConfigurationsRelations = relations(
+  queueConfigurations,
+  ({ one }) => ({
+    doctor: one(doctors, {
+      fields: [queueConfigurations.doctorId],
+      references: [doctors.id],
+    }),
+  })
+);
