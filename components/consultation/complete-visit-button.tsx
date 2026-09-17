@@ -1,37 +1,36 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import { completeVisit } from "@/app/doctor/(shell)/consultation/actions";
 
 export function CompleteVisitButton({
   appointmentId,
+  tokenNumber,
 }: {
   appointmentId: number;
+  tokenNumber: number;
 }) {
   const router = useRouter();
-  const [busy, setBusy] = useState(false);
 
-  async function onClick() {
-    setBusy(true);
-    try {
-      const result = await completeVisit({ appointmentId });
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
-      }
-      toast.success("Visit completed.");
-      router.push("/doctor/queue");
-    } finally {
-      setBusy(false);
+  async function onComplete() {
+    const result = await completeVisit({ appointmentId });
+    if (!result.ok) {
+      toast.error(result.error);
+      throw new Error(result.error);
     }
+    toast.success("Visit completed.");
+    router.push("/doctor/queue");
   }
 
   return (
-    <Button onClick={onClick} disabled={busy}>
-      {busy ? "Completing…" : "Complete visit"}
-    </Button>
+    <ConfirmButton
+      label="Complete visit"
+      title={`Complete token ${tokenNumber}?`}
+      description="The visit closes and leaves the live queue. Make sure the consultation is saved."
+      confirmLabel="Complete visit"
+      onConfirm={onComplete}
+    />
   );
 }

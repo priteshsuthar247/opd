@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   Table,
   TableBody,
@@ -62,9 +63,13 @@ const columns = helper.columns([
         />
         {row.original.status === "waiting" && (
           <>
-            <Button variant="ghost" size="sm" onClick={() => void cancel(row.original)}>
-              Cancel
-            </Button>
+            <ConfirmButton
+              label="Cancel"
+              title={`Cancel token ${row.original.tokenNumber}?`}
+              description={`${row.original.patient.name} will be removed from today's queue. This is logged and cannot be undone from here.`}
+              confirmLabel="Cancel appointment"
+              onConfirm={() => cancel(row.original)}
+            />
             <RescheduleDialog row={row.original} />
           </>
         )}

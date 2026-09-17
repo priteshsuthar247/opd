@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   Card,
   CardContent,
@@ -137,13 +138,13 @@ export function InvoiceManager({
                   <span className="font-medium">{i.name}</span>
                   <span className="flex items-center gap-2">
                     ₹{money(i.amount)}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => void onRemoveItem(i.id)}
-                    >
-                      Remove
-                    </Button>
+                    <ConfirmButton
+                      label="Remove"
+                      title={`Remove ${i.name}?`}
+                      description="The charge drops off and the total recomputes."
+                      confirmLabel="Remove"
+                      onConfirm={() => onRemoveItem(i.id)}
+                    />
                   </span>
                 </li>
               ))}

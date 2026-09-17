@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   Card,
   CardContent,
@@ -159,13 +160,13 @@ export function PrescriptionBuilder({
                   </p>
                 </div>
                 {!finalized && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => void onRemove(i.id)}
-                  >
-                    Remove
-                  </Button>
+                  <ConfirmButton
+                    label="Remove"
+                    title="Remove this medicine?"
+                    description={`${i.medicine?.name ?? i.freeTextName ?? "This line"} will be dropped from the draft prescription.`}
+                    confirmLabel="Remove"
+                    onConfirm={() => onRemove(i.id)}
+                  />
                 )}
               </li>
             ))}

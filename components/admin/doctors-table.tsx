@@ -10,6 +10,7 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   Table,
   TableBody,
@@ -67,13 +68,23 @@ const columns = (departments: { id: number; name: string }[]) =>
     header: "",
     cell: ({ row }) => (
       <div className="flex justify-end gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void toggleStatus(row.original)}
-        >
-          {row.original.status === "active" ? "Deactivate" : "Activate"}
-        </Button>
+        {row.original.status === "active" ? (
+          <ConfirmButton
+            label="Deactivate"
+            title={`Deactivate ${row.original.user.name}?`}
+            description="Their queue and history stay, but no new appointments can be booked with them."
+            confirmLabel="Deactivate"
+            onConfirm={() => toggleStatus(row.original)}
+          />
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => void toggleStatus(row.original)}
+          >
+            Activate
+          </Button>
+        )}
         <DoctorDialog doctor={row.original} departments={departments} />
       </div>
     ),

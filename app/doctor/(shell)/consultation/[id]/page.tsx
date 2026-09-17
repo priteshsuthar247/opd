@@ -68,7 +68,10 @@ export default async function ConsultationPage({
             />
           )}
           {bundle.status === "in_progress" && (
-            <CompleteVisitButton appointmentId={bundle.id} />
+            <CompleteVisitButton
+              appointmentId={bundle.id}
+              tokenNumber={bundle.tokenNumber}
+            />
           )}
         </div>
       </div>

@@ -9,6 +9,7 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   Table,
   TableBody,
@@ -57,13 +58,23 @@ const columns = helper.columns([
     header: "",
     cell: ({ row }) => (
       <div className="flex justify-end gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void toggleStatus(row.original)}
-        >
-          {row.original.status === "active" ? "Deactivate" : "Activate"}
-        </Button>
+        {row.original.status === "active" ? (
+          <ConfirmButton
+            label="Deactivate"
+            title={`Deactivate ${row.original.name}?`}
+            description="Existing prescriptions keep it, but it can no longer be picked for new ones."
+            confirmLabel="Deactivate"
+            onConfirm={() => toggleStatus(row.original)}
+          />
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => void toggleStatus(row.original)}
+          >
+            Activate
+          </Button>
+        )}
         <MedicineDialog medicine={row.original} />
       </div>
     ),
