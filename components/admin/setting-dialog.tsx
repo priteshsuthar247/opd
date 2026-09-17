@@ -88,6 +88,7 @@ export function SettingDialog({ setting }: { setting: SettingRow }) {
                 id="set-value"
                 rows={6}
                 className="font-mono"
+                autoFocus
                 aria-invalid={!!errors.valueJson}
                 {...register("valueJson")}
               />

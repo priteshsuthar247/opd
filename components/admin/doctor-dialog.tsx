@@ -155,10 +155,11 @@ export function DoctorDialog({
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={!!errors.name}>
                 <FieldLabel htmlFor="doc-name">Name</FieldLabel>
-                <Input
-                  id="doc-name"
-                  placeholder="Dr. Aisha Verma"
-                  aria-invalid={!!errors.name}
+              <Input
+                id="doc-name"
+                placeholder="Dr. Aisha Verma"
+                autoFocus
+                aria-invalid={!!errors.name}
                   {...register("name")}
                 />
                 <FieldError errors={[errors.name]} />

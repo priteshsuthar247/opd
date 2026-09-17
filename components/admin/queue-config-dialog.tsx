@@ -133,10 +133,11 @@ export function QueueConfigDialog({
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={!!errors.slotDurationMinutes}>
                 <FieldLabel htmlFor="qc-slot">Slot (min)</FieldLabel>
-                <Input
-                  id="qc-slot"
-                  inputMode="numeric"
-                  {...register("slotDurationMinutes")}
+              <Input
+                id="qc-slot"
+                inputMode="numeric"
+                autoFocus
+                {...register("slotDurationMinutes")}
                 />
                 <FieldError errors={[errors.slotDurationMinutes]} />
               </Field>

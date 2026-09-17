@@ -111,6 +111,7 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
               <Input
                 id="bill-name"
                 placeholder="Dressing"
+                autoFocus
                 aria-invalid={!!errors.name}
                 {...register("name")}
               />

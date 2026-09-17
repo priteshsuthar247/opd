@@ -102,6 +102,7 @@ export function DepartmentDialog({
               <Input
                 id="dept-name"
                 placeholder="General Medicine"
+                autoFocus
                 aria-invalid={!!errors.name}
                 {...register("name")}
               />

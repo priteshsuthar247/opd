@@ -152,6 +152,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                   id="book-patient"
                   placeholder="Type at least 2 letters of name or phone…"
                   value={patientQuery}
+                  autoFocus
                   onChange={(e) => handlePatientQueryChange(e.target.value)}
                   onBlur={() => setTimeout(() => setPickerOpen(false), 150)}
                   onFocus={() => options.length > 0 && setPickerOpen(true)}

@@ -97,6 +97,7 @@ export function CategoryDialog({ category }: { category?: CategoryRow }) {
               <Input
                 id="cat-name"
                 placeholder="Viral Fever"
+                autoFocus
                 aria-invalid={!!errors.name}
                 {...register("name")}
               />

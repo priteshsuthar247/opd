@@ -90,6 +90,7 @@ export function RescheduleDialog({ row }: { row: QueueRow }) {
                 id="resched-date"
                 type="date"
                 min={todayStr()}
+                autoFocus
                 aria-invalid={!!errors.date}
                 {...register("date")}
               />

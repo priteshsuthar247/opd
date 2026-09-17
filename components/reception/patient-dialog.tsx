@@ -100,10 +100,11 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={!!errors.name}>
                 <FieldLabel htmlFor="pat-name">Name</FieldLabel>
-                <Input
-                  id="pat-name"
-                  placeholder="Ramesh Patel"
-                  aria-invalid={!!errors.name}
+              <Input
+                id="pat-name"
+                placeholder="Ramesh Patel"
+                autoFocus
+                aria-invalid={!!errors.name}
                   {...register("name")}
                 />
                 <FieldError errors={[errors.name]} />

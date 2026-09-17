@@ -106,6 +106,7 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
               <Input
                 id="med-name"
                 placeholder="Paracetamol 500mg"
+                autoFocus
                 aria-invalid={!!errors.name}
                 {...register("name")}
               />

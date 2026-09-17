@@ -73,6 +73,7 @@ export function LoginForm() {
                 id="email"
                 type="email"
                 autoComplete="email"
+                autoFocus
                 placeholder="you@opdclinic.com"
                 aria-invalid={!!errors.email}
                 {...register("email")}

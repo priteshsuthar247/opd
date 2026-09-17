@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createColumnHelper,
   useTable,
@@ -108,6 +108,26 @@ const columns = helper.columns([
 
 export function PatientsTable({ data }: { data: PatientRow[] }) {
   const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // "/" focuses search from anywhere on the page (unless already typing).
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const el = e.target as HTMLElement | null;
+      const typing =
+        el !== null &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.tagName === "SELECT" ||
+          el.isContentEditable);
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return data;
@@ -126,7 +146,8 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
   return (
     <div className="flex flex-col gap-3">
       <Input
-        placeholder="Search by name or phone…"
+        ref={searchRef}
+        placeholder="Search by name or phone…  ( / )"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="max-w-xs"

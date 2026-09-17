@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -18,9 +19,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { NavUser } from "@/components/nav-user";
+import {
+  CommandPalette,
+  type PaletteItem,
+} from "@/components/shell/command-palette";
 import { NotificationsBell } from "@/components/shell/notifications-bell";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { NotificationRow } from "@/db/queries/notifications";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
@@ -136,6 +142,10 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const groups = navByRole[role];
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const paletteItems: PaletteItem[] = groups.flatMap((g) =>
+    g.items.map((i) => ({ label: i.label, href: i.href, section: g.section }))
+  );
 
   return (
     <SidebarProvider
@@ -207,6 +217,15 @@ export function AppShell({
             />
             <h1 className="text-base font-medium">{titleFor(pathname)}</h1>
             <div className="ml-auto flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden text-muted-foreground sm:inline-flex"
+                onClick={() => setPaletteOpen(true)}
+              >
+                Jump to…
+                <kbd className="ml-1 border px-1 text-[10px]">Ctrl K</kbd>
+              </Button>
               <NotificationsBell
                 unreadCount={unreadCount}
                 items={notifications}
@@ -221,6 +240,12 @@ export function AppShell({
           </div>
         </div>
       </SidebarInset>
+      <CommandPalette
+        role={role}
+        items={paletteItems}
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+      />
     </SidebarProvider>
   );
 }
