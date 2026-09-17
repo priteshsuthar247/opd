@@ -32,6 +32,16 @@ import {
   createBillingItem,
   updateBillingItem,
 } from "@/app/admin/billing-items/actions";
+import { billingItemTypes } from "@/lib/options";
+
+function listedType(
+  v: string | null | undefined
+): (typeof billingItemTypes)[number] | undefined {
+  const s = v ?? "";
+  return (billingItemTypes as readonly string[]).includes(s)
+    ? (s as (typeof billingItemTypes)[number])
+    : undefined;
+}
 
 export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
   const [open, setOpen] = useState(false);
@@ -46,7 +56,7 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
     resolver: zodResolver(billingItemSchema),
     defaultValues: {
       name: item?.name ?? "",
-      type: item?.type ?? "",
+      type: listedType(item?.type),
       amount: item?.amount ?? "",
       status: item?.status ?? "active",
     },
@@ -57,7 +67,7 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
     if (next)
       reset({
         name: item?.name ?? "",
-        type: item?.type ?? "",
+        type: listedType(item?.type),
         amount: item?.amount ?? "",
         status: item?.status ?? "active",
       });
@@ -107,12 +117,31 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
               <FieldError errors={[errors.name]} />
             </Field>
             <Field data-invalid={!!errors.type}>
-              <FieldLabel htmlFor="bill-type">Type</FieldLabel>
-              <Input
-                id="bill-type"
-                placeholder="Procedure"
-                aria-invalid={!!errors.type}
-                {...register("type")}
+              <FieldLabel>Type</FieldLabel>
+              <Controller
+                control={control}
+                name="type"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? ""}
+                    onValueChange={(v) =>
+                      field.onChange(
+                        v === "" ? undefined : (v as (typeof billingItemTypes)[number])
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="—" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {billingItemTypes.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
               <FieldError errors={[errors.type]} />
             </Field>

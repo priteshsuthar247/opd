@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { billingItemTypes } from "@/lib/options";
 
 const money = z
   .string()
@@ -7,7 +8,7 @@ const money = z
 
 export const billingItemSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(255),
-  type: z.string().trim().max(100).optional().transform((v) => (v === "" ? undefined : v)),
+  type: z.enum(billingItemTypes).optional(),
   amount: money,
   status: z.enum(["active", "inactive"]),
 });

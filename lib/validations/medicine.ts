@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { medicineForms } from "@/lib/options";
 
 const optionalText = (max: number) =>
   z
@@ -11,7 +12,7 @@ const optionalText = (max: number) =>
 export const medicineSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(255),
   genericName: optionalText(255),
-  form: optionalText(100),
+  form: z.enum(medicineForms).optional(),
   defaultDosageNote: optionalText(1000),
   status: z.enum(["active", "inactive"]),
 });

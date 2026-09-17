@@ -26,6 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { MedicineRow } from "@/db/queries/medicines";
 import { medicineSchema, type MedicineFormValues } from "@/lib/validations/medicine";
+import { medicineForms } from "@/lib/options";
 import { createMedicine, updateMedicine } from "@/app/admin/medicines/actions";
 
 export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
@@ -42,11 +43,21 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
     defaultValues: {
       name: medicine?.name ?? "",
       genericName: medicine?.genericName ?? "",
-      form: medicine?.form ?? "",
+      // DB may hold legacy free-text; only carry over listed values.
+      form: (medicineForms as readonly string[]).includes(medicine?.form ?? "")
+        ? (medicine?.form as (typeof medicineForms)[number])
+        : undefined,
       defaultDosageNote: medicine?.defaultDosageNote ?? "",
       status: medicine?.status ?? "active",
     },
   });
+
+  function medicineFormDefault(): (typeof medicineForms)[number] | undefined {
+    const f = medicine?.form ?? "";
+    return (medicineForms as readonly string[]).includes(f)
+      ? (f as (typeof medicineForms)[number])
+      : undefined;
+  }
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
@@ -54,7 +65,7 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
       reset({
         name: medicine?.name ?? "",
         genericName: medicine?.genericName ?? "",
-        form: medicine?.form ?? "",
+        form: medicineFormDefault(),
         defaultDosageNote: medicine?.defaultDosageNote ?? "",
         status: medicine?.status ?? "active",
       });
@@ -111,12 +122,31 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
               <FieldError errors={[errors.genericName]} />
             </Field>
             <Field data-invalid={!!errors.form}>
-              <FieldLabel htmlFor="med-form">Form</FieldLabel>
-              <Input
-                id="med-form"
-                placeholder="Tablet / Syrup / Injection…"
-                aria-invalid={!!errors.form}
-                {...register("form")}
+              <FieldLabel>Form</FieldLabel>
+              <Controller
+                control={control}
+                name="form"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? ""}
+                    onValueChange={(v) =>
+                      field.onChange(
+                        v === "" ? undefined : (v as (typeof medicineForms)[number])
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="—" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {medicineForms.map((f) => (
+                        <SelectItem key={f} value={f}>
+                          {f}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
               <FieldError errors={[errors.form]} />
             </Field>
