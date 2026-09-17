@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OPD Clinic — Outpatient Management
 
-## Getting Started
+Digitizes the full outpatient loop for a multi-doctor clinic: walk-in
+registration → token queue → consultation → prescription → billing →
+reporting. See `OPD-SaaS-Spec.md` for the product spec and `AGENTS.md`
+for build conventions.
 
-First, run the development server:
+## Stack
+
+Next.js 16 (App Router, Server Actions) · TypeScript · PostgreSQL (Neon)
+via Drizzle ORM · Auth.js v5 (credentials, JWT) · Tailwind + shadcn/ui ·
+React Hook Form + Zod · TanStack Table v9.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env   # fill in DATABASE_URL + AUTH_SECRET
+pnpm db:generate       # create a migration from db/schema.ts
+pnpm db:migrate        # apply migrations
+pnpm db:seed           # masters + demo accounts
+pnpm dev               # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Other scripts: `pnpm build`, `pnpm start`, `pnpm lint`.
+`pnpm tsc --noEmit` type-checks (no dedicated script).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Demo accounts (password: `password123`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `admin@opdclinic.com` — admin
+- `reception@opdclinic.com` — receptionist
+- `aisha.verma@opdclinic.com` — doctor (General Medicine)
+- `rohan.mehta@opdclinic.com` — doctor (Pediatrics)
 
-## Learn More
+## Key behaviors
 
-To learn more about Next.js, take a look at the following resources:
+- Tokens assign per doctor per day inside a transaction with a
+  `SELECT ... FOR UPDATE` row lock (pooled driver required), backed by a
+  unique index as a final guard.
+- Finalized prescriptions are immutable; corrections need a new version.
+- Every Server Action checks the session role first and validates input
+  with Zod before touching the database.
+- Prescription PDFs are client-side: print view → browser Print to PDF.
+  Report exports are CSV downloads.
+- No-show auto-flag runs lazily on queue renders (minutes + token-gap
+  thresholds in Settings).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploying
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- App: Vercel (or any Node host). Set `AUTH_SECRET` (and `AUTH_URL` or
+  `NEXTAUTH_URL`) in the host env. `trustHost` is enabled in `lib/auth.ts`.
+- Database: any reachable Postgres; point `DATABASE_URL` at it and run
+  `pnpm db:migrate` + `pnpm db:seed` once.
 
-## Deploy on Vercel
+## Versioning
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Phase tags mark verified checkpoints (`phase-0-grounded` …
+`phase-8-shell`). Roll back with `git reset --hard <tag>`.
+Conventional commits, local-only (no remote configured).
