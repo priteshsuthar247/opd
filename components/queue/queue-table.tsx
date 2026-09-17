@@ -5,6 +5,7 @@ import {
   tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,15 +52,23 @@ const columns = helper.columns([
   helper.display({
     id: "actions",
     header: "",
-    cell: ({ row }) =>
-      row.original.status === "waiting" ? (
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={() => void cancel(row.original)}>
-            Cancel
-          </Button>
-          <RescheduleDialog row={row.original} />
-        </div>
-      ) : null,
+    cell: ({ row }) => (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          render={<Link href={`/reception/invoices/${row.original.id}`}>Bill</Link>}
+        />
+        {row.original.status === "waiting" && (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => void cancel(row.original)}>
+              Cancel
+            </Button>
+            <RescheduleDialog row={row.original} />
+          </>
+        )}
+      </div>
+    ),
   }),
 ]);
 

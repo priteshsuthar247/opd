@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { doctors, medicines } from "@/db/schema";
@@ -12,6 +13,7 @@ import { CompleteVisitButton } from "@/components/consultation/complete-visit-bu
 import { HistoryPanel } from "@/components/consultation/history-panel";
 import { PrescriptionBuilder } from "@/components/consultation/prescription-builder";
 import { StatusBadge } from "@/components/queue/status-badge";
+import { Button } from "@/components/ui/button";
 
 export default async function ConsultationPage({
   params,
@@ -54,6 +56,17 @@ export default async function ConsultationPage({
         </div>
         <div className="flex items-center gap-2">
           <StatusBadge status={bundle.status} />
+          {bundle.consultation?.prescription && (
+            <Button
+              variant="outline"
+              size="sm"
+              render={
+                <Link href={`/doctor/consultation/${bundle.id}/print`}>
+                  Print / PDF
+                </Link>
+              }
+            />
+          )}
           {bundle.status === "in_progress" && (
             <CompleteVisitButton appointmentId={bundle.id} />
           )}
