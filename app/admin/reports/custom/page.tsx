@@ -210,7 +210,8 @@ export default async function CustomReportPage({
           No visits match these filters.
         </div>
       ) : (
-        <Table>
+        <div className="overflow-x-auto">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
@@ -238,6 +239,7 @@ export default async function CustomReportPage({
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
     </main>
   );

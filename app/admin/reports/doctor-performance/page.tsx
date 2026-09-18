@@ -121,7 +121,8 @@ export default async function DoctorPerformancePage({
           No appointments in this range.
         </div>
       ) : (
-        <Table>
+        <div className="overflow-x-auto">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Doctor</TableHead>
@@ -149,6 +150,7 @@ export default async function DoctorPerformancePage({
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
     </main>
   );

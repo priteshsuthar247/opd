@@ -102,6 +102,7 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
 
   return (
     <>
+      <div className="overflow-x-auto">
       <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
@@ -128,6 +129,7 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
         ))}
       </TableBody>
       </Table>
+      </div>
       <TablePagination table={table} total={data.length} />
     </>
   );

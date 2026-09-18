@@ -109,6 +109,7 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
 
   return (
     <>
+      <div className="overflow-x-auto">
       <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
@@ -135,6 +136,7 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
         ))}
       </TableBody>
       </Table>
+      </div>
       <TablePagination table={table} total={data.length} />
     </>
   );

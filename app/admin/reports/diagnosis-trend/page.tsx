@@ -81,7 +81,8 @@ export default async function DiagnosisTrendPage({
           No recorded diagnoses in this range.
         </div>
       ) : (
-        <Table>
+        <div className="overflow-x-auto">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Diagnosis</TableHead>
@@ -99,6 +100,7 @@ export default async function DiagnosisTrendPage({
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
     </main>
   );

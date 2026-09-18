@@ -106,7 +106,8 @@ export default async function DailyReportPage({
           No appointments on this date.
         </div>
       ) : (
-        <Table>
+        <div className="overflow-x-auto">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Doctor</TableHead>
@@ -132,6 +133,7 @@ export default async function DailyReportPage({
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
     </main>
   );

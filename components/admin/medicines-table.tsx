@@ -106,6 +106,7 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
 
   return (
     <>
+      <div className="overflow-x-auto">
       <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
@@ -132,6 +133,7 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
         ))}
       </TableBody>
       </Table>
+      </div>
       <TablePagination table={table} total={data.length} />
     </>
   );

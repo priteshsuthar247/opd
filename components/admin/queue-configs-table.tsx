@@ -120,6 +120,7 @@ export function QueueConfigsTable({
 
   return (
     <>
+      <div className="overflow-x-auto">
       <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
@@ -146,6 +147,7 @@ export function QueueConfigsTable({
         ))}
       </TableBody>
       </Table>
+      </div>
       <TablePagination table={table} total={data.length} />
     </>
   );

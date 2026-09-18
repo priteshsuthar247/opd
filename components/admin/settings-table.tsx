@@ -69,6 +69,7 @@ export function SettingsTable({ data }: { data: SettingRow[] }) {
 
   return (
     <>
+      <div className="overflow-x-auto">
       <Table>
       <TableHeader>
         {table.getHeaderGroups().map((group) => (
@@ -95,6 +96,7 @@ export function SettingsTable({ data }: { data: SettingRow[] }) {
         ))}
       </TableBody>
       </Table>
+      </div>
       <TablePagination table={table} total={data.length} />
     </>
   );
