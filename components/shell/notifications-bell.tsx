@@ -53,7 +53,7 @@ export function NotificationsBell({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon-sm" aria-label="Notifications">
+          <Button variant="ghost" size="icon-sm" aria-label="Notifications" className="relative">
             <BellIcon />
             {unreadCount > 0 && (
               <Badge
