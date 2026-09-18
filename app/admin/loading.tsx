@@ -1,21 +1,14 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  StatCardsSkeleton,
+  TableSkeleton,
+} from "@/components/shell/loading-blocks";
 
 // Segment fallback for everything under /admin.
 export default function AdminLoading() {
   return (
-    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex flex-col gap-1.5">
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-        <Skeleton className="h-7 w-28" />
-      </div>
-      <div className="flex flex-col gap-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-9 w-full" />
-        ))}
-      </div>
-    </main>
+    <div className="flex flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6">
+      <StatCardsSkeleton />
+      <TableSkeleton />
+    </div>
   );
 }
