@@ -6,9 +6,8 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { LockIcon } from "lucide-react";
+import { LockIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   Card,
   CardContent,
@@ -168,15 +167,16 @@ export function InvoiceManager({
                 className="flex items-center justify-between gap-2 px-3 py-2.5"
               >
                 <span className="font-medium">{i.name}</span>
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-1">
                   ₹{money(i.amount)}
-                  <ConfirmButton
-                    label="Remove"
-                    title={`Remove ${i.name}?`}
-                    description="The charge drops off and the total recomputes."
-                    confirmLabel="Remove"
-                    onConfirm={() => onRemoveItem(i.id)}
-                  />
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Remove ${i.name}`}
+                    onClick={() => void onRemoveItem(i.id)}
+                  >
+                    <Trash2Icon />
+                  </Button>
                 </span>
               </li>
             ))}

@@ -43,7 +43,7 @@ export function FormSelect({
       <SelectTrigger>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="w-auto min-w-(--anchor-width) max-w-[calc(100vw-2rem)]">
         {options.map((o) => (
           <SelectItem key={o.value} value={o.value}>
             {o.label}
