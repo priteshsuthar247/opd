@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { requireRole } from "@/lib/roles";
 import { db } from "@/db";
 import { billingItems } from "@/db/schema";
 import { getInvoiceBundle } from "@/db/queries/invoices";
 import { InvoiceManager } from "@/components/reception/invoice-manager";
+import { Button } from "@/components/ui/button";
 
 export default async function InvoicePage({
   params,
@@ -26,12 +28,24 @@ export default async function InvoicePage({
   if (!bundle) redirect("/reception/queue");
 
   return (
-    <main className="w-full px-4 lg:px-6 py-4 md:py-6">
-      <div className="mb-4">
-        <h1 className="text-lg font-semibold">Invoice</h1>
-        <p className="text-xs text-muted-foreground">
-          Appointment #{bundle.id} · {bundle.date}
-        </p>
+    <main className="mx-auto w-full max-w-3xl p-4">
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-semibold">Invoice</h1>
+          <p className="text-xs text-muted-foreground">
+            Appointment #{bundle.id} · {bundle.date}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          nativeButton={false}
+          render={
+            <Link href={`/reception/invoices/${bundle.id}/print`}>
+              Print / PDF
+            </Link>
+          }
+        />
       </div>
       <InvoiceManager bundle={bundle} masterItems={master} />
     </main>
