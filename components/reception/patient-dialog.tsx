@@ -80,7 +80,7 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
           </Button>
         }
       />
-      <DialogContent className="max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      <DialogContent className="max-w-lg sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? "Edit patient" : "Register patient"}

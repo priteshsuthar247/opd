@@ -137,7 +137,7 @@ export function DoctorDialog({
           </Button>
         }
       />
-      <DialogContent className="max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      <DialogContent className="max-w-lg sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit doctor" : "Add doctor"}</DialogTitle>
           <DialogDescription>
