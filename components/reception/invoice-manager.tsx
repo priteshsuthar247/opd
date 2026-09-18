@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
+
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { LockIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
@@ -81,18 +84,25 @@ export function InvoiceManager({
     },
   });
   const paymentStatus = watch("paymentStatus");
+  // Optimistic adds: the row appears instantly while the server roundtrip
+  // (slow in dev, fast in prod) confirms. Cleared on error or on the
+  // parent remount that follows a successful refetch.
+  const [pendingIds, setPendingIds] = useState<number[]>([]);
 
   async function onAddItem(billingItemId: number) {
+    setPendingIds((prev) => [...prev, billingItemId]);
     const result = await addInvoiceItem({
       appointmentId: bundle.id,
       billingItemId,
     });
-    if (!result.ok) toast.error(result.error);
-    else {
-      toast.success("Charge added.");
-      router.refresh();
-      onChanged?.();
+    if (!result.ok) {
+      toast.error(result.error);
+      setPendingIds((prev) => prev.filter((id) => id !== billingItemId));
+      return;
     }
+    toast.success("Charge added.");
+    router.refresh();
+    onChanged?.();
   }
 
   async function onRemoveItem(id: number) {
@@ -130,61 +140,75 @@ export function InvoiceManager({
   }
 
   return (
-    <div className="flex max-w-md flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
           <CardTitle>
             Token {bundle.tokenNumber} · {bundle.patient.name}
           </CardTitle>
           <CardDescription>
-            {bundle.doctor.user.name} · {bundle.date} · Fee ₹
-            {money(invoice.consultationFee)}
+            {bundle.doctor.user.name} · {bundle.date}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2 text-xs">
-          {invoice.items.length === 0 ? (
-            <p className="text-muted-foreground">
-              No additional charges. Add from the billing master below.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-1.5">
-              {invoice.items.map((i) => (
+        <CardContent className="flex flex-col gap-3 text-sm">
+          <ul className="flex flex-col divide-y rounded-md border">
+            <li className="flex items-center justify-between gap-2 px-3 py-2.5">
+              <span className="flex items-center gap-2 font-medium">
+                Consultation fee
+                <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                  <LockIcon className="size-3" />
+                  fixed
+                </span>
+              </span>
+              <span>₹{money(invoice.consultationFee)}</span>
+            </li>
+            {invoice.items.map((i) => (
+              <li
+                key={i.id}
+                className="flex items-center justify-between gap-2 px-3 py-2.5"
+              >
+                <span className="font-medium">{i.name}</span>
+                <span className="flex items-center gap-2">
+                  ₹{money(i.amount)}
+                  <ConfirmButton
+                    label="Remove"
+                    title={`Remove ${i.name}?`}
+                    description="The charge drops off and the total recomputes."
+                    confirmLabel="Remove"
+                    onConfirm={() => onRemoveItem(i.id)}
+                  />
+                </span>
+              </li>
+            ))}
+            {pendingIds.map((id) => {
+              const m = masterItems.find((x) => x.id === id);
+              if (!m) return null;
+              return (
                 <li
-                  key={i.id}
-                  className="flex items-center justify-between gap-2 border p-2"
+                  key={`pending-${id}`}
+                  className="flex animate-pulse items-center justify-between gap-2 px-3 py-2.5 text-muted-foreground"
                 >
-                  <span className="font-medium">{i.name}</span>
-                  <span className="flex items-center gap-2">
-                    ₹{money(i.amount)}
-                    <ConfirmButton
-                      label="Remove"
-                      title={`Remove ${i.name}?`}
-                      description="The charge drops off and the total recomputes."
-                      confirmLabel="Remove"
-                      onConfirm={() => onRemoveItem(i.id)}
-                    />
-                  </span>
+                  <span className="font-medium">{m.name}</span>
+                  <span>₹{money(m.amount)}</span>
                 </li>
-              ))}
-            </ul>
-          )}
-          <div className="flex items-center gap-2">
-            <FormSelect
-              value=""
-              onValueChange={(v) => void onAddItem(Number(v))}
-              options={masterItems.map((m) => ({
-                value: String(m.id),
-                label: `${m.name} · ₹${money(m.amount)}`,
-              }))}
-              placeholder="Add a charge…"
-            />
-          </div>
-          <dl className="mt-1 flex flex-col gap-1 border-t pt-2">
+              );
+            })}
+          </ul>
+          <FormSelect
+            value=""
+            onValueChange={(v) => void onAddItem(Number(v))}
+            options={masterItems.map((m) => ({
+              value: String(m.id),
+              label: `${m.name} · ₹${money(m.amount)}`,
+            }))}
+            placeholder="Add a charge…"
+          />
+          <dl className="flex flex-col gap-1 border-t pt-3">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Discount</dt>
               <dd>₹{money(invoice.discount)}</dd>
             </div>
-            <div className="flex justify-between font-medium">
+            <div className="flex justify-between text-base font-semibold">
               <dt>Total</dt>
               <dd>₹{money(invoice.totalAmount)}</dd>
             </div>
