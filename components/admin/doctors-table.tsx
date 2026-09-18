@@ -6,7 +6,10 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  DataTableToolbar,
+  filterIncludesAny,
   sortHeader,
+  statusFacet,
   tableFeaturesFull,
   TablePagination,
 } from "@/components/table/table-helpers";
@@ -58,6 +61,7 @@ const columns = (departments: { id: number; name: string }[]) =>
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
+    filterFn: filterIncludesAny,
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -122,6 +126,11 @@ export function DoctorsTable({
 
   return (
     <>
+      <DataTableToolbar
+        table={table}
+        searchPlaceholder="Search doctors…"
+        facets={[statusFacet]}
+      />
       <div className="overflow-x-auto">
       <Table>
       <TableHeader>

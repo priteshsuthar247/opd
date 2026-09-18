@@ -5,6 +5,10 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  appointmentTypeFacet,
+  DataTableToolbar,
+  filterIncludesAny,
+  queueStatusFacet,
   sortHeader,
   tableFeaturesFull,
   TablePagination,
@@ -48,10 +52,12 @@ const columns = helper.columns([
   }),
   helper.accessor("type", {
     header: sortHeader("Type"),
+    filterFn: filterIncludesAny,
     cell: ({ getValue }) => (getValue() === "walk_in" ? "Walk-in" : "Scheduled"),
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
+    filterFn: filterIncludesAny,
     cell: ({ getValue }) => <StatusBadge status={getValue()} />,
   }),
   helper.display({
@@ -102,6 +108,11 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
 
   return (
     <>
+      <DataTableToolbar
+        table={table}
+        searchPlaceholder="Search queue…"
+        facets={[queueStatusFacet, appointmentTypeFacet]}
+      />
       <div className="overflow-x-auto">
       <Table>
       <TableHeader>

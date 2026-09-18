@@ -6,7 +6,10 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  DataTableToolbar,
+  filterIncludesAny,
   sortHeader,
+  statusFacet,
   tableFeaturesFull,
   TablePagination,
 } from "@/components/table/table-helpers";
@@ -55,6 +58,7 @@ const columns = (doctors: { id: number; name: string }[]) =>
     helper.accessor("maxTokensPerDay", { header: sortHeader("Max tokens/day") }),
   helper.accessor("status", {
     header: sortHeader("Status"),
+    filterFn: filterIncludesAny,
       cell: ({ getValue }) =>
         getValue() === "active" ? (
           <Badge variant="secondary">
@@ -120,6 +124,11 @@ export function QueueConfigsTable({
 
   return (
     <>
+      <DataTableToolbar
+        table={table}
+        searchPlaceholder="Search configurations…"
+        facets={[statusFacet]}
+      />
       <div className="overflow-x-auto">
       <Table>
       <TableHeader>

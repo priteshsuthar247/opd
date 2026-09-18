@@ -5,6 +5,7 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  DataTableToolbar,
   sortHeader,
   tableFeaturesFull,
   TablePagination,
@@ -69,6 +70,7 @@ export function SettingsTable({ data }: { data: SettingRow[] }) {
 
   return (
     <>
+      <DataTableToolbar table={table} searchPlaceholder="Search settings…" />
       <div className="overflow-x-auto">
       <Table>
       <TableHeader>

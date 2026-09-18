@@ -5,7 +5,11 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  categoryTypeFacet,
+  DataTableToolbar,
+  filterIncludesAny,
   sortHeader,
+  statusFacet,
   tableFeaturesFull,
   TablePagination,
 } from "@/components/table/table-helpers";
@@ -52,10 +56,12 @@ const columns = helper.columns([
   }),
   helper.accessor("type", {
     header: sortHeader("Type"),
+    filterFn: filterIncludesAny,
     cell: ({ getValue }) => typeLabels[getValue()],
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
+    filterFn: filterIncludesAny,
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -114,6 +120,11 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
 
   return (
     <>
+      <DataTableToolbar
+        table={table}
+        searchPlaceholder="Search categories…"
+        facets={[categoryTypeFacet, statusFacet]}
+      />
       <div className="overflow-x-auto">
       <Table>
       <TableHeader>

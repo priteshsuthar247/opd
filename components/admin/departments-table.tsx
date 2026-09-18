@@ -9,7 +9,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  DataTableToolbar,
+  filterIncludesAny,
   sortHeader,
+  statusFacet,
   tableFeaturesFull,
   TablePagination,
 } from "@/components/table/table-helpers";
@@ -47,6 +50,7 @@ const columns = helper.columns([
   helper.accessor("code", { header: sortHeader("Code") }),
   helper.accessor("status", {
     header: sortHeader("Status"),
+    filterFn: filterIncludesAny,
     cell: ({ getValue }) =>
       getValue() === "active" ? (
         <Badge variant="secondary">
@@ -105,6 +109,11 @@ export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
 
   return (
     <>
+      <DataTableToolbar
+        table={table}
+        searchPlaceholder="Search departments…"
+        facets={[statusFacet]}
+      />
       <div className="overflow-x-auto">
       <Table>
       <TableHeader>
