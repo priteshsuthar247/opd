@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
+  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -65,30 +66,32 @@ export function CommandPalette({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Jump to… (patients, book, queue)" />
-      <CommandList>
-        <CommandEmpty>No matches.</CommandEmpty>
-        {role === "doctor" && (
-          <CommandGroup heading="Actions">
-            <CommandItem value="call next token" onSelect={() => void callNext()}>
-              Call next token
-            </CommandItem>
-          </CommandGroup>
-        )}
-        {[...groups.entries()].map(([section, list]) => (
-          <CommandGroup key={section} heading={section}>
-            {list.map((item) => (
-              <CommandItem
-                key={item.href}
-                value={`${item.label} ${item.section}`}
-                onSelect={() => go(item.href)}
-              >
-                {item.label}
+      <Command>
+        <CommandInput placeholder="Jump to… (patients, book, queue)" />
+        <CommandList>
+          <CommandEmpty>No matches.</CommandEmpty>
+          {role === "doctor" && (
+            <CommandGroup heading="Actions">
+              <CommandItem value="call next token" onSelect={() => void callNext()}>
+                Call next token
               </CommandItem>
-            ))}
-          </CommandGroup>
-        ))}
-      </CommandList>
+            </CommandGroup>
+          )}
+          {[...groups.entries()].map(([section, list]) => (
+            <CommandGroup key={section} heading={section}>
+              {list.map((item) => (
+                <CommandItem
+                  key={item.href}
+                  value={`${item.label} ${item.section}`}
+                  onSelect={() => go(item.href)}
+                >
+                  {item.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ))}
+        </CommandList>
+      </Command>
     </CommandDialog>
   );
 }
