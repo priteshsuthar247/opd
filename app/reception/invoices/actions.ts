@@ -9,6 +9,7 @@ import {
   invoices,
 } from "@/db/schema";
 import { requireRole } from "@/lib/roles";
+import { getInvoiceBundle } from "@/db/queries/invoices";
 import {
   invoiceItemAddSchema,
   invoiceItemRemoveSchema,
@@ -16,6 +17,33 @@ import {
 } from "@/lib/validations/invoice";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
+
+// Dialog data source: serializable bundle plus active billing master.
+export async function getInvoiceData(appointmentId: number) {
+  if (!(await requireRole("receptionist", "admin"))) return null;
+  if (!Number.isInteger(appointmentId)) return null;
+  const [bundle, master] = await Promise.all([
+    getInvoiceBundle(appointmentId),
+    db.query.billingItems.findMany({
+      where: eq(billingItems.status, "active"),
+      orderBy: (t, { asc }) => [asc(t.name)],
+    }),
+  ]);
+  if (!bundle) return null;
+  return {
+    bundle: {
+      ...bundle,
+      invoice: bundle.invoice
+        ? {
+            ...bundle.invoice,
+            paidAt: bundle.invoice.paidAt?.toISOString() ?? null,
+            createdAt: bundle.invoice.createdAt.toISOString(),
+          }
+        : null,
+    },
+    master,
+  };
+}
 
 function invalid(): ActionResult {
   return { ok: false, error: "Invalid input." };

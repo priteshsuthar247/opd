@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import {
   createColumnHelper,
   useTable,
@@ -13,10 +14,10 @@ import {
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
+import { InvoiceDialog } from "@/components/reception/invoice-dialog";
 import { RescheduleDialog } from "@/components/queue/reschedule-dialog";
 import { StatusBadge } from "@/components/queue/status-badge";
 import type { QueueRow } from "@/db/queries/appointments";
@@ -31,7 +32,8 @@ async function cancel(row: QueueRow) {
   else toast.success(`Token ${row.tokenNumber} cancelled.`);
 }
 
-const columns = helper.columns([
+const columns = (onBill: (appointmentId: number) => void) =>
+  helper.columns([
   selectionColumn<QueueRow>(),
   helper.accessor("tokenNumber", { header: sortHeader("Token") }),
   helper.accessor((r) => r.patient.name, {
@@ -62,9 +64,10 @@ const columns = helper.columns([
         <Button
           variant="ghost"
           size="sm"
-          nativeButton={false}
-          render={<Link href={`/reception/invoices/${row.original.id}`}>Bill</Link>}
-        />
+          onClick={() => onBill(row.original.id)}
+        >
+          Bill
+        </Button>
         {row.original.status === "waiting" && (
           <>
             <ConfirmButton
@@ -83,9 +86,10 @@ const columns = helper.columns([
 ]);
 
 export function QueueTable({ data }: { data: QueueRow[] }) {
+  const [billingId, setBillingId] = useState<number | null>(null);
   const table = useTable({
     features,
-    columns,
+    columns: useMemo(() => columns(setBillingId), []),
     data,
     initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
@@ -101,13 +105,23 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
   }
 
   return (
-    <DataTable
-      table={table}
-      total={data.length}
-      searchPlaceholder="Search queue…"
-      facets={[queueStatusFacet, appointmentTypeFacet]}
-      exportFilename="queue"
-      empty="No visits match these filters."
-    />
+    <>
+      <DataTable
+        table={table}
+        total={data.length}
+        searchPlaceholder="Search queue…"
+        facets={[queueStatusFacet, appointmentTypeFacet]}
+        exportFilename="queue"
+        empty="No visits match these filters."
+      />
+      <InvoiceDialog
+        key={billingId ?? "none"}
+        appointmentId={billingId}
+        open={billingId !== null}
+        onOpenChange={(open) => {
+          if (!open) setBillingId(null);
+        }}
+      />
+    </>
   );
 }

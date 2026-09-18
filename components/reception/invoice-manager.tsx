@@ -16,12 +16,30 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { FormSelect } from "@/components/ui/form-select";
-import type { InvoiceBundle } from "@/db/queries/invoices";
 import { paymentModes, paymentStatusOptions } from "@/lib/options";
 import {
   invoiceUpdateSchema,
   type InvoiceUpdateFormValues,
 } from "@/lib/validations/invoice";
+
+// Structural bundle: the manager only reads these fields, so both the
+// server-rendered page bundle (Date objects) and the dialog's serialized
+// bundle (ISO strings) satisfy it without lossy casts at call sites.
+export type ManagerBundle = {
+  id: number;
+  tokenNumber: number;
+  date: string;
+  patient: { name: string };
+  doctor: { user: { name: string } };
+  invoice: {
+    consultationFee: string;
+    discount: string;
+    totalAmount: string;
+    paymentStatus: "pending" | "paid";
+    paymentMode: string | null;
+    items: { id: number; name: string; amount: string }[];
+  } | null;
+};
 import {
   addInvoiceItem,
   removeInvoiceItem,
@@ -36,9 +54,13 @@ const money = (v: string | number | null | undefined): string => {
 export function InvoiceManager({
   bundle,
   masterItems,
+  onChanged,
 }: {
-  bundle: NonNullable<InvoiceBundle>;
+  bundle: ManagerBundle;
   masterItems: { id: number; name: string; amount: string }[];
+  // Called after any successful mutation so dialog hosts (whose bundle
+  // is client state) can refetch. Page hosts rely on revalidation.
+  onChanged?: () => void;
 }) {
   const router = useRouter();
   const invoice = bundle.invoice;
@@ -69,6 +91,7 @@ export function InvoiceManager({
     else {
       toast.success("Charge added.");
       router.refresh();
+      onChanged?.();
     }
   }
 
@@ -78,6 +101,7 @@ export function InvoiceManager({
     else {
       toast.success("Charge removed.");
       router.refresh();
+      onChanged?.();
     }
   }
 
@@ -89,6 +113,7 @@ export function InvoiceManager({
     }
     toast.success("Invoice updated.");
     router.refresh();
+    onChanged?.();
   }
 
   if (!invoice) {
