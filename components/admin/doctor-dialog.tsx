@@ -8,6 +8,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { FormDialog } from "@/components/ui/form-dialog";
 import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import type { DoctorRow } from "@/db/queries/doctors";
 import {
   doctorEditSchema,
@@ -161,9 +162,8 @@ export function DoctorDialog({
               <FieldLabel htmlFor="doc-password">
                 {isEdit ? "New password (leave blank to keep)" : "Password"}
               </FieldLabel>
-              <Input
+              <PasswordInput
                 id="doc-password"
-                type="password"
                 autoComplete="new-password"
                 aria-invalid={!!errors.password}
                 {...register("password")}

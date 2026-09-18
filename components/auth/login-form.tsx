@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 
 const roleHome: Record<string, string> = {
@@ -82,9 +83,8 @@ export function LoginForm() {
             </Field>
             <Field data-invalid={!!errors.password}>
               <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 autoComplete="current-password"
                 aria-invalid={!!errors.password}
                 {...register("password")}

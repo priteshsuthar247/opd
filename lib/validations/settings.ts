@@ -7,35 +7,38 @@ export const settingKeys = [
   "notifications",
 ] as const;
 
-export const settingDescriptions: Record<(typeof settingKeys)[number], string> =
-  {
-    no_show_minutes:
-      "Minutes a waiting token may sit before auto-flagging no-show.",
-    no_show_token_gap:
-      "Token gap behind the live token before auto-flagging no-show.",
-    auto_fee_enabled:
-      "Auto-populate invoice consultation fee from the doctor's fee.",
-    notifications:
-      "Per-event in-app notification switches (appointment booked, turn approaching, prescription finalized, follow-up due).",
-  };
-
-export const settingSchema = z.object({
-  key: z.enum(settingKeys),
-  // JSON document edited as text; must parse to an object.
-  valueJson: z
-    .string()
-    .trim()
-    .min(1, "Value is required")
-    .refine(
-      (v) => {
-        try {
-          return typeof JSON.parse(v) === "object" && JSON.parse(v) !== null;
-        } catch {
-          return false;
-        }
-      },
-      { message: "Must be a valid JSON object" }
-    ),
+// Queue & no-show thresholds (Spec Section 8).
+export const noShowSettingsSchema = z.object({
+  minutes: z.coerce
+    .number()
+    .int("Whole minutes only")
+    .min(1, "At least 1 minute")
+    .max(480, "At most 8 hours"),
+  gap: z.coerce
+    .number()
+    .int("Whole tokens only")
+    .min(1, "At least 1 token")
+    .max(50, "At most 50 tokens"),
 });
 
-export type SettingInput = z.infer<typeof settingSchema>;
+export type NoShowSettingsInput = z.infer<typeof noShowSettingsSchema>;
+export type NoShowSettingsFormValues = z.input<typeof noShowSettingsSchema>;
+
+// Auto fee toggle (Spec Section 8).
+export const autoFeeSettingsSchema = z.object({
+  enabled: z.boolean(),
+});
+
+export type AutoFeeSettingsInput = z.infer<typeof autoFeeSettingsSchema>;
+
+// Per-event in-app notification switches.
+export const notificationSettingsSchema = z.object({
+  appointment_booked: z.boolean(),
+  turn_approaching: z.boolean(),
+  prescription_finalized: z.boolean(),
+  follow_up_due: z.boolean(),
+});
+
+export type NotificationSettingsInput = z.infer<
+  typeof notificationSettingsSchema
+>;

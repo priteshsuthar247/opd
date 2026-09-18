@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { EllipsisVerticalIcon, LogOutIcon, Settings2Icon } from "lucide-react"
+import { EllipsisVerticalIcon, CircleUserRoundIcon, LogOutIcon, Settings2Icon } from "lucide-react"
 
 function initials(name: string): string {
   return name
@@ -91,6 +91,11 @@ export function NavUser({
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/profile")}>
+              <CircleUserRoundIcon
+              />
+              Profile
+            </DropdownMenuItem>
             {role === "admin" && (
               <DropdownMenuItem
                 onClick={() => router.push("/admin/settings")}
