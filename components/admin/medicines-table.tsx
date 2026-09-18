@@ -5,26 +5,17 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
-  DataTableToolbar,
   filterIncludesAny,
   sortHeader,
   statusFacet,
   tableFeaturesFull,
-  TablePagination,
 } from "@/components/table/table-helpers";
+import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { MedicineDialog } from "@/components/admin/medicine-dialog";
 import type { MedicineRow } from "@/db/queries/medicines";
 import { setMedicineStatus } from "@/app/admin/medicines/actions";
@@ -64,6 +55,7 @@ const columns = helper.columns([
   helper.display({
     id: "actions",
     header: "",
+    enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end gap-2">
         {row.original.status === "active" ? (
@@ -99,7 +91,7 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 border py-12 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
         <p className="text-sm text-muted-foreground">
           No medicines yet. Add the first one for prescription building.
         </p>
@@ -109,41 +101,12 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
   }
 
   return (
-    <>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder="Search medicines…"
-        facets={[statusFacet]}
-      />
-      <div className="overflow-x-auto">
-      <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((group) => (
-          <TableRow key={group.id}>
-            {group.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder ? null : (
-                  <table.FlexRender header={header} />
-                )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getAllCells().map((cell) => (
-              <TableCell key={cell.id}>
-                <table.FlexRender cell={cell} />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-      </Table>
-      </div>
-      <TablePagination table={table} total={data.length} />
-    </>
+    <DataTable
+      table={table}
+      total={data.length}
+      searchPlaceholder="Search medicines…"
+      facets={[statusFacet]}
+      empty="No medicines match these filters."
+    />
   );
 }

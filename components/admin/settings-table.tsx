@@ -5,19 +5,10 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
-  DataTableToolbar,
   sortHeader,
   tableFeaturesFull,
-  TablePagination,
 } from "@/components/table/table-helpers";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/table/data-table";
 import { SettingDialog } from "@/components/admin/setting-dialog";
 import type { SettingRow } from "@/db/queries/settings";
 import { settingDescriptions } from "@/lib/validations/settings";
@@ -52,6 +43,7 @@ const columns = helper.columns([
   helper.display({
     id: "actions",
     header: "",
+    enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
         <SettingDialog setting={row.original} />
@@ -69,37 +61,11 @@ export function SettingsTable({ data }: { data: SettingRow[] }) {
   });
 
   return (
-    <>
-      <DataTableToolbar table={table} searchPlaceholder="Search settings…" />
-      <div className="overflow-x-auto">
-      <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((group) => (
-          <TableRow key={group.id}>
-            {group.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder ? null : (
-                  <table.FlexRender header={header} />
-                )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getAllCells().map((cell) => (
-              <TableCell key={cell.id}>
-                <table.FlexRender cell={cell} />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-      </Table>
-      </div>
-      <TablePagination table={table} total={data.length} />
-    </>
+    <DataTable
+      table={table}
+      total={data.length}
+      searchPlaceholder="Search settings…"
+      empty="No settings match this search."
+    />
   );
 }

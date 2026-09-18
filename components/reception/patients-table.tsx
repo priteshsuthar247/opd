@@ -6,26 +6,17 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
-  DataTableToolbar,
   filterIncludesAny,
   sortHeader,
   statusFacet,
   tableFeaturesFull,
-  TablePagination,
 } from "@/components/table/table-helpers";
+import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { PatientDialog } from "@/components/reception/patient-dialog";
 import type { PatientRow } from "@/db/queries/patients";
 import { setPatientStatus } from "@/app/reception/patients/actions";
@@ -84,6 +75,7 @@ const columns = helper.columns([
   helper.display({
     id: "actions",
     header: "",
+    enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end gap-2">
         {row.original.status === "active" ? (
@@ -138,52 +130,21 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder="Search by name or phone…"
-        facets={[statusFacet]}
-      />
-      {table.getRowModel().rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 border py-12 text-center">
+      {data.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
           <p className="text-sm text-muted-foreground">
-            {data.length === 0
-              ? "No patients registered yet."
-              : "No patients match this search."}
+            No patients registered yet.
           </p>
-          {data.length === 0 && <PatientDialog />}
+          <PatientDialog />
         </div>
       ) : (
-        <>
-          <div className="overflow-x-auto">
-          <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((group) => (
-              <TableRow key={group.id}>
-                {group.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <table.FlexRender header={header} />
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getAllCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    <table.FlexRender cell={cell} />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-          </Table>
-          </div>
-          <TablePagination table={table} total={data.length} />
-        </>
+        <DataTable
+          table={table}
+          total={data.length}
+          searchPlaceholder="Search by name or phone…"
+          facets={[statusFacet]}
+          empty="No patients match this search."
+        />
       )}
     </div>
   );

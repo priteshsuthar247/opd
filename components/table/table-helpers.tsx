@@ -20,7 +20,10 @@ import {
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
   ChevronsUpDownIcon,
+  EyeOffIcon,
   PlusCircleIcon,
   XIcon,
 } from "lucide-react";
@@ -31,11 +34,19 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
 // One feature set for every table in the app: sorting, pagination,
@@ -63,28 +74,49 @@ export type SortableColumn = {
   getCanSort: () => boolean;
   getIsSorted: () => false | "asc" | "desc";
   getToggleSortingHandler: () => ((event: unknown) => void) | undefined;
+  toggleSorting: (desc?: boolean) => void;
+  clearSorting: () => void;
+  toggleVisibility: (visible: boolean) => void;
 };
 
 function SortButton({ column, label }: { column: SortableColumn; label: string }) {
+  // tablecn-style header: sort dropdown (asc/desc) plus hide column.
   const toggle = column.getCanSort() ? column.getToggleSortingHandler() : undefined;
   if (!toggle) return <span>{label}</span>;
   const dir = column.getIsSorted();
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      className="inline-flex items-center gap-1 hover:text-foreground"
-      aria-label={`Sort by ${label}`}
-    >
-      {label}
-      {dir === "asc" ? (
-        <ArrowUpIcon className="size-3" />
-      ) : dir === "desc" ? (
-        <ArrowDownIcon className="size-3" />
-      ) : (
-        <ChevronsUpDownIcon className="size-3 text-muted-foreground" />
-      )}
-    </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" size="sm" className="-ml-2">
+            {label}
+            {dir === "asc" ? (
+              <ArrowUpIcon className="size-3" />
+            ) : dir === "desc" ? (
+              <ArrowDownIcon className="size-3" />
+            ) : (
+              <ChevronsUpDownIcon className="size-3 text-muted-foreground" />
+            )}
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="start" className="w-36">
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+            <ArrowUpIcon />
+            Asc
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+            <ArrowDownIcon />
+            Desc
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
+            <EyeOffIcon />
+            Hide
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -104,43 +136,89 @@ export type PaginatedTable = {
   getCanNextPage: () => boolean;
   previousPage: () => void;
   nextPage: () => void;
-  state: { pagination: { pageIndex: number }; globalFilter?: unknown };
+  setPageIndex: (index: number) => void;
+  setPageSize: (size: number) => void;
+  state: { pagination: { pageIndex: number; pageSize: number }; globalFilter?: unknown };
 };
-
 export function TablePagination({
   table,
   total,
+  pageSizeOptions = [10, 20, 30, 50],
 }: {
   table: PaginatedTable;
   total: number;
-}) {  const pages = table.getPageCount();
-  if (pages <= 1) return null;
+  pageSizeOptions?: number[];
+}) {
   const current = table.state.pagination.pageIndex + 1;
+  const pages = table.getPageCount();
   return (
-    <div className="flex items-center justify-between py-2 text-xs text-muted-foreground">
-      <span>
-        Page {current} of {pages} · {total} row{total === 1 ? "" : "s"}
-      </span>
-      <span className="flex gap-1">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!table.getCanPreviousPage()}
-          onClick={() => table.previousPage()}
-        >
-          <ChevronLeftIcon />
-          Prev
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!table.getCanNextPage()}
-          onClick={() => table.nextPage()}
-        >
-          Next
-          <ChevronRightIcon />
-        </Button>
-      </span>
+    <div className="flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto py-2 sm:flex-row sm:gap-8">
+      <div className="flex-1 text-xs whitespace-nowrap text-muted-foreground">
+        {total} row{total === 1 ? "" : "s"} total
+      </div>
+      <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6">
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-medium whitespace-nowrap">Rows per page</p>
+          <Select
+            value={String(table.state.pagination.pageSize)}
+            onValueChange={(v) => table.setPageSize(Number(v))}
+          >
+            <SelectTrigger className="h-8 w-18">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {pageSizeOptions.map((s) => (
+                <SelectItem key={s} value={String(s)}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-center text-xs font-medium">
+          Page {current} of {Math.max(pages, 1)}
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            aria-label="Go to first page"
+            variant="outline"
+            size="icon-sm"
+            className="hidden lg:inline-flex"
+            onClick={() => table.setPageIndex(0)}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronsLeftIcon />
+          </Button>
+          <Button
+            aria-label="Go to previous page"
+            variant="outline"
+            size="icon-sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronLeftIcon />
+          </Button>
+          <Button
+            aria-label="Go to next page"
+            variant="outline"
+            size="icon-sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            <ChevronRightIcon />
+          </Button>
+          <Button
+            aria-label="Go to last page"
+            variant="outline"
+            size="icon-sm"
+            className="hidden lg:inline-flex"
+            onClick={() => table.setPageIndex(Math.max(table.getPageCount() - 1, 0))}
+            disabled={!table.getCanNextPage()}
+          >
+            <ChevronsRightIcon />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -6,25 +6,16 @@ import {
 } from "@tanstack/react-table";
 import {
   appointmentTypeFacet,
-  DataTableToolbar,
   filterIncludesAny,
   queueStatusFacet,
   sortHeader,
   tableFeaturesFull,
-  TablePagination,
 } from "@/components/table/table-helpers";
+import { DataTable } from "@/components/table/data-table";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { RescheduleDialog } from "@/components/queue/reschedule-dialog";
 import { StatusBadge } from "@/components/queue/status-badge";
 import type { QueueRow } from "@/db/queries/appointments";
@@ -63,6 +54,7 @@ const columns = helper.columns([
   helper.display({
     id: "actions",
     header: "",
+    enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end gap-2">
         <Button
@@ -98,7 +90,7 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 border py-12 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
         <p className="text-sm text-muted-foreground">
           Queue is empty for this selection.
         </p>
@@ -107,41 +99,12 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
   }
 
   return (
-    <>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder="Search queue…"
-        facets={[queueStatusFacet, appointmentTypeFacet]}
-      />
-      <div className="overflow-x-auto">
-      <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((group) => (
-          <TableRow key={group.id}>
-            {group.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder ? null : (
-                  <table.FlexRender header={header} />
-                )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getAllCells().map((cell) => (
-              <TableCell key={cell.id}>
-                <table.FlexRender cell={cell} />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-      </Table>
-      </div>
-      <TablePagination table={table} total={data.length} />
-    </>
+    <DataTable
+      table={table}
+      total={data.length}
+      searchPlaceholder="Search queue…"
+      facets={[queueStatusFacet, appointmentTypeFacet]}
+      empty="No visits match these filters."
+    />
   );
 }

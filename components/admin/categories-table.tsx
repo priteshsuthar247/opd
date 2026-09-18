@@ -6,26 +6,17 @@ import {
 } from "@tanstack/react-table";
 import {
   categoryTypeFacet,
-  DataTableToolbar,
   filterIncludesAny,
   sortHeader,
   statusFacet,
   tableFeaturesFull,
-  TablePagination,
 } from "@/components/table/table-helpers";
+import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { CategoryDialog } from "@/components/admin/category-dialog";
 import type { CategoryRow } from "@/db/queries/categories";
 import { setCategoryStatus } from "@/app/admin/categories/actions";
@@ -74,6 +65,7 @@ const columns = helper.columns([
   helper.display({
     id: "actions",
     header: "",
+    enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end gap-2">
         {row.original.status === "active" ? (
@@ -109,7 +101,7 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 border py-12 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
         <p className="text-sm text-muted-foreground">
           No categories yet. Add the first one for clinical coding.
         </p>
@@ -119,41 +111,12 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
   }
 
   return (
-    <>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder="Search categories…"
-        facets={[categoryTypeFacet, statusFacet]}
-      />
-      <div className="overflow-x-auto">
-      <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((group) => (
-          <TableRow key={group.id}>
-            {group.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder ? null : (
-                  <table.FlexRender header={header} />
-                )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getAllCells().map((cell) => (
-              <TableCell key={cell.id}>
-                <table.FlexRender cell={cell} />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-      </Table>
-      </div>
-      <TablePagination table={table} total={data.length} />
-    </>
+    <DataTable
+      table={table}
+      total={data.length}
+      searchPlaceholder="Search categories…"
+      facets={[categoryTypeFacet, statusFacet]}
+      empty="No categories match these filters."
+    />
   );
 }
