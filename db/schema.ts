@@ -71,24 +71,29 @@ export const departments = pgTable("departments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const doctors = pgTable("doctors", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  departmentId: integer("department_id")
-    .notNull()
-    .references(() => departments.id),
-  qualification: varchar("qualification", { length: 255 }),
-  registrationNo: varchar("registration_no", { length: 100 }),
-  consultationFee: numeric("consultation_fee", { precision: 10, scale: 2 })
-    .notNull()
-    .default("0"),
-  // { mon: { start: "09:00", end: "17:00" }, tue: {...}, ... }
-  workingHours: jsonb("working_hours").notNull().default({}),
-  status: statusEnum("status").default("active").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const doctors = pgTable(
+  "doctors",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    departmentId: integer("department_id")
+      .notNull()
+      .references(() => departments.id),
+    qualification: varchar("qualification", { length: 255 }),
+    registrationNo: varchar("registration_no", { length: 100 }),
+    consultationFee: numeric("consultation_fee", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    // { mon: { start: "09:00", end: "17:00" }, tue: {...}, ... }
+    workingHours: jsonb("working_hours").notNull().default({}),
+    status: statusEnum("status").default("active").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  // One clinical profile per login.
+  (t) => [uniqueIndex("doctors_user_id_unique").on(t.userId)]
+);
 
 export const patients = pgTable("patients", {
   id: serial("id").primaryKey(),
@@ -103,39 +108,54 @@ export const patients = pgTable("patients", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const medicines = pgTable("medicines", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  genericName: varchar("generic_name", { length: 255 }),
-  form: varchar("form", { length: 100 }), // Tablet / Syrup / Injection / etc.
-  defaultDosageNote: text("default_dosage_note"),
-  status: statusEnum("status").default("active").notNull(),
-});
+export const medicines = pgTable(
+  "medicines",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 255 }).notNull().unique(),
+    genericName: varchar("generic_name", { length: 255 }),
+    form: varchar("form", { length: 100 }), // Tablet / Syrup / Injection / etc.
+    defaultDosageNote: text("default_dosage_note"),
+    status: statusEnum("status").default("active").notNull(),
+  }
+);
 
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  type: categoryTypeEnum("type").notNull(),
-  status: statusEnum("status").default("active").notNull(),
-});
+export const categories = pgTable(
+  "categories",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    type: categoryTypeEnum("type").notNull(),
+    status: statusEnum("status").default("active").notNull(),
+  },
+  (t) => [uniqueIndex("categories_name_type_unique").on(t.name, t.type)]
+);
 
-export const queueConfigurations = pgTable("queue_configurations", {
-  id: serial("id").primaryKey(),
-  doctorId: integer("doctor_id")
-    .notNull()
-    .references(() => doctors.id, { onDelete: "cascade" }),
-  slotDurationMinutes: integer("slot_duration_minutes").notNull().default(15),
-  maxTokensPerDay: integer("max_tokens_per_day").notNull().default(40),
-  status: statusEnum("status").default("active").notNull(),
-});
+export const queueConfigurations = pgTable(
+  "queue_configurations",
+  {
+    id: serial("id").primaryKey(),
+    doctorId: integer("doctor_id")
+      .notNull()
+      .references(() => doctors.id, { onDelete: "cascade" }),
+    slotDurationMinutes: integer("slot_duration_minutes").notNull().default(15),
+    maxTokensPerDay: integer("max_tokens_per_day").notNull().default(40),
+    status: statusEnum("status").default("active").notNull(),
+  },
+  // One rule set per doctor.
+  (t) => [uniqueIndex("queue_configurations_doctor_unique").on(t.doctorId)]
+);
 
-export const billingItems = pgTable("billing_items", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  type: varchar("type", { length: 100 }),
-  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
-  status: statusEnum("status").default("active").notNull(),
-});
+export const billingItems = pgTable(
+  "billing_items",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 255 }).notNull().unique(),
+    type: varchar("type", { length: 100 }),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+    status: statusEnum("status").default("active").notNull(),
+  }
+);
 
 /* -------------------------------------------------------------------------- */
 /*  Transactional Data                                                         */
