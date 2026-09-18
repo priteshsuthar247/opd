@@ -29,6 +29,7 @@ import {
   doctorSchema,
   type DoctorFormValues,
 } from "@/lib/validations/doctor";
+import { idLabelMap, statusLabels } from "@/lib/options";
 import { createDoctor, updateDoctor } from "@/app/admin/doctors/actions";
 
 const days = [
@@ -199,6 +200,7 @@ export function DoctorDialog({
                     <Select
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
+                      items={idLabelMap(departments)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Pick…" />
@@ -288,7 +290,11 @@ export function DoctorDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    items={statusLabels}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

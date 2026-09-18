@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { PatientRow } from "@/db/queries/patients";
 import { patientSchema, type PatientFormValues } from "@/lib/validations/patient";
 import { createPatient, updatePatient } from "@/app/reception/patients/actions";
-import { bloodGroups } from "@/lib/options";
+import { bloodGroups, genderLabels, statusLabels } from "@/lib/options";
 
 function defaults(patient?: PatientRow): PatientFormValues {
   // DB stores free-text history; only carry over values in the enum.
@@ -145,6 +145,7 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
                           v === "" ? undefined : (v as "male" | "female" | "other")
                         )
                       }
+                      items={genderLabels}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="—" />
@@ -216,7 +217,11 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
                   control={control}
                   name="status"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      items={statusLabels}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

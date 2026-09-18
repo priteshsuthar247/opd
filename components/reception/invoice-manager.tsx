@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { InvoiceBundle } from "@/db/queries/invoices";
+import { paymentStatusLabels } from "@/lib/options";
 import {
   invoiceUpdateSchema,
   type InvoiceUpdateFormValues,
@@ -213,10 +214,11 @@ export function InvoiceManager({
                     control={control}
                     name="paymentStatus"
                     render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      items={paymentStatusLabels}
+                    >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>

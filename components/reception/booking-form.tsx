@@ -186,6 +186,9 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                   <Select
                     value={field.value ? String(field.value) : ""}
                     onValueChange={(v) => field.onChange(Number(v))}
+                    items={Object.fromEntries(
+                      doctors.map((d) => [String(d.id), d.name])
+                    )}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pick…" />

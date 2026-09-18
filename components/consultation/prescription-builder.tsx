@@ -198,6 +198,12 @@ export function PrescriptionBuilder({
                           field.onChange(Number(v));
                         }
                       }}
+                      items={{
+                        ...Object.fromEntries(
+                          medicines.map((m) => [String(m.id), m.name])
+                        ),
+                        [FREE_TEXT]: "Other (type name)…",
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Pick…" />

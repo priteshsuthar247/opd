@@ -32,7 +32,7 @@ import {
   createBillingItem,
   updateBillingItem,
 } from "@/app/admin/billing-items/actions";
-import { billingItemTypes } from "@/lib/options";
+import { billingItemTypes, statusLabels } from "@/lib/options";
 
 function listedType(
   v: string | null | undefined
@@ -160,10 +160,14 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
             <Field data-invalid={!!errors.status}>
               <FieldLabel>Status</FieldLabel>
               <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+              control={control}
+              name="status"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  items={statusLabels}
+                >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

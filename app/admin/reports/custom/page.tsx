@@ -122,6 +122,10 @@ export default async function CustomReportPage({
           <Select
             name="departmentId"
             defaultValue={departmentId ? String(departmentId) : "all"}
+            items={{
+              all: "All",
+              ...Object.fromEntries(departments.map((d) => [String(d.id), d.name])),
+            }}
           >
             <SelectTrigger>
               <SelectValue />
@@ -138,7 +142,14 @@ export default async function CustomReportPage({
         </label>
         <label className="flex flex-col gap-1 text-xs">
           <span className="text-muted-foreground">Doctor</span>
-          <Select name="doctorId" defaultValue={doctorId ? String(doctorId) : "all"}>
+          <Select
+            name="doctorId"
+            defaultValue={doctorId ? String(doctorId) : "all"}
+            items={{
+              all: "All",
+              ...Object.fromEntries(doctors.map((d) => [String(d.id), d.user.name])),
+            }}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -162,7 +173,18 @@ export default async function CustomReportPage({
         </label>
         <label className="flex flex-col gap-1 text-xs">
           <span className="text-muted-foreground">Status</span>
-          <Select name="status" defaultValue={status ?? "all"}>
+          <Select
+            name="status"
+            defaultValue={status ?? "all"}
+            items={{
+              all: "All",
+              waiting: "Waiting",
+              in_progress: "In Progress",
+              completed: "Completed",
+              cancelled: "Cancelled",
+              no_show: "No-show",
+            }}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

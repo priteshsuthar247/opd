@@ -31,3 +31,38 @@ export const billingItemTypes = [
 ] as const;
 
 export const paymentModes = ["Cash", "UPI", "Card", "Other"] as const;
+
+// Closed-trigger labels: Base UI resolves the selected text from mounted
+// items, so a closed select falls back to the raw value. Every Select
+// below passes one of these maps via the `items` prop — keep them next
+// to the option lists so value and label can never drift.
+export const statusLabels = {
+  active: "Active",
+  inactive: "Inactive",
+} as const;
+
+export const genderLabels = {
+  male: "Male",
+  female: "Female",
+  other: "Other",
+} as const;
+
+export const categoryTypeLabels = {
+  diagnosis: "Diagnosis",
+  symptom: "Symptom",
+  complaint: "Complaint",
+} as const;
+
+export const paymentStatusLabels = {
+  pending: "Pending",
+  paid: "Paid",
+} as const;
+
+export const appointmentTypeLabels = {
+  walk_in: "Walk-in",
+  scheduled: "Scheduled",
+} as const;
+
+export function idLabelMap(list: { id: number; name: string }[]) {
+  return Object.fromEntries(list.map((o) => [String(o.id), o.name]));
+}

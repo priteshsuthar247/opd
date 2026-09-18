@@ -29,6 +29,7 @@ import {
   type DepartmentInput,
 } from "@/lib/validations/department";
 import { createDepartment, updateDepartment } from "@/app/admin/departments/actions";
+import { statusLabels } from "@/lib/options";
 
 export function DepartmentDialog({
   department,
@@ -124,7 +125,11 @@ export function DepartmentDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    items={statusLabels}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

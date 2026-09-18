@@ -26,6 +26,7 @@ import {
 import type { CategoryRow } from "@/db/queries/categories";
 import { categorySchema, type CategoryInput } from "@/lib/validations/category";
 import { createCategory, updateCategory } from "@/app/admin/categories/actions";
+import { statusLabels } from "@/lib/options";
 
 const typeLabels: Record<CategoryInput["type"], string> = {
   diagnosis: "Diagnosis",
@@ -106,10 +107,14 @@ export function CategoryDialog({ category }: { category?: CategoryRow }) {
             <Field data-invalid={!!errors.type}>
               <FieldLabel>Type</FieldLabel>
               <Controller
-                control={control}
-                name="type"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+              control={control}
+              name="type"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  items={typeLabels}
+                >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -130,10 +135,14 @@ export function CategoryDialog({ category }: { category?: CategoryRow }) {
             <Field data-invalid={!!errors.status}>
               <FieldLabel>Status</FieldLabel>
               <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+              control={control}
+              name="status"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  items={statusLabels}
+                >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

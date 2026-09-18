@@ -75,6 +75,12 @@ export default async function QueuePage({
           <Select
             name="doctor"
             defaultValue={doctorId ? String(doctorId) : "all"}
+            items={{
+              all: "All doctors",
+              ...Object.fromEntries(
+                activeDoctors.map((d) => [String(d.id), d.user.name])
+              ),
+            }}
           >
             <SelectTrigger className="w-48">
               <SelectValue />

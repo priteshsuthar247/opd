@@ -29,6 +29,7 @@ import {
   type QueueConfigFormValues,
 } from "@/lib/validations/queue-config";
 import { createQueueConfig, updateQueueConfig } from "@/app/admin/queue/actions";
+import { idLabelMap, statusLabels } from "@/lib/options";
 
 export function QueueConfigDialog({
   config,
@@ -113,6 +114,7 @@ export function QueueConfigDialog({
                     <Select
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
+                      items={idLabelMap(doctors)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Pick…" />
@@ -157,7 +159,11 @@ export function QueueConfigDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    items={statusLabels}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
