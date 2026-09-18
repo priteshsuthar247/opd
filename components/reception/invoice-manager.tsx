@@ -15,15 +15,9 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormSelect } from "@/components/ui/form-select";
 import type { InvoiceBundle } from "@/db/queries/invoices";
-import { paymentStatusLabels } from "@/lib/options";
+import { paymentModes, paymentStatusOptions } from "@/lib/options";
 import {
   invoiceUpdateSchema,
   type InvoiceUpdateFormValues,
@@ -38,8 +32,6 @@ const money = (v: string | number | null | undefined): string => {
   if (v === null || v === undefined) return "0.00";
   return Number(v).toFixed(2);
 };
-
-const paymentModes = ["Cash", "UPI", "Card", "Other"] as const;
 
 export function InvoiceManager({
   bundle,
@@ -152,21 +144,15 @@ export function InvoiceManager({
             </ul>
           )}
           <div className="flex items-center gap-2">
-            <Select
+            <FormSelect
               value=""
               onValueChange={(v) => void onAddItem(Number(v))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Add a charge…" />
-              </SelectTrigger>
-              <SelectContent>
-                {masterItems.map((m) => (
-                  <SelectItem key={m.id} value={String(m.id)}>
-                    {m.name} · ₹{money(m.amount)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={masterItems.map((m) => ({
+                value: String(m.id),
+                label: `${m.name} · ₹${money(m.amount)}`,
+              }))}
+              placeholder="Add a charge…"
+            />
           </div>
           <dl className="mt-1 flex flex-col gap-1 border-t pt-2">
             <div className="flex justify-between">
@@ -212,22 +198,14 @@ export function InvoiceManager({
                   <FieldLabel>Status</FieldLabel>
                   <Controller
                     control={control}
-                    name="paymentStatus"
-                    render={({ field }) => (
-                    <Select
+                  name="paymentStatus"
+                  render={({ field }) => (
+                    <FormSelect
                       value={field.value}
                       onValueChange={field.onChange}
-                      items={paymentStatusLabels}
-                    >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="paid">Paid</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
+                      options={[...paymentStatusOptions]}
+                    />
+                  )}
                   />
                   <FieldError errors={[errors.paymentStatus]} />
                 </Field>
@@ -239,21 +217,15 @@ export function InvoiceManager({
                     control={control}
                     name="paymentMode"
                     render={({ field }) => (
-                      <Select
+                      <FormSelect
                         value={field.value ?? ""}
                         onValueChange={field.onChange}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pick…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {paymentModes.map((m) => (
-                            <SelectItem key={m} value={m}>
-                              {m}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        options={paymentModes.map((m) => ({
+                          value: m,
+                          label: m,
+                        }))}
+                        placeholder="Pick…"
+                      />
                     )}
                   />
                   <FieldError errors={[errors.paymentMode]} />

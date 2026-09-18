@@ -16,20 +16,14 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormSelect } from "@/components/ui/form-select";
 import type { DepartmentRow } from "@/db/queries/departments";
 import {
   departmentSchema,
   type DepartmentInput,
 } from "@/lib/validations/department";
 import { createDepartment, updateDepartment } from "@/app/admin/departments/actions";
-import { statusLabels } from "@/lib/options";
+import { statusOptions } from "@/lib/options";
 
 export function DepartmentDialog({
   department,
@@ -125,19 +119,11 @@ export function DepartmentDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select
+                  <FormSelect
                     value={field.value}
                     onValueChange={field.onChange}
-                    items={statusLabels}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    options={[...statusOptions]}
+                  />
                 )}
               />
               <FieldError errors={[errors.status]} />

@@ -16,18 +16,12 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormSelect } from "@/components/ui/form-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { PatientRow } from "@/db/queries/patients";
 import { patientSchema, type PatientFormValues } from "@/lib/validations/patient";
 import { createPatient, updatePatient } from "@/app/reception/patients/actions";
-import { bloodGroups, genderLabels, statusLabels } from "@/lib/options";
+import { bloodGroups, statusOptions } from "@/lib/options";
 
 function defaults(patient?: PatientRow): PatientFormValues {
   // DB stores free-text history; only carry over values in the enum.
@@ -138,24 +132,20 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
                   control={control}
                   name="gender"
                   render={({ field }) => (
-                    <Select
+                    <FormSelect
                       value={field.value ?? ""}
                       onValueChange={(v) =>
                         field.onChange(
                           v === "" ? undefined : (v as "male" | "female" | "other")
                         )
                       }
-                      items={genderLabels}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="—" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      options={[
+                        { value: "male", label: "Male" },
+                        { value: "female", label: "Female" },
+                        { value: "other", label: "Other" },
+                      ]}
+                      placeholder="—"
+                    />
                   )}
                 />
                 <FieldError errors={[errors.gender]} />
@@ -166,25 +156,19 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
                   control={control}
                   name="bloodGroup"
                   render={({ field }) => (
-                    <Select
+                    <FormSelect
                       value={field.value ?? ""}
                       onValueChange={(v) =>
                         field.onChange(
                           v === "" ? undefined : (v as (typeof bloodGroups)[number])
                         )
                       }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="—" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {bloodGroups.map((b) => (
-                          <SelectItem key={b} value={b}>
-                            {b}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      options={bloodGroups.map((b) => ({
+                        value: b,
+                        label: b,
+                      }))}
+                      placeholder="—"
+                    />
                   )}
                 />
                 <FieldError errors={[errors.bloodGroup]} />
@@ -217,19 +201,11 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
                   control={control}
                   name="status"
                   render={({ field }) => (
-                    <Select
+                    <FormSelect
                       value={field.value}
                       onValueChange={field.onChange}
-                      items={statusLabels}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      options={[...statusOptions]}
+                    />
                   )}
                 />
                 <FieldError errors={[errors.status]} />

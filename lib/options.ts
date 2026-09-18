@@ -41,6 +41,16 @@ export const statusLabels = {
   inactive: "Inactive",
 } as const;
 
+export const statusOptions = [
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
+] as const;
+
+export const paymentStatusOptions = [
+  { value: "pending", label: "Pending" },
+  { value: "paid", label: "Paid" },
+] as const;
+
 export const genderLabels = {
   male: "Male",
   female: "Female",

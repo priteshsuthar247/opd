@@ -15,21 +15,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { QueueConfigRow } from "@/db/queries/queue-configs";
 import {
   queueConfigSchema,
   type QueueConfigFormValues,
 } from "@/lib/validations/queue-config";
 import { createQueueConfig, updateQueueConfig } from "@/app/admin/queue/actions";
-import { idLabelMap, statusLabels } from "@/lib/options";
+import { statusOptions } from "@/lib/options";
 
 export function QueueConfigDialog({
   config,
@@ -111,22 +105,15 @@ export function QueueConfigDialog({
                   control={control}
                   name="doctorId"
                   render={({ field }) => (
-                    <Select
+                    <FormSelect
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
-                      items={idLabelMap(doctors)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pick…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {doctors.map((d) => (
-                          <SelectItem key={d.id} value={String(d.id)}>
-                            {d.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      options={doctors.map((d) => ({
+                        value: String(d.id),
+                        label: d.name,
+                      }))}
+                      placeholder="Pick…"
+                    />
                   )}
                 />
                 <FieldError errors={[errors.doctorId]} />
@@ -159,19 +146,11 @@ export function QueueConfigDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select
+                  <FormSelect
                     value={field.value}
                     onValueChange={field.onChange}
-                    items={statusLabels}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    options={[...statusOptions]}
+                  />
                 )}
               />
               <FieldError errors={[errors.status]} />

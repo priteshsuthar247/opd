@@ -16,17 +16,11 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormSelect } from "@/components/ui/form-select";
 import type { CategoryRow } from "@/db/queries/categories";
 import { categorySchema, type CategoryInput } from "@/lib/validations/category";
 import { createCategory, updateCategory } from "@/app/admin/categories/actions";
-import { statusLabels } from "@/lib/options";
+import { statusOptions } from "@/lib/options";
 
 const typeLabels: Record<CategoryInput["type"], string> = {
   diagnosis: "Diagnosis",
@@ -110,25 +104,14 @@ export function CategoryDialog({ category }: { category?: CategoryRow }) {
               control={control}
               name="type"
               render={({ field }) => (
-                <Select
+                <FormSelect
                   value={field.value}
                   onValueChange={field.onChange}
-                  items={typeLabels}
-                >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(Object.keys(typeLabels) as (keyof typeof typeLabels)[]).map(
-                        (t) => (
-                          <SelectItem key={t} value={t}>
-                            {typeLabels[t]}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                )}
+                  options={(
+                    Object.keys(typeLabels) as (keyof typeof typeLabels)[]
+                  ).map((t) => ({ value: t, label: typeLabels[t] }))}
+                />
+              )}
               />
               <FieldError errors={[errors.type]} />
             </Field>
@@ -138,20 +121,12 @@ export function CategoryDialog({ category }: { category?: CategoryRow }) {
               control={control}
               name="status"
               render={({ field }) => (
-                <Select
+                <FormSelect
                   value={field.value}
                   onValueChange={field.onChange}
-                  items={statusLabels}
-                >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
+                  options={[...statusOptions]}
+                />
+              )}
               />
               <FieldError errors={[errors.status]} />
             </Field>

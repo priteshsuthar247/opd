@@ -14,14 +14,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   appointmentSchema,
   type AppointmentFormValues,
@@ -183,24 +177,15 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                 control={control}
                 name="doctorId"
                 render={({ field }) => (
-                  <Select
+                  <FormSelect
                     value={field.value ? String(field.value) : ""}
                     onValueChange={(v) => field.onChange(Number(v))}
-                    items={Object.fromEntries(
-                      doctors.map((d) => [String(d.id), d.name])
-                    )}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pick…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {doctors.map((d) => (
-                        <SelectItem key={d.id} value={String(d.id)}>
-                          {d.name} · {d.department} · ₹{Number(d.fee).toFixed(2)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={doctors.map((d) => ({
+                      value: String(d.id),
+                      label: `${d.name} · ${d.department} · ₹${Number(d.fee).toFixed(2)}`,
+                    }))}
+                    placeholder="Pick…"
+                  />
                 )}
               />
               <FieldError errors={[errors.doctorId]} />
@@ -222,17 +207,16 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                 <Controller
                   control={control}
                   name="type"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="walk_in">Walk-in</SelectItem>
-                        <SelectItem value="scheduled">Scheduled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
+                render={({ field }) => (
+                  <FormSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    options={[
+                      { value: "walk_in", label: "Walk-in" },
+                      { value: "scheduled", label: "Scheduled" },
+                    ]}
+                  />
+                )}
                 />
                 <FieldError errors={[errors.type]} />
               </Field>

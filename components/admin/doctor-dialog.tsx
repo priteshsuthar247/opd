@@ -15,21 +15,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { DoctorRow } from "@/db/queries/doctors";
 import {
   doctorEditSchema,
   doctorSchema,
   type DoctorFormValues,
 } from "@/lib/validations/doctor";
-import { idLabelMap, statusLabels } from "@/lib/options";
+import { statusOptions } from "@/lib/options";
 import { createDoctor, updateDoctor } from "@/app/admin/doctors/actions";
 
 const days = [
@@ -197,22 +191,15 @@ export function DoctorDialog({
                   control={control}
                   name="departmentId"
                   render={({ field }) => (
-                    <Select
+                    <FormSelect
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
-                      items={idLabelMap(departments)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pick…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departments.map((d) => (
-                          <SelectItem key={d.id} value={String(d.id)}>
-                            {d.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      options={departments.map((d) => ({
+                        value: String(d.id),
+                        label: d.name,
+                      }))}
+                      placeholder="Pick…"
+                    />
                   )}
                 />
                 <FieldError errors={[errors.departmentId]} />
@@ -290,19 +277,11 @@ export function DoctorDialog({
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select
+                  <FormSelect
                     value={field.value}
                     onValueChange={field.onChange}
-                    items={statusLabels}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    options={[...statusOptions]}
+                  />
                 )}
               />
               <FieldError errors={[errors.status]} />

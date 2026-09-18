@@ -16,13 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormSelect } from "@/components/ui/form-select";
 import type { BillingItemRow } from "@/db/queries/billing-items";
 import {
   billingItemSchema,
@@ -32,7 +26,7 @@ import {
   createBillingItem,
   updateBillingItem,
 } from "@/app/admin/billing-items/actions";
-import { billingItemTypes, statusLabels } from "@/lib/options";
+import { billingItemTypes, statusOptions } from "@/lib/options";
 
 function listedType(
   v: string | null | undefined
@@ -123,25 +117,19 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
                 control={control}
                 name="type"
                 render={({ field }) => (
-                  <Select
+                  <FormSelect
                     value={field.value ?? ""}
                     onValueChange={(v) =>
                       field.onChange(
                         v === "" ? undefined : (v as (typeof billingItemTypes)[number])
                       )
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="—" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {billingItemTypes.map((t) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={billingItemTypes.map((t) => ({
+                      value: t,
+                      label: t,
+                    }))}
+                    placeholder="—"
+                  />
                 )}
               />
               <FieldError errors={[errors.type]} />
@@ -163,20 +151,12 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
               control={control}
               name="status"
               render={({ field }) => (
-                <Select
+                <FormSelect
                   value={field.value}
                   onValueChange={field.onChange}
-                  items={statusLabels}
-                >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
+                  options={[...statusOptions]}
+                />
+              )}
               />
               <FieldError errors={[errors.status]} />
             </Field>

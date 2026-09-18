@@ -16,17 +16,11 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormSelect } from "@/components/ui/form-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { MedicineRow } from "@/db/queries/medicines";
 import { medicineSchema, type MedicineFormValues } from "@/lib/validations/medicine";
-import { medicineForms } from "@/lib/options";
+import { medicineForms, statusOptions } from "@/lib/options";
 import { createMedicine, updateMedicine } from "@/app/admin/medicines/actions";
 
 export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
@@ -128,25 +122,19 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
                 control={control}
                 name="form"
                 render={({ field }) => (
-                  <Select
+                  <FormSelect
                     value={field.value ?? ""}
                     onValueChange={(v) =>
                       field.onChange(
                         v === "" ? undefined : (v as (typeof medicineForms)[number])
                       )
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="—" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {medicineForms.map((f) => (
-                        <SelectItem key={f} value={f}>
-                          {f}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={medicineForms.map((f) => ({
+                      value: f,
+                      label: f,
+                    }))}
+                    placeholder="—"
+                  />
                 )}
               />
               <FieldError errors={[errors.form]} />
@@ -167,15 +155,11 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    options={[...statusOptions]}
+                  />
                 )}
               />
               <FieldError errors={[errors.status]} />

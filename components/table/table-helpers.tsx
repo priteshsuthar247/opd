@@ -44,13 +44,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormSelect } from "@/components/ui/form-select";
 import { Separator } from "@/components/ui/separator";
 
 // One feature set for every table in the app: sorting, pagination,
@@ -164,21 +158,14 @@ export function TablePagination({
       <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6">
         <div className="flex items-center gap-2">
           <p className="text-xs font-medium whitespace-nowrap">Rows per page</p>
-          <Select
+          <FormSelect
             value={String(table.state.pagination.pageSize)}
             onValueChange={(v) => table.setPageSize(Number(v))}
-          >
-            <SelectTrigger className="h-8 w-18">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {pageSizeOptions.map((s) => (
-                <SelectItem key={s} value={String(s)}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            options={pageSizeOptions.map((s) => ({
+              value: String(s),
+              label: String(s),
+            }))}
+          />
         </div>
         <div className="flex items-center justify-center text-xs font-medium">
           Page {current} of {Math.max(pages, 1)}
