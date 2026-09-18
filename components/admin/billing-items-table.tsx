@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-table";
 import {
   filterIncludesAny,
+  selectionColumn,
   sortHeader,
   statusFacet,
   tableFeaturesFull,
@@ -34,6 +35,7 @@ async function toggleStatus(row: BillingItemRow) {
 }
 
 const columns = helper.columns([
+  selectionColumn<BillingItemRow>(),
   helper.accessor("name", {
     header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
@@ -109,6 +111,7 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
       total={data.length}
       searchPlaceholder="Search billing items…"
       facets={[statusFacet]}
+      exportFilename="billing-items"
       empty="No billing items match these filters."
     />
   );

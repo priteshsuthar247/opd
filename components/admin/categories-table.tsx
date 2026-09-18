@@ -7,6 +7,7 @@ import {
 import {
   categoryTypeFacet,
   filterIncludesAny,
+  selectionColumn,
   sortHeader,
   statusFacet,
   tableFeaturesFull,
@@ -41,6 +42,7 @@ async function toggleStatus(row: CategoryRow) {
 }
 
 const columns = helper.columns([
+  selectionColumn<CategoryRow>(),
   helper.accessor("name", {
     header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
@@ -116,6 +118,7 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
       total={data.length}
       searchPlaceholder="Search categories…"
       facets={[categoryTypeFacet, statusFacet]}
+      exportFilename="categories"
       empty="No categories match these filters."
     />
   );

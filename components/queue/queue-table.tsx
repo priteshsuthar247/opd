@@ -8,6 +8,7 @@ import {
   appointmentTypeFacet,
   filterIncludesAny,
   queueStatusFacet,
+  selectionColumn,
   sortHeader,
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
@@ -31,6 +32,7 @@ async function cancel(row: QueueRow) {
 }
 
 const columns = helper.columns([
+  selectionColumn<QueueRow>(),
   helper.accessor("tokenNumber", { header: sortHeader("Token") }),
   helper.accessor((r) => r.patient.name, {
     id: "patient",
@@ -104,6 +106,7 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
       total={data.length}
       searchPlaceholder="Search queue…"
       facets={[queueStatusFacet, appointmentTypeFacet]}
+      exportFilename="queue"
       empty="No visits match these filters."
     />
   );

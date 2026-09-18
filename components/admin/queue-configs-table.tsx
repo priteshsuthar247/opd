@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-table";
 import {
   filterIncludesAny,
+  selectionColumn,
   sortHeader,
   statusFacet,
   tableFeaturesFull,
@@ -36,7 +37,8 @@ async function toggleStatus(row: QueueConfigRow) {
 
 const columns = (doctors: { id: number; name: string }[]) =>
   helper.columns([
-    helper.accessor((r) => r.doctor.user.name, {
+  selectionColumn<QueueConfigRow>(),
+  helper.accessor((r) => r.doctor.user.name, {
     id: "doctor",
     header: sortHeader("Doctor"),
       cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
@@ -120,6 +122,7 @@ export function QueueConfigsTable({
       total={data.length}
       searchPlaceholder="Search configurations…"
       facets={[statusFacet]}
+      exportFilename="queue-configurations"
       empty="No configurations match these filters."
     />
   );

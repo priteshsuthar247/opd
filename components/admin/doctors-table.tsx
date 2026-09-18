@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-table";
 import {
   filterIncludesAny,
+  selectionColumn,
   sortHeader,
   statusFacet,
   tableFeaturesFull,
@@ -36,6 +37,7 @@ async function toggleStatus(row: DoctorRow) {
 
 const columns = (departments: { id: number; name: string }[]) =>
   helper.columns([
+  selectionColumn<DoctorRow>(),
   helper.accessor((r) => r.user.name, {
     id: "name",
     header: sortHeader("Doctor"),
@@ -122,6 +124,7 @@ export function DoctorsTable({
       total={data.length}
       searchPlaceholder="Search doctors…"
       facets={[statusFacet]}
+      exportFilename="doctors"
       empty="No doctors match these filters."
     />
   );

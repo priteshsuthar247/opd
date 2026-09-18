@@ -5,6 +5,7 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  selectionColumn,
   sortHeader,
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
@@ -17,6 +18,7 @@ const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, SettingRow>();
 
 const columns = helper.columns([
+  selectionColumn<SettingRow>(),
   helper.accessor("key", {
     header: sortHeader("Key"),
     cell: ({ getValue }) => (
@@ -65,6 +67,7 @@ export function SettingsTable({ data }: { data: SettingRow[] }) {
       table={table}
       total={data.length}
       searchPlaceholder="Search settings…"
+      exportFilename="settings"
       empty="No settings match this search."
     />
   );

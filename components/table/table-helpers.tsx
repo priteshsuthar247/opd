@@ -4,6 +4,7 @@ import {
   columnFacetingFeature,
   columnFilteringFeature,
   columnVisibilityFeature,
+  createColumnHelper,
   createFacetedRowModel,
   createFacetedUniqueValues,
   createFilteredRowModel,
@@ -11,8 +12,10 @@ import {
   createSortedRowModel,
   globalFilteringFeature,
   rowPaginationFeature,
+  rowSelectionFeature,
   rowSortingFeature,
   tableFeatures,
+  type RowData,
 } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
@@ -29,6 +32,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -63,6 +67,7 @@ export const tableFeaturesFull = tableFeatures({
   facetedRowModel: createFacetedRowModel(),
   facetedUniqueValues: createFacetedUniqueValues(),
   globalFilteringFeature,
+  rowSelectionFeature,
 });
 
 export const defaultPageSize = 10;
@@ -262,6 +267,39 @@ export const categoryTypeFacet: FacetFilter = {
     { value: "complaint", label: "Complaint" },
   ],
 };
+
+// Leading select column factory (tablecn-style row selection). One line
+// per table: selectionColumn<Row>() first in helper.columns([...]).
+// Kept out of DataTable itself because columns must exist before useTable.
+export function selectionColumn<TData extends RowData>() {
+  const helper = createColumnHelper<typeof tableFeaturesFull, TData>();
+  return helper.display({
+    id: "select",
+    header: ({ table }) => {
+      const all = table.getIsAllRowsSelected();
+      const some =
+        !all && table.getSelectedRowModel().rows.length > 0;
+      return (
+        <Checkbox
+          checked={all}
+          indeterminate={some}
+          onCheckedChange={(v) => table.toggleAllRowsSelected(v === true)}
+          aria-label="Select all rows"
+        />
+      );
+    },
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(v) => row.toggleSelected(v === true)}
+        aria-label="Select row"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  });
+}
 
 // Matches rows whose column value is any of the selected facet values.
 // Used for multi-select status/type filters (tablecn-style faceting).

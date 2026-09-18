@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   filterIncludesAny,
+  selectionColumn,
   sortHeader,
   statusFacet,
   tableFeaturesFull,
@@ -34,6 +35,7 @@ async function toggleStatus(row: DepartmentRow) {
 }
 
 const columns = helper.columns([
+  selectionColumn<DepartmentRow>(),
   helper.accessor("name", {
     header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
@@ -106,6 +108,7 @@ export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
       searchPlaceholder="Search departments…"
       facets={[statusFacet]}
       empty="No departments match these filters."
+      exportFilename="departments"
     />
   );
 }

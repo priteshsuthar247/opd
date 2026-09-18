@@ -6,7 +6,9 @@ import {
   type ReactTable,
   type RowData,
 } from "@tanstack/react-table";
+import { DownloadIcon, XIcon } from "lucide-react";
 import { tableFeaturesFull } from "@/components/table/table-helpers";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -15,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { downloadCsv } from "@/components/admin/export-csv-button";
 import {
   DataTableToolbar,
   TablePagination,
@@ -35,14 +38,41 @@ export function DataTable<TData extends RowData>({
   searchPlaceholder,
   facets,
   empty,
+  exportFilename,
 }: {
   table: ReactTable<AppFeatures, TData> & FilterableTable & PaginatedTable;
   total: number;
   searchPlaceholder?: string;
   facets?: FacetFilter[];
   empty: ReactNode;
+  exportFilename?: string;
 }) {
   const rows = table.getRowModel().rows;
+  const selected = table.getSelectedRowModel().rows;
+
+  function exportSelected() {
+    if (!exportFilename || selected.length === 0) return;
+    const cols = table
+      .getAllColumns()
+      .filter((c) => c.id !== "select" && c.id !== "actions");
+    downloadCsv(
+      exportFilename,
+      selected.map((r) => {
+        const record: Record<string, unknown> = {};
+        for (const c of cols) {
+          const def = c.columnDef as {
+            accessorKey?: unknown;
+            accessorFn?: unknown;
+          };
+          // Display-only columns (computed cells) have no backing value.
+          if (def.accessorKey === undefined && def.accessorFn === undefined)
+            continue;
+          record[c.id] = r.getValue(c.id);
+        }
+        return record;
+      })
+    );
+  }
   return (
     <div className="flex w-full flex-col gap-2.5">
       <DataTableToolbar
@@ -93,6 +123,27 @@ export function DataTable<TData extends RowData>({
         </Table>
       </div>
       <TablePagination table={table} total={total} />
+      {exportFilename && selected.length > 0 && (
+        <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 text-xs">
+          <span>
+            {selected.length} row{selected.length === 1 ? "" : "s"} selected
+          </span>
+          <span className="ml-auto flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportSelected}>
+              <DownloadIcon />
+              Export CSV
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.resetRowSelection()}
+            >
+              <XIcon />
+              Clear
+            </Button>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
