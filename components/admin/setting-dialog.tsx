@@ -4,17 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { SettingRow } from "@/db/queries/settings";
@@ -60,24 +51,21 @@ export function SettingDialog({ setting }: { setting: SettingRow }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button variant="outline" size="sm">
-            Edit
-          </Button>
-        }
-      />
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Edit setting</DialogTitle>
-          <DialogDescription>
-            {settingDescriptions[setting.key as keyof typeof settingDescriptions] ??
-              setting.key}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      triggerLabel="Edit"
+      triggerVariant="outline"
+      title="Edit setting"
+      description={
+        settingDescriptions[setting.key as keyof typeof settingDescriptions] ??
+        setting.key
+      }
+      submitLabel="Save changes"
+      busy={isSubmitting}
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <FieldGroup>
             <Field>
               <FieldLabel htmlFor="set-key">Key</FieldLabel>
               <Input id="set-key" value={setting.key} disabled />
@@ -95,13 +83,6 @@ export function SettingDialog({ setting }: { setting: SettingRow }) {
               <FieldError errors={[errors.valueJson]} />
             </Field>
           </FieldGroup>
-          <DialogFooter className="mt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving…" : "Save changes"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

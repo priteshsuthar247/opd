@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/ui/form-dialog";
 import {
   InvoiceManager,
   type ManagerBundle,
@@ -58,42 +52,41 @@ export function InvoiceDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl sm:max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Billing</DialogTitle>
-          <DialogDescription>
-            Charges, discount and payment for this visit.
-          </DialogDescription>
-        </DialogHeader>
-        {bundle === null ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            Loading invoice…
-          </p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <InvoiceManager
-              key={JSON.stringify(bundle.invoice)}
-              bundle={bundle}
-              masterItems={master}
-              onChanged={refetch}
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Billing"
+      description="Charges, discount and payment for this visit."
+      size="xl"
+      footer={
+        appointmentId !== null ? (
+          <div className="mt-4 flex justify-start">
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={
+                <Link href={`/reception/invoices/${appointmentId}/print`}>
+                  Print / PDF
+                </Link>
+              }
             />
-            {appointmentId !== null && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-fit"
-                nativeButton={false}
-                render={
-                  <Link href={`/reception/invoices/${appointmentId}/print`}>
-                    Print / PDF
-                  </Link>
-                }
-              />
-            )}
           </div>
-        )}
-      </DialogContent>
-    </Dialog>
+        ) : undefined
+      }
+    >
+      {bundle === null ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Loading invoice…
+        </p>
+      ) : (
+        <InvoiceManager
+          key={JSON.stringify(bundle.invoice)}
+          bundle={bundle}
+          masterItems={master}
+          onChanged={refetch}
+        />
+      )}
+    </FormDialog>
   );
 }

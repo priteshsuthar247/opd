@@ -5,17 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import type { QueueRow } from "@/db/queries/appointments";
 import { rescheduleAppointment } from "@/app/reception/queue/actions";
@@ -66,24 +57,19 @@ export function RescheduleDialog({ row }: { row: QueueRow }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button variant="ghost" size="sm">
-            Reschedule
-          </Button>
-        }
-      />
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Reschedule token {row.tokenNumber}</DialogTitle>
-          <DialogDescription>
-            {row.patient.name} with {row.doctor.user.name}. A fresh token is
-            assigned at the end of the new day&apos;s queue.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      triggerLabel="Reschedule"
+      triggerVariant="ghost"
+      title={`Reschedule token ${row.tokenNumber}`}
+      description={`${row.patient.name} with ${row.doctor.user.name}. A fresh token is assigned at the end of the new day's queue.`}
+      submitLabel="Move appointment"
+      busyLabel="Moving…"
+      busy={isSubmitting}
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <FieldGroup>
             <Field data-invalid={!!errors.date}>
               <FieldLabel htmlFor="resched-date">New date</FieldLabel>
               <Input
@@ -97,13 +83,6 @@ export function RescheduleDialog({ row }: { row: QueueRow }) {
               <FieldError errors={[errors.date]} />
             </Field>
           </FieldGroup>
-          <DialogFooter className="mt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Moving…" : "Move appointment"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

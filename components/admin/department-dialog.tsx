@@ -4,17 +4,8 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import { FormSelect } from "@/components/ui/form-select";
 import type { DepartmentRow } from "@/db/queries/departments";
@@ -73,69 +64,55 @@ export function DepartmentDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button variant={isEdit ? "outline" : "default"} size="sm">
-            {isEdit ? "Edit" : "Add department"}
-          </Button>
-        }
-      />
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit department" : "Add department"}
-          </DialogTitle>
-          <DialogDescription>
-            Departments group doctors by specialty.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
-            <Field data-invalid={!!errors.name}>
-              <FieldLabel htmlFor="dept-name">Name</FieldLabel>
-              <Input
-                id="dept-name"
-                placeholder="General Medicine"
-                autoFocus
-                aria-invalid={!!errors.name}
-                {...register("name")}
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      triggerLabel={isEdit ? "Edit" : "Add department"}
+      triggerVariant={isEdit ? "outline" : "default"}
+      title={isEdit ? "Edit department" : "Add department"}
+      description="Departments group doctors by specialty."
+      submitLabel={isEdit ? "Save changes" : "Create"}
+      busy={isSubmitting}
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <FieldGroup>
+        <Field data-invalid={!!errors.name}>
+          <FieldLabel htmlFor="dept-name">Name</FieldLabel>
+          <Input
+            id="dept-name"
+            placeholder="General Medicine"
+            autoFocus
+            aria-invalid={!!errors.name}
+            {...register("name")}
+          />
+          <FieldError errors={[errors.name]} />
+        </Field>
+        <Field data-invalid={!!errors.code}>
+          <FieldLabel htmlFor="dept-code">Code</FieldLabel>
+          <Input
+            id="dept-code"
+            placeholder="GEN"
+            aria-invalid={!!errors.code}
+            {...register("code")}
+          />
+          <FieldError errors={[errors.code]} />
+        </Field>
+        <Field data-invalid={!!errors.status}>
+          <FieldLabel>Status</FieldLabel>
+          <Controller
+            control={control}
+            name="status"
+            render={({ field }) => (
+              <FormSelect
+                value={field.value}
+                onValueChange={field.onChange}
+                options={[...statusOptions]}
               />
-              <FieldError errors={[errors.name]} />
-            </Field>
-            <Field data-invalid={!!errors.code}>
-              <FieldLabel htmlFor="dept-code">Code</FieldLabel>
-              <Input
-                id="dept-code"
-                placeholder="GEN"
-                aria-invalid={!!errors.code}
-                {...register("code")}
-              />
-              <FieldError errors={[errors.code]} />
-            </Field>
-            <Field data-invalid={!!errors.status}>
-              <FieldLabel>Status</FieldLabel>
-              <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <FormSelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    options={[...statusOptions]}
-                  />
-                )}
-              />
-              <FieldError errors={[errors.status]} />
-            </Field>
-          </FieldGroup>
-          <DialogFooter className="mt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving…" : isEdit ? "Save changes" : "Create"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            )}
+          />
+          <FieldError errors={[errors.status]} />
+        </Field>
+      </FieldGroup>
+    </FormDialog>
   );
 }

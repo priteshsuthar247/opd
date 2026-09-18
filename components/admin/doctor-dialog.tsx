@@ -4,17 +4,8 @@ import { useState } from "react";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
 import type { DoctorRow } from "@/db/queries/doctors";
@@ -129,24 +120,19 @@ export function DoctorDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button variant={isEdit ? "outline" : "default"} size="sm">
-            {isEdit ? "Edit" : "Add doctor"}
-          </Button>
-        }
-      />
-      <DialogContent className="max-w-lg sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit doctor" : "Add doctor"}</DialogTitle>
-          <DialogDescription>
-            Login account, clinical profile and queue rules are created
-            together.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      triggerLabel={isEdit ? "Edit" : "Add doctor"}
+      triggerVariant={isEdit ? "outline" : "default"}
+      title={isEdit ? "Edit doctor" : "Add doctor"}
+      description="Login account, clinical profile and queue rules are created together."
+      size="lg"
+      submitLabel={isEdit ? "Save changes" : "Create"}
+      busy={isSubmitting}
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <FieldGroup>
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={!!errors.name}>
                 <FieldLabel htmlFor="doc-name">Name</FieldLabel>
@@ -287,13 +273,6 @@ export function DoctorDialog({
               <FieldError errors={[errors.status]} />
             </Field>
           </FieldGroup>
-          <DialogFooter className="mt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving…" : isEdit ? "Save changes" : "Create"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

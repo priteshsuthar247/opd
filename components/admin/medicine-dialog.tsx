@@ -4,17 +4,8 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import { FormSelect } from "@/components/ui/form-select";
 import { Textarea } from "@/components/ui/textarea";
@@ -78,23 +69,18 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button variant={isEdit ? "outline" : "default"} size="sm">
-            {isEdit ? "Edit" : "Add medicine"}
-          </Button>
-        }
-      />
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit medicine" : "Add medicine"}</DialogTitle>
-          <DialogDescription>
-            Medicines are picked when building prescriptions.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      triggerLabel={isEdit ? "Edit" : "Add medicine"}
+      triggerVariant={isEdit ? "outline" : "default"}
+      title={isEdit ? "Edit medicine" : "Add medicine"}
+      description="Medicines are picked when building prescriptions."
+      submitLabel={isEdit ? "Save changes" : "Create"}
+      busy={isSubmitting}
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <FieldGroup>
             <Field data-invalid={!!errors.name}>
               <FieldLabel htmlFor="med-name">Name</FieldLabel>
               <Input
@@ -165,13 +151,6 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
               <FieldError errors={[errors.status]} />
             </Field>
           </FieldGroup>
-          <DialogFooter className="mt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving…" : isEdit ? "Save changes" : "Create"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

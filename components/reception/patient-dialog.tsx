@@ -4,17 +4,8 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import { FormSelect } from "@/components/ui/form-select";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,25 +63,19 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button variant={isEdit ? "outline" : "default"} size="sm">
-            {isEdit ? "Edit" : "Register patient"}
-          </Button>
-        }
-      />
-      <DialogContent className="max-w-lg sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit patient" : "Register patient"}
-          </DialogTitle>
-          <DialogDescription>
-            Phone numbers are unique — search before registering.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      triggerLabel={isEdit ? "Edit" : "Register patient"}
+      triggerVariant={isEdit ? "outline" : "default"}
+      title={isEdit ? "Edit patient" : "Register patient"}
+      description="Phone numbers are unique — search before registering."
+      size="lg"
+      submitLabel={isEdit ? "Save changes" : "Register"}
+      busy={isSubmitting}
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <FieldGroup>
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={!!errors.name}>
                 <FieldLabel htmlFor="pat-name">Name</FieldLabel>
@@ -212,13 +197,6 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
               </Field>
             </div>
           </FieldGroup>
-          <DialogFooter className="mt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving…" : isEdit ? "Save changes" : "Register"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }
