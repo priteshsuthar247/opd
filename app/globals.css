@@ -141,3 +141,11 @@
     @apply font-sans;
   }
 }
+
+/* Unlayered: beats the cursor-default utilities baked into the menu and
+   select item components, so entries show a pointer everywhere. */
+[role="menuitem"]:not([data-disabled]),
+[role="menuitemcheckbox"]:not([data-disabled]),
+[role="option"]:not([data-disabled]) {
+  cursor: pointer;
+}
