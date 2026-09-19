@@ -57,8 +57,7 @@ import { Separator } from "@/components/ui/separator";
 
 // One feature set for every table in the app: sorting, pagination,
 // global text search, faceted column filters and column visibility.
-export const tableFeaturesFull = tableFeatures({
-  rowSortingFeature,
+export const tableFeaturesFull = tableFeatures({  rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
   rowPaginationFeature,
   paginatedRowModel: createPaginatedRowModel(),
@@ -75,6 +74,12 @@ export const tableFeaturesFull = tableFeatures({
 });
 
 export const defaultPageSize = 10;
+
+// Non-essential columns carry this via columnDef meta: visible on
+// desktop, hidden on small screens where the expanded panel shows them.
+// Applies to secondary data columns plus the select/actions chrome, so a
+// mobile row is identity + chevron only.
+export const secondaryColumnClass = "hidden md:table-cell";
 
 // Structural sort API: the real Column type composes these methods in via
 // the sorting feature, which generic code can't name — but every table
@@ -295,12 +300,9 @@ export function selectionColumn<TData extends RowData>() {
     ),
     enableSorting: false,
     enableHiding: false,
+    meta: { className: secondaryColumnClass },
   });
 }
-
-// Non-essential columns carry this via columnDef meta: visible on
-// desktop, hidden on small screens where the expanded panel shows them.
-export const secondaryColumnClass = "hidden md:table-cell";
 
 // Expander column: chevron button as the last column of a table. Toggles
 // the expanded detail panel rendered by DataTable (via renderExpanded).

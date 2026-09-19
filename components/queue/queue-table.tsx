@@ -63,11 +63,13 @@ const columns = (
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <StatusBadge status={getValue()} />,
+    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
+    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions
@@ -118,6 +120,7 @@ function queuePanel(
     <div className="flex flex-col gap-2">
       <ExpandedList
         items={[
+          { label: "Status", value: <StatusBadge status={row.status} /> },
           { label: "Doctor", value: row.doctor.user.name },
           {
             label: "Type",

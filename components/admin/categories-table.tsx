@@ -67,11 +67,13 @@ const columns = (onEdit: (row: CategoryRow) => void) =>
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
+    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
+    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={categoryMenu(row.original, onEdit)} />
@@ -111,7 +113,10 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
         renderExpanded={(row) => (
           <div className="flex flex-col gap-2">
             <ExpandedList
-              items={[{ label: "Type", value: typeLabels[row.type] }]}
+              items={[
+                { label: "Status", value: <ActiveBadge status={row.status} /> },
+                { label: "Type", value: typeLabels[row.type] },
+              ]}
             />
             <ExpandedActions items={categoryMenu(row, setEditing)} />
           </div>

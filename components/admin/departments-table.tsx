@@ -58,11 +58,13 @@ const columns = (onEdit: (row: DepartmentRow) => void) =>
       header: sortHeader("Status"),
       filterFn: filterIncludesAny,
       cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
+      meta: { className: secondaryColumnClass },
     }),
     helper.display({
       id: "actions",
       header: "",
       enableHiding: false,
+      meta: { className: secondaryColumnClass },
       cell: ({ row }) => (
         <div className="flex justify-end">
           <RowActions items={departmentMenu(row.original, onEdit)} />
@@ -101,7 +103,10 @@ export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
         exportFilename="departments"
         renderExpanded={(row) => (
           <div className="flex flex-col gap-2">
-            <ExpandedList items={[{ label: "Code", value: row.code }]} />
+            <ExpandedList items={[
+              { label: "Status", value: <ActiveBadge status={row.status} /> },
+              { label: "Code", value: row.code },
+            ]} />
             <ExpandedActions items={departmentMenu(row, setEditing)} />
           </div>
         )}

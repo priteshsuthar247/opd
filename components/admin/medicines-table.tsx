@@ -63,11 +63,13 @@ const columns = (onEdit: (row: MedicineRow) => void) =>
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
+    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
+    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={medicineMenu(row.original, onEdit)} />
@@ -108,6 +110,7 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
           <div className="flex flex-col gap-2">
             <ExpandedList
               items={[
+                { label: "Status", value: <ActiveBadge status={row.status} /> },
                 { label: "Generic name", value: row.genericName ?? "—" },
                 { label: "Form", value: row.form ?? "—" },
               ]}

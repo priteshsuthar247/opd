@@ -63,11 +63,13 @@ const columns = (onEdit: (row: BillingItemRow) => void) =>
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
+    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
+    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={billingItemMenu(row.original, onEdit)} />
@@ -108,6 +110,7 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
           <div className="flex flex-col gap-2">
             <ExpandedList
               items={[
+                { label: "Status", value: <ActiveBadge status={row.status} /> },
                 { label: "Type", value: row.type ?? "—" },
                 { label: "Amount", value: Number(row.amount).toFixed(2) },
               ]}
