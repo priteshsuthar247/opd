@@ -56,9 +56,13 @@ export function NotificationsBell({
           <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
             <BellIcon />
             {unreadCount > 0 && (
+              // Primary (not destructive): it inverts per mode — near-black
+              // on light, white on dark — so the count stays legible in
+              // both. The theme has no destructive-foreground token, and
+              // white-on-red fails in light mode.
               <Badge
-                variant="destructive"
-                className="absolute -top-1 -right-1 h-[18px] min-w-[18px] border-2 border-background px-1 text-[11px] font-bold text-white"
+                variant="default"
+                className="absolute -top-1 -right-1 h-[18px] min-w-[18px] border-2 border-background px-1 text-[11px] font-bold"
               >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </Badge>
