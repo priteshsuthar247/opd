@@ -9,14 +9,13 @@ import {
   appointmentTypeFacet,
   filterIncludesAny,
   queueStatusFacet,
+  RowActions,
   selectionColumn,
   sortHeader,
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ui/confirm-button";
 import { InvoiceDialog } from "@/components/reception/invoice-dialog";
 import { RescheduleDialog } from "@/components/queue/reschedule-dialog";
 import { StatusBadge } from "@/components/queue/status-badge";
@@ -32,7 +31,10 @@ async function cancel(row: QueueRow) {
   else toast.success(`Token ${row.tokenNumber} cancelled.`);
 }
 
-const columns = (onBill: (appointmentId: number) => void) =>
+const columns = (
+  onBill: (appointmentId: number) => void,
+  onReschedule: (row: QueueRow) => void
+) =>
   helper.columns([
   selectionColumn<QueueRow>(),
   helper.accessor("tokenNumber", { header: sortHeader("Token") }),
@@ -60,26 +62,30 @@ const columns = (onBill: (appointmentId: number) => void) =>
     header: "",
     enableHiding: false,
     cell: ({ row }) => (
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onBill(row.original.id)}
-        >
-          Bill
-        </Button>
-        {row.original.status === "waiting" && (
-          <>
-            <ConfirmButton
-              label="Cancel"
-              title={`Cancel token ${row.original.tokenNumber}?`}
-              description={`${row.original.patient.name} will be removed from today's queue. This is logged and cannot be undone from here.`}
-              confirmLabel="Cancel appointment"
-              onConfirm={() => cancel(row.original)}
-            />
-            <RescheduleDialog row={row.original} />
-          </>
-        )}
+      <div className="flex justify-end">
+        <RowActions
+          items={[
+            { label: "Bill", onSelect: () => onBill(row.original.id) },
+            ...(row.original.status === "waiting"
+              ? [
+                  {
+                    label: "Reschedule",
+                    onSelect: () => onReschedule(row.original),
+                  },
+                  {
+                    label: "Cancel",
+                    destructive: true,
+                    onSelect: () => cancel(row.original),
+                    confirm: {
+                      title: `Cancel token ${row.original.tokenNumber}?`,
+                      description: `${row.original.patient.name} will be removed from today's queue. This is logged and cannot be undone from here.`,
+                      confirmLabel: "Cancel appointment",
+                    },
+                  },
+                ]
+              : []),
+          ]}
+        />
       </div>
     ),
   }),
@@ -87,9 +93,13 @@ const columns = (onBill: (appointmentId: number) => void) =>
 
 export function QueueTable({ data }: { data: QueueRow[] }) {
   const [billingId, setBillingId] = useState<number | null>(null);
+  const [rescheduling, setRescheduling] = useState<QueueRow | null>(null);
   const table = useTable({
     features,
-    columns: useMemo(() => columns(setBillingId), []),
+    columns: useMemo(
+      () => columns(setBillingId, setRescheduling),
+      []
+    ),
     data,
     initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
@@ -122,6 +132,15 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
           if (!open) setBillingId(null);
         }}
       />
+      {rescheduling && (
+        <RescheduleDialog
+          row={rescheduling}
+          open
+          onOpenChange={(v) => {
+            if (!v) setRescheduling(null);
+          }}
+        />
+      )}
     </>
   );
 }

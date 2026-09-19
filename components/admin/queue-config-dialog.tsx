@@ -19,11 +19,18 @@ import { statusOptions } from "@/lib/options";
 export function QueueConfigDialog({
   config,
   doctors,
+  open,
+  onOpenChange,
 }: {
   config?: QueueConfigRow;
   doctors: { id: number; name: string }[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const openState = open ?? internalOpen;
+  const setOpenState = onOpenChange ?? setInternalOpen;
   const isEdit = !!config;
   const {
     register,
@@ -42,7 +49,7 @@ export function QueueConfigDialog({
   });
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    setOpenState(next);
     if (next)
       reset({
         doctorId: config?.doctorId ?? 0,
@@ -61,14 +68,14 @@ export function QueueConfigDialog({
       return;
     }
     toast.success(isEdit ? "Configuration updated." : "Configuration created.");
-    setOpen(false);
+    setOpenState(false);
   }
 
   return (
     <FormDialog
-      open={open}
+      open={openState}
       onOpenChange={handleOpenChange}
-      triggerLabel={isEdit ? "Edit" : "Add configuration"}
+      triggerLabel={controlled ? undefined : isEdit ? "Edit" : "Add configuration"}
       triggerVariant={isEdit ? "outline" : "default"}
       title={isEdit ? "Edit queue configuration" : "Add queue configuration"}
       description="Slot length and daily token cap drive token assignment per doctor."

@@ -28,8 +28,19 @@ function listedType(
     : undefined;
 }
 
-export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
-  const [open, setOpen] = useState(false);
+export function BillingItemDialog({
+  item,
+  open,
+  onOpenChange,
+}: {
+  item?: BillingItemRow;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const openState = open ?? internalOpen;
+  const setOpenState = onOpenChange ?? setInternalOpen;
   const isEdit = !!item;
   const {
     register,
@@ -48,7 +59,7 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
   });
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    setOpenState(next);
     if (next)
       reset({
         name: item?.name ?? "",
@@ -67,14 +78,14 @@ export function BillingItemDialog({ item }: { item?: BillingItemRow }) {
       return;
     }
     toast.success(isEdit ? "Billing item updated." : "Billing item created.");
-    setOpen(false);
+    setOpenState(false);
   }
 
   return (
     <FormDialog
-      open={open}
+      open={openState}
       onOpenChange={handleOpenChange}
-      triggerLabel={isEdit ? "Edit" : "Add billing item"}
+      triggerLabel={controlled ? undefined : isEdit ? "Edit" : "Add billing item"}
       triggerVariant={isEdit ? "outline" : "default"}
       title={isEdit ? "Edit billing item" : "Add billing item"}
       description="Reusable fee line items added to invoices beyond the consultation fee."

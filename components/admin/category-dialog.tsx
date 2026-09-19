@@ -19,8 +19,19 @@ const typeLabels: Record<CategoryInput["type"], string> = {
   complaint: "Complaint",
 };
 
-export function CategoryDialog({ category }: { category?: CategoryRow }) {
-  const [open, setOpen] = useState(false);
+export function CategoryDialog({
+  category,
+  open,
+  onOpenChange,
+}: {
+  category?: CategoryRow;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const openState = open ?? internalOpen;
+  const setOpenState = onOpenChange ?? setInternalOpen;
   const isEdit = !!category;
   const {
     register,
@@ -38,7 +49,7 @@ export function CategoryDialog({ category }: { category?: CategoryRow }) {
   });
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    setOpenState(next);
     if (next)
       reset({
         name: category?.name ?? "",
@@ -56,14 +67,14 @@ export function CategoryDialog({ category }: { category?: CategoryRow }) {
       return;
     }
     toast.success(isEdit ? "Category updated." : "Category created.");
-    setOpen(false);
+    setOpenState(false);
   }
 
   return (
     <FormDialog
-      open={open}
+      open={openState}
       onOpenChange={handleOpenChange}
-      triggerLabel={isEdit ? "Edit" : "Add category"}
+      triggerLabel={controlled ? undefined : isEdit ? "Edit" : "Add category"}
       triggerVariant={isEdit ? "outline" : "default"}
       title={isEdit ? "Edit category" : "Add category"}
       description="Shared diagnosis, symptom and complaint values for clinical and reporting use."

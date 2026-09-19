@@ -1,11 +1,13 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import {
   createColumnHelper,
   useTable,
 } from "@tanstack/react-table";
 import {
   filterIncludesAny,
+  RowActions,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -15,8 +17,6 @@ import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ui/confirm-button";
 import { BillingItemDialog } from "@/components/admin/billing-item-dialog";
 import type { BillingItemRow } from "@/db/queries/billing-items";
 import { setBillingItemStatus } from "@/app/admin/billing-items/actions";
@@ -34,7 +34,8 @@ async function toggleStatus(row: BillingItemRow) {
     );
 }
 
-const columns = helper.columns([
+const columns = (onEdit: (row: BillingItemRow) => void) =>
+  helper.columns([
   selectionColumn<BillingItemRow>(),
   helper.accessor("name", {
     header: sortHeader("Name"),
@@ -62,34 +63,38 @@ const columns = helper.columns([
     header: "",
     enableHiding: false,
     cell: ({ row }) => (
-      <div className="flex justify-end gap-2">
-        {row.original.status === "active" ? (
-          <ConfirmButton
-            label="Deactivate"
-            title={`Deactivate ${row.original.name}?`}
-            description="Past invoices keep it, but it can no longer be added to new ones."
-            confirmLabel="Deactivate"
-            onConfirm={() => toggleStatus(row.original)}
-          />
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void toggleStatus(row.original)}
-          >
-            Activate
-          </Button>
-        )}
-        <BillingItemDialog item={row.original} />
+      <div className="flex justify-end">
+        <RowActions
+          items={[
+            { label: "Edit", onSelect: () => onEdit(row.original) },
+            row.original.status === "active"
+              ? {
+                  label: "Deactivate",
+                  destructive: true,
+                  onSelect: () => toggleStatus(row.original),
+                  confirm: {
+                    title: `Deactivate ${row.original.name}?`,
+                    description:
+                      "Past invoices keep it, but it can no longer be added to new ones.",
+                    confirmLabel: "Deactivate",
+                  },
+                }
+              : {
+                  label: "Activate",
+                  onSelect: () => toggleStatus(row.original),
+                },
+          ]}
+        />
       </div>
     ),
   }),
 ]);
 
 export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
+  const [editing, setEditing] = useState<BillingItemRow | null>(null);
   const table = useTable({
     features,
-    columns,
+    columns: useMemo(() => columns(setEditing), []),
     data,
     initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
@@ -106,13 +111,24 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
   }
 
   return (
-    <DataTable
-      table={table}
-      total={data.length}
-      searchPlaceholder="Search billing items…"
-      facets={[statusFacet]}
-      exportFilename="billing-items"
-      empty="No billing items match these filters."
-    />
+    <>
+      <DataTable
+        table={table}
+        total={data.length}
+        searchPlaceholder="Search billing items…"
+        facets={[statusFacet]}
+        exportFilename="billing-items"
+        empty="No billing items match these filters."
+      />
+      {editing && (
+        <BillingItemDialog
+          item={editing}
+          open
+          onOpenChange={(v) => {
+            if (!v) setEditing(null);
+          }}
+        />
+      )}
+    </>
   );
 }

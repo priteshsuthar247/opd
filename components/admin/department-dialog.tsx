@@ -18,10 +18,19 @@ import { statusOptions } from "@/lib/options";
 
 export function DepartmentDialog({
   department,
+  open,
+  onOpenChange,
 }: {
   department?: DepartmentRow;
+  // Controlled mode for table row menus (no trigger button). Uncontrolled
+  // mode (with trigger) is the default for page-level Add buttons.
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const openState = open ?? internalOpen;
+  const setOpenState = onOpenChange ?? setInternalOpen;
   const isEdit = !!department;
   const {
     register,
@@ -47,12 +56,12 @@ export function DepartmentDialog({
       return;
     }
     toast.success(isEdit ? "Department updated." : "Department created.");
-    setOpen(false);
+    setOpenState(false);
     reset(data);
   }
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    setOpenState(next);
     // Refresh defaults on every open so a previous submit (or a changed
     // row) never leaks stale values into the next session.
     if (next)
@@ -65,9 +74,9 @@ export function DepartmentDialog({
 
   return (
     <FormDialog
-      open={open}
+      open={openState}
       onOpenChange={handleOpenChange}
-      triggerLabel={isEdit ? "Edit" : "Add department"}
+      triggerLabel={controlled ? undefined : isEdit ? "Edit" : "Add department"}
       triggerVariant={isEdit ? "outline" : "default"}
       title={isEdit ? "Edit department" : "Add department"}
       description="Departments group doctors by specialty."

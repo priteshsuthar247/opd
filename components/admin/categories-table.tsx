@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import {
   createColumnHelper,
   useTable,
@@ -7,6 +8,7 @@ import {
 import {
   categoryTypeFacet,
   filterIncludesAny,
+  RowActions,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -16,8 +18,6 @@ import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ui/confirm-button";
 import { CategoryDialog } from "@/components/admin/category-dialog";
 import type { CategoryRow } from "@/db/queries/categories";
 import { setCategoryStatus } from "@/app/admin/categories/actions";
@@ -41,7 +41,8 @@ async function toggleStatus(row: CategoryRow) {
     );
 }
 
-const columns = helper.columns([
+const columns = (onEdit: (row: CategoryRow) => void) =>
+  helper.columns([
   selectionColumn<CategoryRow>(),
   helper.accessor("name", {
     header: sortHeader("Name"),
@@ -69,34 +70,38 @@ const columns = helper.columns([
     header: "",
     enableHiding: false,
     cell: ({ row }) => (
-      <div className="flex justify-end gap-2">
-        {row.original.status === "active" ? (
-          <ConfirmButton
-            label="Deactivate"
-            title={`Deactivate ${row.original.name}?`}
-            description="Past records keep it, but it can no longer be picked going forward."
-            confirmLabel="Deactivate"
-            onConfirm={() => toggleStatus(row.original)}
-          />
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void toggleStatus(row.original)}
-          >
-            Activate
-          </Button>
-        )}
-        <CategoryDialog category={row.original} />
+      <div className="flex justify-end">
+        <RowActions
+          items={[
+            { label: "Edit", onSelect: () => onEdit(row.original) },
+            row.original.status === "active"
+              ? {
+                  label: "Deactivate",
+                  destructive: true,
+                  onSelect: () => toggleStatus(row.original),
+                  confirm: {
+                    title: `Deactivate ${row.original.name}?`,
+                    description:
+                      "Past records keep it, but it can no longer be picked going forward.",
+                    confirmLabel: "Deactivate",
+                  },
+                }
+              : {
+                  label: "Activate",
+                  onSelect: () => toggleStatus(row.original),
+                },
+          ]}
+        />
       </div>
     ),
   }),
 ]);
 
 export function CategoriesTable({ data }: { data: CategoryRow[] }) {
+  const [editing, setEditing] = useState<CategoryRow | null>(null);
   const table = useTable({
     features,
-    columns,
+    columns: useMemo(() => columns(setEditing), []),
     data,
     initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
@@ -113,13 +118,24 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
   }
 
   return (
-    <DataTable
-      table={table}
-      total={data.length}
-      searchPlaceholder="Search categories…"
-      facets={[categoryTypeFacet, statusFacet]}
-      exportFilename="categories"
-      empty="No categories match these filters."
-    />
+    <>
+      <DataTable
+        table={table}
+        total={data.length}
+        searchPlaceholder="Search categories…"
+        facets={[categoryTypeFacet, statusFacet]}
+        exportFilename="categories"
+        empty="No categories match these filters."
+      />
+      {editing && (
+        <CategoryDialog
+          category={editing}
+          open
+          onOpenChange={(v) => {
+            if (!v) setEditing(null);
+          }}
+        />
+      )}
+    </>
   );
 }

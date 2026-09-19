@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   createColumnHelper,
   useTable,
 } from "@tanstack/react-table";
 import {
   filterIncludesAny,
+  RowActions,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -16,8 +17,6 @@ import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ui/confirm-button";
 import { PatientDialog } from "@/components/reception/patient-dialog";
 import type { PatientRow } from "@/db/queries/patients";
 import { setPatientStatus } from "@/app/reception/patients/actions";
@@ -46,7 +45,8 @@ async function toggleStatus(row: PatientRow) {
     );
 }
 
-const columns = helper.columns([
+const columns = (onEdit: (row: PatientRow) => void) =>
+  helper.columns([
   selectionColumn<PatientRow>(),
   helper.accessor("name", {
     header: sortHeader("Name"),
@@ -79,25 +79,28 @@ const columns = helper.columns([
     header: "",
     enableHiding: false,
     cell: ({ row }) => (
-      <div className="flex justify-end gap-2">
-        {row.original.status === "active" ? (
-          <ConfirmButton
-            label="Deactivate"
-            title={`Deactivate ${row.original.name}?`}
-            description="Their history stays, but no new appointments can be booked for them."
-            confirmLabel="Deactivate"
-            onConfirm={() => toggleStatus(row.original)}
-          />
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void toggleStatus(row.original)}
-          >
-            Activate
-          </Button>
-        )}
-        <PatientDialog patient={row.original} />
+      <div className="flex justify-end">
+        <RowActions
+          items={[
+            { label: "Edit", onSelect: () => onEdit(row.original) },
+            row.original.status === "active"
+              ? {
+                  label: "Deactivate",
+                  destructive: true,
+                  onSelect: () => toggleStatus(row.original),
+                  confirm: {
+                    title: `Deactivate ${row.original.name}?`,
+                    description:
+                      "Their history stays, but no new appointments can be booked for them.",
+                    confirmLabel: "Deactivate",
+                  },
+                }
+              : {
+                  label: "Activate",
+                  onSelect: () => toggleStatus(row.original),
+                },
+          ]}
+        />
       </div>
     ),
   }),
@@ -123,9 +126,10 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
+  const [editing, setEditing] = useState<PatientRow | null>(null);
   const table = useTable({
     features,
-    columns,
+    columns: useMemo(() => columns(setEditing), []),
     data,
     initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
@@ -140,14 +144,25 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
           <PatientDialog />
         </div>
       ) : (
-        <DataTable
-          table={table}
-          total={data.length}
-          searchPlaceholder="Search by name or phone…"
-          facets={[statusFacet]}
-          exportFilename="patients"
-          empty="No patients match this search."
-        />
+        <>
+          <DataTable
+            table={table}
+            total={data.length}
+            searchPlaceholder="Search by name or phone…"
+            facets={[statusFacet]}
+            exportFilename="patients"
+            empty="No patients match this search."
+          />
+          {editing && (
+            <PatientDialog
+              patient={editing}
+              open
+              onOpenChange={(v) => {
+                if (!v) setEditing(null);
+              }}
+            />
+          )}
+        </>
       )}
     </div>
   );

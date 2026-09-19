@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   columnFacetingFeature,
   columnFilteringFeature,
@@ -25,10 +27,21 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   ChevronsUpDownIcon,
+  EllipsisVerticalIcon,
   EyeOffIcon,
   PlusCircleIcon,
   XIcon,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -505,5 +518,87 @@ export function DataTableToolbar({
         <ViewOptions table={table} />
       </span>
     </div>
+  );
+}
+
+export type RowAction = {
+  label: string;
+  destructive?: boolean;
+  onSelect: () => void | Promise<void>;
+  confirm?: { title: string; description: string; confirmLabel: string };
+};
+
+// Sigil-style row menu: one ellipsis trigger per row instead of a column
+// of buttons. Destructive items confirm inline through an alert dialog,
+// so tables never nest dialog triggers inside menu items.
+export function RowActions({ items }: { items: RowAction[] }) {
+  const [pending, setPending] = useState<RowAction | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function run(action: RowAction) {
+    setBusy(true);
+    try {
+      await action.onSelect();
+      setPending(null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground"
+            />
+          }
+        >
+          <EllipsisVerticalIcon />
+          <span className="sr-only">Open row menu</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuGroup>
+            {items.map((item) => (
+              <DropdownMenuItem
+                key={item.label}
+                variant={item.destructive ? "destructive" : "default"}
+                onClick={() => {
+                  if (item.confirm) setPending(item);
+                  else void run(item);
+                }}
+              >
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialog
+        open={pending !== null}
+        onOpenChange={(v) => !v && setPending(null)}
+      >
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{pending?.confirm?.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending?.confirm?.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Back</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={() => pending && void run(pending)}
+            >
+              {busy ? "Working…" : (pending?.confirm?.confirmLabel ?? "Confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

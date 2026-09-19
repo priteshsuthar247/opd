@@ -31,8 +31,19 @@ function defaults(patient?: PatientRow): PatientFormValues {
   };
 }
 
-export function PatientDialog({ patient }: { patient?: PatientRow }) {
-  const [open, setOpen] = useState(false);
+export function PatientDialog({
+  patient,
+  open,
+  onOpenChange,
+}: {
+  patient?: PatientRow;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const openState = open ?? internalOpen;
+  const setOpenState = onOpenChange ?? setInternalOpen;
   const isEdit = !!patient;
   const {
     register,
@@ -46,7 +57,7 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
   });
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    setOpenState(next);
     if (next) reset(defaults(patient));
   }
 
@@ -59,14 +70,14 @@ export function PatientDialog({ patient }: { patient?: PatientRow }) {
       return;
     }
     toast.success(isEdit ? "Patient updated." : "Patient registered.");
-    setOpen(false);
+    setOpenState(false);
   }
 
   return (
     <FormDialog
-      open={open}
+      open={openState}
       onOpenChange={handleOpenChange}
-      triggerLabel={isEdit ? "Edit" : "Register patient"}
+      triggerLabel={controlled ? undefined : isEdit ? "Edit" : "Register patient"}
       triggerVariant={isEdit ? "outline" : "default"}
       title={isEdit ? "Edit patient" : "Register patient"}
       description="Phone numbers are unique — search before registering."

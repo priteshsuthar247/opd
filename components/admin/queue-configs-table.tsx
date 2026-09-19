@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   createColumnHelper,
   useTable,
 } from "@tanstack/react-table";
 import {
   filterIncludesAny,
+  RowActions,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -16,8 +17,6 @@ import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ui/confirm-button";
 import { QueueConfigDialog } from "@/components/admin/queue-config-dialog";
 import type { QueueConfigRow } from "@/db/queries/queue-configs";
 import { setQueueConfigStatus } from "@/app/admin/queue/actions";
@@ -35,7 +34,10 @@ async function toggleStatus(row: QueueConfigRow) {
     );
 }
 
-const columns = (doctors: { id: number; name: string }[]) =>
+const columns = (
+  doctors: { id: number; name: string }[],
+  onEdit: (row: QueueConfigRow) => void
+) =>
   helper.columns([
   selectionColumn<QueueConfigRow>(),
   helper.accessor((r) => r.doctor.user.name, {
@@ -65,30 +67,33 @@ const columns = (doctors: { id: number; name: string }[]) =>
       id: "actions",
       header: "",
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-2">
-        {row.original.status === "active" ? (
-          <ConfirmButton
-            label="Deactivate"
-            title={`Deactivate ${row.original.doctor.user.name}'s queue rules?`}
-            description="New bookings for this doctor will be blocked until reactivated."
-            confirmLabel="Deactivate"
-            onConfirm={() => toggleStatus(row.original)}
-          />
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void toggleStatus(row.original)}
-          >
-            Activate
-          </Button>
-        )}
-          <QueueConfigDialog config={row.original} doctors={doctors} />
-        </div>
-      ),
-    }),
-  ]);
+    cell: ({ row }) => (
+      <div className="flex justify-end">
+        <RowActions
+          items={[
+            { label: "Edit", onSelect: () => onEdit(row.original) },
+            row.original.status === "active"
+              ? {
+                  label: "Deactivate",
+                  destructive: true,
+                  onSelect: () => toggleStatus(row.original),
+                  confirm: {
+                    title: `Deactivate ${row.original.doctor.user.name}'s queue rules?`,
+                    description:
+                      "New bookings for this doctor will be blocked until reactivated.",
+                    confirmLabel: "Deactivate",
+                  },
+                }
+              : {
+                  label: "Activate",
+                  onSelect: () => toggleStatus(row.original),
+                },
+          ]}
+        />
+      </div>
+    ),
+  }),
+]);
 
 export function QueueConfigsTable({
   data,
@@ -97,9 +102,10 @@ export function QueueConfigsTable({
   data: QueueConfigRow[];
   doctors: { id: number; name: string }[];
 }) {
+  const [editing, setEditing] = useState<QueueConfigRow | null>(null);
   const table = useTable({
     features,
-    columns: useMemo(() => columns(doctors), [doctors]),
+    columns: useMemo(() => columns(doctors, setEditing), [doctors]),
     data,
     initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
@@ -117,13 +123,25 @@ export function QueueConfigsTable({
   }
 
   return (
-    <DataTable
-      table={table}
-      total={data.length}
-      searchPlaceholder="Search configurations…"
-      facets={[statusFacet]}
-      exportFilename="queue-configurations"
-      empty="No configurations match these filters."
-    />
+    <>
+      <DataTable
+        table={table}
+        total={data.length}
+        searchPlaceholder="Search configurations…"
+        facets={[statusFacet]}
+        exportFilename="queue-configurations"
+        empty="No configurations match these filters."
+      />
+      {editing && (
+        <QueueConfigDialog
+          config={editing}
+          doctors={doctors}
+          open
+          onOpenChange={(v) => {
+            if (!v) setEditing(null);
+          }}
+        />
+      )}
+    </>
   );
 }

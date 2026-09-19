@@ -1,11 +1,14 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import {
   createColumnHelper,
   useTable,
 } from "@tanstack/react-table";
 import {
   filterIncludesAny,
+  RowActions,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -15,8 +18,6 @@ import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ui/confirm-button";
 import { MedicineDialog } from "@/components/admin/medicine-dialog";
 import type { MedicineRow } from "@/db/queries/medicines";
 import { setMedicineStatus } from "@/app/admin/medicines/actions";
@@ -34,7 +35,8 @@ async function toggleStatus(row: MedicineRow) {
     );
 }
 
-const columns = helper.columns([
+const columns = (onEdit: (row: MedicineRow) => void) =>
+  helper.columns([
   selectionColumn<MedicineRow>(),
   helper.accessor("name", {
     header: sortHeader("Name"),
@@ -59,34 +61,38 @@ const columns = helper.columns([
     header: "",
     enableHiding: false,
     cell: ({ row }) => (
-      <div className="flex justify-end gap-2">
-        {row.original.status === "active" ? (
-          <ConfirmButton
-            label="Deactivate"
-            title={`Deactivate ${row.original.name}?`}
-            description="Existing prescriptions keep it, but it can no longer be picked for new ones."
-            confirmLabel="Deactivate"
-            onConfirm={() => toggleStatus(row.original)}
-          />
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void toggleStatus(row.original)}
-          >
-            Activate
-          </Button>
-        )}
-        <MedicineDialog medicine={row.original} />
+      <div className="flex justify-end">
+        <RowActions
+          items={[
+            { label: "Edit", onSelect: () => onEdit(row.original) },
+            row.original.status === "active"
+              ? {
+                  label: "Deactivate",
+                  destructive: true,
+                  onSelect: () => toggleStatus(row.original),
+                  confirm: {
+                    title: `Deactivate ${row.original.name}?`,
+                    description:
+                      "Existing prescriptions keep it, but it can no longer be picked for new ones.",
+                    confirmLabel: "Deactivate",
+                  },
+                }
+              : {
+                  label: "Activate",
+                  onSelect: () => toggleStatus(row.original),
+                },
+          ]}
+        />
       </div>
     ),
   }),
 ]);
 
 export function MedicinesTable({ data }: { data: MedicineRow[] }) {
+  const [editing, setEditing] = useState<MedicineRow | null>(null);
   const table = useTable({
     features,
-    columns,
+    columns: useMemo(() => columns(setEditing), []),
     data,
     initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
@@ -103,13 +109,24 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
   }
 
   return (
-    <DataTable
-      table={table}
-      total={data.length}
-      searchPlaceholder="Search medicines…"
-      facets={[statusFacet]}
-      exportFilename="medicines"
-      empty="No medicines match these filters."
-    />
+    <>
+      <DataTable
+        table={table}
+        total={data.length}
+        searchPlaceholder="Search medicines…"
+        facets={[statusFacet]}
+        exportFilename="medicines"
+        empty="No medicines match these filters."
+      />
+      {editing && (
+        <MedicineDialog
+          medicine={editing}
+          open
+          onOpenChange={(v) => {
+            if (!v) setEditing(null);
+          }}
+        />
+      )}
+    </>
   );
 }

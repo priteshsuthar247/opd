@@ -25,8 +25,19 @@ const formSchema = z.object({
     .refine((d) => d >= todayStr(), "Date cannot be in the past"),
 });
 
-export function RescheduleDialog({ row }: { row: QueueRow }) {
-  const [open, setOpen] = useState(false);
+export function RescheduleDialog({
+  row,
+  open,
+  onOpenChange,
+}: {
+  row: QueueRow;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const openState = open ?? internalOpen;
+  const setOpenState = onOpenChange ?? setInternalOpen;
   const {
     register,
     handleSubmit,
@@ -38,7 +49,7 @@ export function RescheduleDialog({ row }: { row: QueueRow }) {
   });
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    setOpenState(next);
     if (next) reset({ date: row.date });
   }
 
@@ -53,14 +64,14 @@ export function RescheduleDialog({ row }: { row: QueueRow }) {
       return;
     }
     toast.success(`Moved. New token assigned for ${data.date}.`);
-    setOpen(false);
+    setOpenState(false);
   }
 
   return (
     <FormDialog
-      open={open}
+      open={openState}
       onOpenChange={handleOpenChange}
-      triggerLabel="Reschedule"
+      triggerLabel={controlled ? undefined : "Reschedule"}
       triggerVariant="ghost"
       title={`Reschedule token ${row.tokenNumber}`}
       description={`${row.patient.name} with ${row.doctor.user.name}. A fresh token is assigned at the end of the new day's queue.`}

@@ -59,11 +59,18 @@ function hoursDefaults(
 export function DoctorDialog({
   doctor,
   departments,
+  open,
+  onOpenChange,
 }: {
   doctor?: DoctorRow;
   departments: { id: number; name: string }[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const openState = open ?? internalOpen;
+  const setOpenState = onOpenChange ?? setInternalOpen;
   const isEdit = !!doctor;
   const {
     register,
@@ -93,7 +100,7 @@ export function DoctorDialog({
   });
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    setOpenState(next);
     if (next)
       reset({
         name: doctor?.user.name ?? "",
@@ -117,14 +124,14 @@ export function DoctorDialog({
       return;
     }
     toast.success(isEdit ? "Doctor updated." : "Doctor created.");
-    setOpen(false);
+    setOpenState(false);
   }
 
   return (
     <FormDialog
-      open={open}
+      open={openState}
       onOpenChange={handleOpenChange}
-      triggerLabel={isEdit ? "Edit" : "Add doctor"}
+      triggerLabel={controlled ? undefined : isEdit ? "Edit" : "Add doctor"}
       triggerVariant={isEdit ? "outline" : "default"}
       title={isEdit ? "Edit doctor" : "Add doctor"}
       description="Login account, clinical profile and queue rules are created together."

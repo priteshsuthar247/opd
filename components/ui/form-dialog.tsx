@@ -73,7 +73,12 @@ export function FormDialog({
             <DialogDescription>{description}</DialogDescription>
           )}
         </DialogHeader>
-        {footer ?? (
+        {footer ? (
+          <>
+            {children}
+            {footer}
+          </>
+        ) : (
           <form onSubmit={onSubmit}>
             {children}
             <DialogFooter className="mt-4">

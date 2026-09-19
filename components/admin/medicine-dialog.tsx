@@ -14,8 +14,19 @@ import { medicineSchema, type MedicineFormValues } from "@/lib/validations/medic
 import { medicineForms, statusOptions } from "@/lib/options";
 import { createMedicine, updateMedicine } from "@/app/admin/medicines/actions";
 
-export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
-  const [open, setOpen] = useState(false);
+export function MedicineDialog({
+  medicine,
+  open,
+  onOpenChange,
+}: {
+  medicine?: MedicineRow;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = open !== undefined;
+  const openState = open ?? internalOpen;
+  const setOpenState = onOpenChange ?? setInternalOpen;
   const isEdit = !!medicine;
   const {
     register,
@@ -45,7 +56,7 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
   }
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    setOpenState(next);
     if (next)
       reset({
         name: medicine?.name ?? "",
@@ -65,14 +76,14 @@ export function MedicineDialog({ medicine }: { medicine?: MedicineRow }) {
       return;
     }
     toast.success(isEdit ? "Medicine updated." : "Medicine created.");
-    setOpen(false);
+    setOpenState(false);
   }
 
   return (
     <FormDialog
-      open={open}
+      open={openState}
       onOpenChange={handleOpenChange}
-      triggerLabel={isEdit ? "Edit" : "Add medicine"}
+      triggerLabel={controlled ? undefined : isEdit ? "Edit" : "Add medicine"}
       triggerVariant={isEdit ? "outline" : "default"}
       title={isEdit ? "Edit medicine" : "Add medicine"}
       description="Medicines are picked when building prescriptions."
