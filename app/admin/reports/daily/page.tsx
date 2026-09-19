@@ -1,3 +1,8 @@
+import {
+  FilterApply,
+  FilterBar,
+  FilterField,
+} from "@/components/ui/filter-bar";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/roles";
 import {
@@ -7,7 +12,6 @@ import {
 } from "@/db/queries/reports";
 import { ExportCsvButton } from "@/components/admin/export-csv-button";
 import { PrintButton } from "@/components/consultation/print-button";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -82,19 +86,12 @@ export default async function DailyReportPage({
           <PrintButton />
         </div>
       </div>
-      <form
-        action="/admin/reports/daily"
-        method="get"
-        className="mb-4 flex items-end gap-2 print:hidden"
-      >
-        <label className="flex flex-col gap-1 text-xs">
-          <span className="text-muted-foreground">Date</span>
+      <FilterBar action="/admin/reports/daily" className="print:hidden">
+        <FilterField label="Date">
           <Input type="date" name="date" defaultValue={date} className="w-40" />
-        </label>
-        <Button type="submit" variant="outline" size="sm">
-          Apply
-        </Button>
-      </form>
+        </FilterField>
+        <FilterApply />
+      </FilterBar>
       {doctorRows.length === 0 ? (
         <div className="border py-12 text-center text-sm text-muted-foreground">
           No appointments on this date.

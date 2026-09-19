@@ -1,3 +1,8 @@
+import {
+  FilterApply,
+  FilterBar,
+  FilterField,
+} from "@/components/ui/filter-bar";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/roles";
 import {
@@ -7,7 +12,6 @@ import {
   type DateRange,
 } from "@/db/queries/reports";
 import { ExportCsvButton } from "@/components/admin/export-csv-button";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -99,23 +103,15 @@ export default async function DoctorPerformancePage({
           filename={`doctor-performance-${range.from}-${range.to}`}
         />
       </div>
-      <form
-        action="/admin/reports/doctor-performance"
-        method="get"
-        className="mb-4 flex flex-wrap items-end gap-2"
-      >
-        <label className="flex flex-col gap-1 text-xs">
-          <span className="text-muted-foreground">From</span>
+      <FilterBar action="/admin/reports/doctor-performance">
+        <FilterField label="From">
           <Input type="date" name="from" defaultValue={range.from} className="w-40" />
-        </label>
-        <label className="flex flex-col gap-1 text-xs">
-          <span className="text-muted-foreground">To</span>
+        </FilterField>
+        <FilterField label="To">
           <Input type="date" name="to" defaultValue={range.to} className="w-40" />
-        </label>
-        <Button type="submit" variant="outline" size="sm">
-          Apply
-        </Button>
-      </form>
+        </FilterField>
+        <FilterApply />
+      </FilterBar>
       {perfRows.length === 0 ? (
         <div className="border py-12 text-center text-sm text-muted-foreground">
           No appointments in this range.

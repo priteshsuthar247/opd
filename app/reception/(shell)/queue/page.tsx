@@ -4,7 +4,11 @@ import { flagNoShows } from "@/lib/no-show";
 import { listDoctors } from "@/db/queries/doctors";
 import { listQueue } from "@/db/queries/appointments";
 import { QueueTable } from "@/components/queue/queue-table";
-import { Button } from "@/components/ui/button";
+import {
+  FilterApply,
+  FilterBar,
+  FilterField,
+} from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -59,13 +63,8 @@ export default async function QueuePage({
         </p>
       </div>
       {/* Plain GET form: filter without client JS. */}
-      <form
-        action="/reception/queue"
-        method="get"
-        className="mb-4 flex flex-wrap items-end gap-2"
-      >
-        <label className="flex flex-col gap-1 text-xs">
-          <span className="text-muted-foreground">Doctor</span>
+      <FilterBar action="/reception/queue">
+        <FilterField label="Doctor">
           <Select
             name="doctor"
             defaultValue={doctorId ? String(doctorId) : "all"}
@@ -88,15 +87,12 @@ export default async function QueuePage({
               ))}
             </SelectContent>
           </Select>
-        </label>
-        <label className="flex flex-col gap-1 text-xs">
-          <span className="text-muted-foreground">Date</span>
+        </FilterField>
+        <FilterField label="Date">
           <Input type="date" name="date" defaultValue={date} className="w-40" />
-        </label>
-        <Button type="submit" variant="outline" size="sm">
-          Apply
-        </Button>
-      </form>
+        </FilterField>
+        <FilterApply />
+      </FilterBar>
       <QueueTable data={rowsAfterFlag} />
     </main>
   );

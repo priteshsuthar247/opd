@@ -1,22 +1,13 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  ArrowRightIcon,
   CalendarPlusIcon,
   ListChecksIcon,
   CircleCheckIcon,
 } from "lucide-react";
 import { requireRole } from "@/lib/roles";
 import { listAppointmentsInRange } from "@/db/queries/reports";
+import { RecentVisits } from "@/components/shell/recent-visits";
 import { StatCard } from "@/components/shell/stat-card";
-import { StatusBadge } from "@/components/queue/status-badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { todayStr } from "@/lib/dates";
 
 export default async function ReceptionHome() {
@@ -40,43 +31,18 @@ export default async function ReceptionHome() {
         <StatCard title="Completed" value={String(done)} icon={CircleCheckIcon} />
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-medium">Recent bookings</CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            nativeButton={false}
-            render={<Link href="/reception/queue">View all</Link>}
-          >
-            View all
-            <ArrowRightIcon data-icon="inline-end" />
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nothing booked today yet.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {recent.map((r) => (
-                <div key={r.id} className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">
-                      Token {r.tokenNumber} · {r.patient.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {r.doctor.user.name}
-                    </span>
-                  </div>
-                  <StatusBadge status={r.status} />
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <RecentVisits
+        title="Recent bookings"
+        viewAllHref="/reception/queue"
+        empty="Nothing booked today yet."
+        visits={recent.map((r) => ({
+          id: r.id,
+          tokenNumber: r.tokenNumber,
+          patientName: r.patient.name,
+          doctorName: r.doctor.user.name,
+          status: r.status,
+        }))}
+      />
     </div>
   );
 }

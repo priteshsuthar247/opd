@@ -33,19 +33,10 @@ import {
   PlusCircleIcon,
   XIcon,
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ConfirmDialog } from "@/components/ui/confirm-button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -534,17 +525,6 @@ export type RowAction = {
 // so tables never nest dialog triggers inside menu items.
 export function RowActions({ items }: { items: RowAction[] }) {
   const [pending, setPending] = useState<RowAction | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function run(action: RowAction) {
-    setBusy(true);
-    try {
-      await action.onSelect();
-      setPending(null);
-    } finally {
-      setBusy(false);
-    }
-  }
 
   return (
     <>
@@ -569,7 +549,7 @@ export function RowActions({ items }: { items: RowAction[] }) {
                 variant={item.destructive ? "destructive" : "default"}
                 onClick={() => {
                   if (item.confirm) setPending(item);
-                  else void run(item);
+                  else void item.onSelect();
                 }}
               >
                 {item.label}
@@ -578,28 +558,18 @@ export function RowActions({ items }: { items: RowAction[] }) {
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-      <AlertDialog
+      <ConfirmDialog
         open={pending !== null}
         onOpenChange={(v) => !v && setPending(null)}
-      >
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{pending?.confirm?.title}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {pending?.confirm?.description}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>Back</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={busy}
-              onClick={() => pending && void run(pending)}
-            >
-              {busy ? "Working…" : (pending?.confirm?.confirmLabel ?? "Confirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={pending?.confirm?.title ?? ""}
+        description={pending?.confirm?.description ?? ""}
+        confirmLabel={pending?.confirm?.confirmLabel}
+        onConfirm={async () => {
+          if (!pending) return;
+          await pending.onSelect();
+          setPending(null);
+        }}
+      />
     </>
   );
 }
