@@ -121,6 +121,13 @@ export function QueueConfigsTable({
         facets={[statusFacet]}
         exportFilename="queue-configurations"
         empty="No configurations match these filters."
+        mobileTitle={(row) => row.doctor.user.name}
+        mobileSummary={(row) => (
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <ActiveBadge status={row.status} />
+            {row.doctor.department.name}
+          </span>
+        )}
         renderExpanded={(row) => (
           <div className="flex flex-col gap-2">
             <ExpandedList

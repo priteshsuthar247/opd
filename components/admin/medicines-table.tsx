@@ -106,6 +106,13 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
         facets={[statusFacet]}
         exportFilename="medicines"
         empty="No medicines match these filters."
+        mobileTitle={(row) => row.name}
+        mobileSummary={(row) => (
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <ActiveBadge status={row.status} />
+            {row.form}
+          </span>
+        )}
         renderExpanded={(row) => (
           <div className="flex flex-col gap-2">
             <ExpandedList

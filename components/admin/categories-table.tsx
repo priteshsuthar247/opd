@@ -110,6 +110,13 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
         facets={[categoryTypeFacet, statusFacet]}
         exportFilename="categories"
         empty="No categories match these filters."
+        mobileTitle={(row) => row.name}
+        mobileSummary={(row) => (
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <ActiveBadge status={row.status} />
+            {typeLabels[row.type]}
+          </span>
+        )}
         renderExpanded={(row) => (
           <div className="flex flex-col gap-2">
             <ExpandedList

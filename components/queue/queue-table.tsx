@@ -167,6 +167,13 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
         facets={[queueStatusFacet, appointmentTypeFacet]}
         exportFilename="queue"
         empty="No visits match these filters."
+        mobileTitle={(row) => `#${row.tokenNumber} · ${row.patient.name}`}
+        mobileSummary={(row) => (
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <StatusBadge status={row.status} />
+            {row.doctor.user.name}
+          </span>
+        )}
         renderExpanded={(row) =>
           queuePanel(row, setBillingId, setRescheduling)
         }

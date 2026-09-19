@@ -1,15 +1,21 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
 import {
   flexRender,
   type ReactTable,
   type RowData,
 } from "@tanstack/react-table";
-import { DownloadIcon, XIcon } from "lucide-react";
+import { ChevronRightIcon, DownloadIcon, XIcon } from "lucide-react";
 import { tableFeaturesFull } from "@/components/table/table-helpers";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -31,6 +37,9 @@ import {
 // search and faceted filters, bordered table, empty state, pagination.
 // Fixed on our shared feature set so row/cell APIs resolve; generic only
 // on the row data, keeping full type-checking at each call site.
+// On small screens the table becomes a card list: each card shows the
+// mobile summary, and tapping it opens a detail sheet with the same
+// content the desktop expanded panel shows (data + actions).
 type AppFeatures = typeof tableFeaturesFull;
 
 export function DataTable<TData extends RowData>({
@@ -41,6 +50,8 @@ export function DataTable<TData extends RowData>({
   empty,
   exportFilename,
   renderExpanded,
+  mobileTitle,
+  mobileSummary,
 }: {
   table: ReactTable<AppFeatures, TData> & FilterableTable & PaginatedTable;
   total: number;
@@ -49,9 +60,12 @@ export function DataTable<TData extends RowData>({
   empty: ReactNode;
   exportFilename?: string;
   renderExpanded?: (original: TData) => ReactNode;
+  mobileTitle: (original: TData) => string;
+  mobileSummary: (original: TData) => ReactNode;
 }) {
   const rows = table.getRowModel().rows;
   const selected = table.getSelectedRowModel().rows;
+  const [detail, setDetail] = useState<TData | null>(null);
 
   // Per-column responsive class via columnDef meta (see
   // secondaryColumnClass): non-essentials hide on small screens, where
@@ -93,7 +107,7 @@ export function DataTable<TData extends RowData>({
         searchPlaceholder={searchPlaceholder}
         facets={facets}
       />
-      <div className="overflow-hidden rounded-md border">
+      <div className="hidden overflow-hidden rounded-md border md:block">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -160,6 +174,48 @@ export function DataTable<TData extends RowData>({
           </TableBody>
         </Table>
       </div>
+      {rows.length > 0 ? (
+        <ul className="flex flex-col gap-2 md:hidden">
+          {rows.map((row) => (
+            <li key={row.id}>
+              <button
+                type="button"
+                onClick={() => setDetail(row.original)}
+                className="flex w-full items-center gap-3 rounded-md border bg-card px-3 py-2.5 text-left"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">
+                    {mobileTitle(row.original)}
+                  </span>
+                  <span className="mt-0.5 block">
+                    {mobileSummary(row.original)}
+                  </span>
+                </span>
+                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="rounded-md border py-12 text-center md:hidden">
+          {empty}
+        </div>
+      )}
+      <Dialog
+        open={detail !== null}
+        onOpenChange={(v) => {
+          if (!v) setDetail(null);
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {detail !== null ? mobileTitle(detail) : ""}
+            </DialogTitle>
+          </DialogHeader>
+          {detail !== null && renderExpanded?.(detail)}
+        </DialogContent>
+      </Dialog>
       <TablePagination table={table} total={total} />
       {exportFilename && selected.length > 0 && (
         <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 text-xs">

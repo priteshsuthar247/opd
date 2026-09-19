@@ -101,6 +101,8 @@ export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
         facets={[statusFacet]}
         empty="No departments match these filters."
         exportFilename="departments"
+        mobileTitle={(row) => row.name}
+        mobileSummary={(row) => <ActiveBadge status={row.status} />}
         renderExpanded={(row) => (
           <div className="flex flex-col gap-2">
             <ExpandedList items={[
