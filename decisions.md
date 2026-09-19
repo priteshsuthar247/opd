@@ -112,6 +112,32 @@ order taken. All entries implemented unless marked otherwise.
 40. **Theme files are user-owned** — agent does not touch `globals.css`,
     layout fonts, or `components.json` theme without explicit say-so.
 
+## 2026-09-19 — Mobile tables, detail sheets, dialog margins
+
+41. **Mobile tables become card lists + detail sheets** — under `md`,
+    every table renders cards (title + summary + chevron); tapping opens
+    a dialog with the full record (label/value data + action buttons).
+    Desktop tables byte-identical. Screenshots from the user beat the
+    expandable-row experiment, which was built, then removed (net −112).
+42. **Sheets must carry ALL row data** — first pass omitted phone, blood
+    group, address, emergency contact, registration no., dosage note.
+    Caught by reading `db/schema.ts` field-by-field against each panel.
+43. **Desktop chevron removed** — expansion added controls without
+    removing any; mobile is cards now, so the toggle had no job left.
+    `rowExpandingFeature` and the factory deleted, not left dead.
+44. **Radius 0 applies to agent markup too** — cards shipped with
+    `rounded-md` against the theme; fixed. Primitive's `rounded-4xl`
+    flagged to the user (their theme territory, not touched).
+45. **FormDialog owns mobile margins** — wide forms (Edit doctor) went
+    edge-to-edge because bare `max-w-*` beat the primitive's
+    `calc(100%-2rem)`. Sizes now cap at full-minus-2rem on mobile;
+    one shell fixes every form. Bottom-sheet detour on the detail
+    sheet reverted — user said the centered card was already right.
+46. **agent-browser verifies UI work** — three compile-only rounds on
+    mobile tables missed what screenshots caught instantly. Login,
+    book, tap-through, nested dialogs, and cleanup now run against
+    the user's `:3000` before commit.
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,
