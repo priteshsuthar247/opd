@@ -174,7 +174,7 @@ export function DataTable<TData extends RowData>({
           if (!v) setDetail(null);
         }}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-sm:top-auto max-sm:bottom-0 max-sm:left-0 max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-w-sm">
           <DialogHeader>
             <DialogTitle>
               {detail !== null ? mobileTitle(detail) : ""}
