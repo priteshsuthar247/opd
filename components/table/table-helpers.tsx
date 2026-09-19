@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 import {
@@ -8,6 +9,7 @@ import {
   columnFilteringFeature,
   columnVisibilityFeature,
   createColumnHelper,
+  createExpandedRowModel,
   createFacetedRowModel,
   createFacetedUniqueValues,
   createFilteredRowModel,
@@ -15,6 +17,7 @@ import {
   createSortedRowModel,
   globalFilteringFeature,
   rowPaginationFeature,
+  rowExpandingFeature,
   rowSelectionFeature,
   rowSortingFeature,
   tableFeatures,
@@ -23,6 +26,7 @@ import {
 import {
   ArrowDownIcon,
   ArrowUpIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
@@ -66,6 +70,8 @@ export const tableFeaturesFull = tableFeatures({
   facetedUniqueValues: createFacetedUniqueValues(),
   globalFilteringFeature,
   rowSelectionFeature,
+  rowExpandingFeature,
+  expandedRowModel: createExpandedRowModel(),
 });
 
 export const defaultPageSize = 10;
@@ -290,6 +296,57 @@ export function selectionColumn<TData extends RowData>() {
     enableSorting: false,
     enableHiding: false,
   });
+}
+
+// Non-essential columns carry this via columnDef meta: visible on
+// desktop, hidden on small screens where the expanded panel shows them.
+export const secondaryColumnClass = "hidden md:table-cell";
+
+// Expander column: chevron button as the last column of a table. Toggles
+// the expanded detail panel rendered by DataTable (via renderExpanded).
+// Placed last so essentials stay left, matching the mobile-first layout.
+export function expandColumn<TData extends RowData>() {
+  const helper = createColumnHelper<typeof tableFeaturesFull, TData>();
+  return helper.display({
+    id: "expand",
+    header: () => null,
+    cell: ({ row }) => {
+      const expanded = row.getIsExpanded();
+      return (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={row.getToggleExpandedHandler()}
+          aria-label={expanded ? "Collapse row" : "Expand row"}
+          aria-expanded={expanded}
+        >
+          {expanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+        </Button>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  });
+}
+
+// Label/value list rendered inside an expanded row panel. Keeps detail
+// markup uniform across all nine tables — no per-table panel styling.
+export type ExpandedItem = {
+  label: string;
+  value: ReactNode;
+};
+
+export function ExpandedList({ items }: { items: ExpandedItem[] }) {
+  return (
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-2 px-1 py-1 sm:grid-cols-3">
+      {items.map((item) => (
+        <div key={item.label} className="min-w-0">
+          <dt className="text-muted-foreground text-xs">{item.label}</dt>
+          <dd className="truncate text-sm">{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 }
 
 // Matches rows whose column value is any of the selected facet values.
@@ -519,6 +576,45 @@ export type RowAction = {
   onSelect: () => void | Promise<void>;
   confirm?: { title: string; description: string; confirmLabel: string };
 };
+
+// Expanded-panel twin of RowActions: renders the SAME action items as
+// small buttons, so the panel carries every action the row menu has.
+// Confirm-backed items get their own dialog each — no shared state.
+export function ExpandedActions({ items }: { items: RowAction[] }) {
+  const [pending, setPending] = useState<RowAction | null>(null);
+
+  return (
+    <>
+      <div className="flex flex-wrap gap-2 px-1 pt-1">
+        {items.map((item) => (
+          <Button
+            key={item.label}
+            size="sm"
+            variant={item.destructive ? "destructive" : "outline"}
+            onClick={() => {
+              if (item.confirm) setPending(item);
+              else void item.onSelect();
+            }}
+          >
+            {item.label}
+          </Button>
+        ))}
+      </div>
+      <ConfirmDialog
+        open={pending !== null}
+        onOpenChange={(v) => !v && setPending(null)}
+        title={pending?.confirm?.title ?? ""}
+        description={pending?.confirm?.description ?? ""}
+        confirmLabel={pending?.confirm?.confirmLabel}
+        onConfirm={async () => {
+          if (!pending) return;
+          await pending.onSelect();
+          setPending(null);
+        }}
+      />
+    </>
+  );
+}
 
 // Sigil-style row menu: one ellipsis trigger per row instead of a column
 // of buttons. Destructive items confirm inline through an alert dialog,

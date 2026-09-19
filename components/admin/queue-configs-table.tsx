@@ -6,9 +6,13 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  ExpandedActions,
+  ExpandedList,
+  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
+  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -27,6 +31,18 @@ const helper = createColumnHelper<typeof features, QueueConfigRow>();
 
 const toggleStatus = makeStatusToggle(setQueueConfigStatus, "Configuration");
 
+// One item list drives both the ellipsis menu and the expanded panel.
+function queueConfigMenu(row: QueueConfigRow, onEdit: (row: QueueConfigRow) => void) {
+  return statusRowItems(row, {
+    onEdit: () => onEdit(row),
+    onToggle: toggleStatus,
+    name: row.doctor.user.name,
+    noun: "Configuration",
+    deactivateHint:
+      "New bookings for this doctor will be blocked until reactivated.",
+  });
+}
+
 const columns = (
   doctors: { id: number; name: string }[],
   onEdit: (row: QueueConfigRow) => void
@@ -41,9 +57,16 @@ const columns = (
     helper.accessor((r) => r.doctor.department.name, {
     id: "department",
     header: sortHeader("Department"),
+    meta: { className: secondaryColumnClass },
     }),
-    helper.accessor("slotDurationMinutes", { header: sortHeader("Slot (min)") }),
-    helper.accessor("maxTokensPerDay", { header: sortHeader("Max tokens/day") }),
+    helper.accessor("slotDurationMinutes", {
+      header: sortHeader("Slot (min)"),
+      meta: { className: secondaryColumnClass },
+    }),
+    helper.accessor("maxTokensPerDay", {
+      header: sortHeader("Max tokens/day"),
+      meta: { className: secondaryColumnClass },
+    }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
@@ -55,19 +78,11 @@ const columns = (
       enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <RowActions
-          items={statusRowItems(row.original, {
-            onEdit: () => onEdit(row.original),
-            onToggle: toggleStatus,
-            name: row.original.doctor.user.name,
-            noun: "Configuration",
-            deactivateHint:
-              "New bookings for this doctor will be blocked until reactivated.",
-          })}
-        />
+        <RowActions items={queueConfigMenu(row.original, onEdit)} />
       </div>
     ),
   }),
+  expandColumn<QueueConfigRow>(),
 ]);
 
 export function QueueConfigsTable({
@@ -104,6 +119,18 @@ export function QueueConfigsTable({
         facets={[statusFacet]}
         exportFilename="queue-configurations"
         empty="No configurations match these filters."
+        renderExpanded={(row) => (
+          <div className="flex flex-col gap-2">
+            <ExpandedList
+              items={[
+                { label: "Department", value: row.doctor.department.name },
+                { label: "Slot (min)", value: row.slotDurationMinutes },
+                { label: "Max tokens/day", value: row.maxTokensPerDay },
+              ]}
+            />
+            <ExpandedActions items={queueConfigMenu(row, setEditing)} />
+          </div>
+        )}
       />
       {editing && (
         <QueueConfigDialog

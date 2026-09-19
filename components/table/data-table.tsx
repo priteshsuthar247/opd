@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import type { ReactNode } from "react";
 import {
   flexRender,
@@ -39,6 +40,7 @@ export function DataTable<TData extends RowData>({
   facets,
   empty,
   exportFilename,
+  renderExpanded,
 }: {
   table: ReactTable<AppFeatures, TData> & FilterableTable & PaginatedTable;
   total: number;
@@ -46,15 +48,26 @@ export function DataTable<TData extends RowData>({
   facets?: FacetFilter[];
   empty: ReactNode;
   exportFilename?: string;
+  renderExpanded?: (original: TData) => ReactNode;
 }) {
   const rows = table.getRowModel().rows;
   const selected = table.getSelectedRowModel().rows;
+
+  // Per-column responsive class via columnDef meta (see
+  // secondaryColumnClass): non-essentials hide on small screens, where
+  // the expanded panel carries the same data.
+  function cellClass(column: { columnDef: unknown }): string | undefined {
+    const def = column.columnDef as { meta?: { className?: string } };
+    return def.meta?.className;
+  }
 
   function exportSelected() {
     if (!exportFilename || selected.length === 0) return;
     const cols = table
       .getAllColumns()
-      .filter((c) => c.id !== "select" && c.id !== "actions");
+      .filter(
+        (c) => c.id !== "select" && c.id !== "actions" && c.id !== "expand"
+      );
     downloadCsv(
       exportFilename,
       selected.map((r) => {
@@ -86,7 +99,11 @@ export function DataTable<TData extends RowData>({
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((h) => (
-                  <TableHead key={h.id} colSpan={h.colSpan}>
+                  <TableHead
+                    key={h.id}
+                    colSpan={h.colSpan}
+                    className={cellClass(h.column)}
+                  >
                     {h.isPlaceholder
                       ? null
                       : flexRender(h.column.columnDef.header, h.getContext())}
@@ -97,18 +114,39 @@ export function DataTable<TData extends RowData>({
           </TableHeader>
           <TableBody>
             {rows.length > 0 ? (
-              rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              rows.map((row) => {
+                const expanded =
+                  !!renderExpanded &&
+                  row.getCanExpand() &&
+                  row.getIsExpanded();
+                return (
+                  <Fragment key={row.id}>
+                    <TableRow>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cellClass(cell.column)}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    {expanded && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={row.getVisibleCells().length}
+                          className="bg-muted/40"
+                        >
+                          {renderExpanded(row.original)}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </Fragment>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

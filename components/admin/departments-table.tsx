@@ -7,9 +7,13 @@ import {
 } from "@tanstack/react-table";
 import { ActiveBadge } from "@/components/ui/active-badge";
 import {
+  ExpandedActions,
+  ExpandedList,
+  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
+  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -27,6 +31,18 @@ const helper = createColumnHelper<typeof features, DepartmentRow>();
 
 const toggleStatus = makeStatusToggle(setDepartmentStatus, "Department");
 
+// One item list drives both the ellipsis menu and the expanded panel.
+function departmentMenu(row: DepartmentRow, onEdit: (row: DepartmentRow) => void) {
+  return statusRowItems(row, {
+    onEdit: () => onEdit(row),
+    onToggle: toggleStatus,
+    name: row.name,
+    noun: "Department",
+    deactivateHint:
+      "Doctors in this department stay untouched, but it can no longer be picked for new doctors.",
+  });
+}
+
 const columns = (onEdit: (row: DepartmentRow) => void) =>
   helper.columns([
     selectionColumn<DepartmentRow>(),
@@ -34,7 +50,10 @@ const columns = (onEdit: (row: DepartmentRow) => void) =>
       header: sortHeader("Name"),
       cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
     }),
-    helper.accessor("code", { header: sortHeader("Code") }),
+    helper.accessor("code", {
+      header: sortHeader("Code"),
+      meta: { className: secondaryColumnClass },
+    }),
     helper.accessor("status", {
       header: sortHeader("Status"),
       filterFn: filterIncludesAny,
@@ -46,19 +65,11 @@ const columns = (onEdit: (row: DepartmentRow) => void) =>
       enableHiding: false,
       cell: ({ row }) => (
         <div className="flex justify-end">
-          <RowActions
-            items={statusRowItems(row.original, {
-              onEdit: () => onEdit(row.original),
-              onToggle: toggleStatus,
-              name: row.original.name,
-              noun: "Department",
-              deactivateHint:
-                "Doctors in this department stay untouched, but it can no longer be picked for new doctors.",
-            })}
-          />
+          <RowActions items={departmentMenu(row.original, onEdit)} />
         </div>
       ),
     }),
+    expandColumn<DepartmentRow>(),
   ]);
 
 export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
@@ -88,6 +99,12 @@ export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
         facets={[statusFacet]}
         empty="No departments match these filters."
         exportFilename="departments"
+        renderExpanded={(row) => (
+          <div className="flex flex-col gap-2">
+            <ExpandedList items={[{ label: "Code", value: row.code }]} />
+            <ExpandedActions items={departmentMenu(row, setEditing)} />
+          </div>
+        )}
       />
       {editing && (
         <DepartmentDialog

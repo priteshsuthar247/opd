@@ -6,9 +6,13 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  ExpandedActions,
+  ExpandedList,
+  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
+  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -27,6 +31,18 @@ const helper = createColumnHelper<typeof features, BillingItemRow>();
 
 const toggleStatus = makeStatusToggle(setBillingItemStatus, "Billing item");
 
+// One item list drives both the ellipsis menu and the expanded panel.
+function billingItemMenu(row: BillingItemRow, onEdit: (row: BillingItemRow) => void) {
+  return statusRowItems(row, {
+    onEdit: () => onEdit(row),
+    onToggle: toggleStatus,
+    name: row.name,
+    noun: "Billing item",
+    deactivateHint:
+      "Past invoices keep it, but it can no longer be added to new ones.",
+  });
+}
+
 const columns = (onEdit: (row: BillingItemRow) => void) =>
   helper.columns([
   selectionColumn<BillingItemRow>(),
@@ -34,10 +50,14 @@ const columns = (onEdit: (row: BillingItemRow) => void) =>
     header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
-  helper.accessor("type", { header: sortHeader("Type") }),
+  helper.accessor("type", {
+    header: sortHeader("Type"),
+    meta: { className: secondaryColumnClass },
+  }),
   helper.accessor("amount", {
     header: sortHeader("Amount (₹)"),
     cell: ({ getValue }) => Number(getValue()).toFixed(2),
+    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
@@ -50,19 +70,11 @@ const columns = (onEdit: (row: BillingItemRow) => void) =>
     enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <RowActions
-          items={statusRowItems(row.original, {
-            onEdit: () => onEdit(row.original),
-            onToggle: toggleStatus,
-            name: row.original.name,
-            noun: "Billing item",
-            deactivateHint:
-              "Past invoices keep it, but it can no longer be added to new ones.",
-          })}
-        />
+        <RowActions items={billingItemMenu(row.original, onEdit)} />
       </div>
     ),
   }),
+  expandColumn<BillingItemRow>(),
 ]);
 
 export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
@@ -92,6 +104,17 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
         facets={[statusFacet]}
         exportFilename="billing-items"
         empty="No billing items match these filters."
+        renderExpanded={(row) => (
+          <div className="flex flex-col gap-2">
+            <ExpandedList
+              items={[
+                { label: "Type", value: row.type ?? "—" },
+                { label: "Amount", value: Number(row.amount).toFixed(2) },
+              ]}
+            />
+            <ExpandedActions items={billingItemMenu(row, setEditing)} />
+          </div>
+        )}
       />
       {editing && (
         <BillingItemDialog

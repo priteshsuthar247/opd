@@ -6,9 +6,13 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  ExpandedActions,
+  ExpandedList,
+  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
+  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -38,6 +42,18 @@ function ageOn(dob: string | null): string {
 
 const toggleStatus = makeStatusToggle(setPatientStatus, "Patient");
 
+// One item list drives both the ellipsis menu and the expanded panel.
+function patientMenu(row: PatientRow, onEdit: (row: PatientRow) => void) {
+  return statusRowItems(row, {
+    onEdit: () => onEdit(row),
+    onToggle: toggleStatus,
+    name: row.name,
+    noun: "Patient",
+    deactivateHint:
+      "Their history stays, but no new appointments can be booked for them.",
+  });
+}
+
 const columns = (onEdit: (row: PatientRow) => void) =>
   helper.columns([
   selectionColumn<PatientRow>(),
@@ -50,10 +66,12 @@ const columns = (onEdit: (row: PatientRow) => void) =>
     id: "age",
     header: "Age",
     cell: ({ row }) => ageOn(row.original.dob),
+    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("gender", {
     header: sortHeader("Gender"),
     cell: ({ getValue }) => getValue() ?? "—",
+    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
@@ -66,19 +84,11 @@ const columns = (onEdit: (row: PatientRow) => void) =>
     enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <RowActions
-          items={statusRowItems(row.original, {
-            onEdit: () => onEdit(row.original),
-            onToggle: toggleStatus,
-            name: row.original.name,
-            noun: "Patient",
-            deactivateHint:
-              "Their history stays, but no new appointments can be booked for them.",
-          })}
-        />
+        <RowActions items={patientMenu(row.original, onEdit)} />
       </div>
     ),
   }),
+  expandColumn<PatientRow>(),
 ]);
 
 export function PatientsTable({ data }: { data: PatientRow[] }) {
@@ -125,6 +135,19 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
             facets={[statusFacet]}
             exportFilename="patients"
             empty="No patients match this search."
+            renderExpanded={(row) => (
+              <div className="flex flex-col gap-2">
+                <ExpandedList
+                  items={[
+                    { label: "Age", value: ageOn(row.dob) },
+                    { label: "Gender", value: row.gender ?? "—" },
+                  ]}
+                />
+                <ExpandedActions
+                  items={patientMenu(row, setEditing)}
+                />
+              </div>
+            )}
           />
           {editing && (
             <PatientDialog

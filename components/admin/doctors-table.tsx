@@ -6,9 +6,13 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  ExpandedActions,
+  ExpandedList,
+  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
+  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -27,6 +31,18 @@ const helper = createColumnHelper<typeof features, DoctorRow>();
 
 const toggleStatus = makeStatusToggle(setDoctorStatus, "Doctor");
 
+// One item list drives both the ellipsis menu and the expanded panel.
+function doctorMenu(row: DoctorRow, onEdit: (row: DoctorRow) => void) {
+  return statusRowItems(row, {
+    onEdit: () => onEdit(row),
+    onToggle: toggleStatus,
+    name: row.user.name,
+    noun: "Doctor",
+    deactivateHint:
+      "Their queue and history stay, but no new appointments can be booked with them.",
+  });
+}
+
 const columns = (
   departments: { id: number; name: string }[],
   onEdit: (row: DoctorRow) => void
@@ -42,10 +58,14 @@ const columns = (
     id: "department",
     header: sortHeader("Department"),
   }),
-  helper.accessor("qualification", { header: sortHeader("Qualification") }),
+  helper.accessor("qualification", {
+    header: sortHeader("Qualification"),
+    meta: { className: secondaryColumnClass },
+  }),
   helper.accessor("consultationFee", {
     header: sortHeader("Fee (₹)"),
     cell: ({ getValue }) => Number(getValue()).toFixed(2),
+    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
@@ -58,19 +78,11 @@ const columns = (
     enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <RowActions
-          items={statusRowItems(row.original, {
-            onEdit: () => onEdit(row.original),
-            onToggle: toggleStatus,
-            name: row.original.user.name,
-            noun: "Doctor",
-            deactivateHint:
-              "Their queue and history stay, but no new appointments can be booked with them.",
-          })}
-        />
+        <RowActions items={doctorMenu(row.original, onEdit)} />
       </div>
     ),
   }),
+  expandColumn<DoctorRow>(),
 ]);
 
 export function DoctorsTable({
@@ -106,6 +118,20 @@ export function DoctorsTable({
         facets={[statusFacet]}
         exportFilename="doctors"
         empty="No doctors match these filters."
+        renderExpanded={(row) => (
+          <div className="flex flex-col gap-2">
+            <ExpandedList
+              items={[
+                { label: "Qualification", value: row.qualification },
+                {
+                  label: "Fee (₹)",
+                  value: Number(row.consultationFee).toFixed(2),
+                },
+              ]}
+            />
+            <ExpandedActions items={doctorMenu(row, setEditing)} />
+          </div>
+        )}
       />
       {editing && (
         <DoctorDialog

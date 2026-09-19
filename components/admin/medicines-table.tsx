@@ -7,9 +7,13 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import {
+  ExpandedActions,
+  ExpandedList,
+  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
+  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -28,6 +32,18 @@ const helper = createColumnHelper<typeof features, MedicineRow>();
 
 const toggleStatus = makeStatusToggle(setMedicineStatus, "Medicine");
 
+// One item list drives both the ellipsis menu and the expanded panel.
+function medicineMenu(row: MedicineRow, onEdit: (row: MedicineRow) => void) {
+  return statusRowItems(row, {
+    onEdit: () => onEdit(row),
+    onToggle: toggleStatus,
+    name: row.name,
+    noun: "Medicine",
+    deactivateHint:
+      "Existing prescriptions keep it, but it can no longer be picked for new ones.",
+  });
+}
+
 const columns = (onEdit: (row: MedicineRow) => void) =>
   helper.columns([
   selectionColumn<MedicineRow>(),
@@ -35,8 +51,14 @@ const columns = (onEdit: (row: MedicineRow) => void) =>
     header: sortHeader("Name"),
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
-  helper.accessor("genericName", { header: sortHeader("Generic name") }),
-  helper.accessor("form", { header: sortHeader("Form") }),
+  helper.accessor("genericName", {
+    header: sortHeader("Generic name"),
+    meta: { className: secondaryColumnClass },
+  }),
+  helper.accessor("form", {
+    header: sortHeader("Form"),
+    meta: { className: secondaryColumnClass },
+  }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
@@ -48,19 +70,11 @@ const columns = (onEdit: (row: MedicineRow) => void) =>
     enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <RowActions
-          items={statusRowItems(row.original, {
-            onEdit: () => onEdit(row.original),
-            onToggle: toggleStatus,
-            name: row.original.name,
-            noun: "Medicine",
-            deactivateHint:
-              "Existing prescriptions keep it, but it can no longer be picked for new ones.",
-          })}
-        />
+        <RowActions items={medicineMenu(row.original, onEdit)} />
       </div>
     ),
   }),
+  expandColumn<MedicineRow>(),
 ]);
 
 export function MedicinesTable({ data }: { data: MedicineRow[] }) {
@@ -90,6 +104,17 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
         facets={[statusFacet]}
         exportFilename="medicines"
         empty="No medicines match these filters."
+        renderExpanded={(row) => (
+          <div className="flex flex-col gap-2">
+            <ExpandedList
+              items={[
+                { label: "Generic name", value: row.genericName ?? "—" },
+                { label: "Form", value: row.form ?? "—" },
+              ]}
+            />
+            <ExpandedActions items={medicineMenu(row, setEditing)} />
+          </div>
+        )}
       />
       {editing && (
         <MedicineDialog

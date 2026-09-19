@@ -7,9 +7,14 @@ import {
 } from "@tanstack/react-table";
 import {
   appointmentTypeFacet,
+  ExpandedActions,
+  ExpandedList,
+  expandColumn,
   filterIncludesAny,
   queueStatusFacet,
+  RowAction,
   RowActions,
+  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   tableFeaturesFull,
@@ -46,11 +51,13 @@ const columns = (
   helper.accessor((r) => r.doctor.user.name, {
     id: "doctor",
     header: sortHeader("Doctor"),
+    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("type", {
     header: sortHeader("Type"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => (getValue() === "walk_in" ? "Walk-in" : "Scheduled"),
+    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
@@ -64,32 +71,66 @@ const columns = (
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions
-          items={[
-            { label: "Bill", onSelect: () => onBill(row.original.id) },
-            ...(row.original.status === "waiting"
-              ? [
-                  {
-                    label: "Reschedule",
-                    onSelect: () => onReschedule(row.original),
-                  },
-                  {
-                    label: "Cancel",
-                    destructive: true,
-                    onSelect: () => cancel(row.original),
-                    confirm: {
-                      title: `Cancel token ${row.original.tokenNumber}?`,
-                      description: `${row.original.patient.name} will be removed from today's queue. This is logged and cannot be undone from here.`,
-                      confirmLabel: "Cancel appointment",
-                    },
-                  },
-                ]
-              : []),
-          ]}
+          items={queueRowItems(row.original, onBill, onReschedule)}
         />
       </div>
     ),
   }),
+  expandColumn<QueueRow>(),
 ]);
+
+// One item list drives both the ellipsis menu and the expanded panel,
+// so the two can never drift apart.
+function queueRowItems(
+  row: QueueRow,
+  onBill: (appointmentId: number) => void,
+  onReschedule: (row: QueueRow) => void
+): RowAction[] {
+  return [
+    { label: "Bill", onSelect: () => onBill(row.id) },
+    ...(row.status === "waiting"
+      ? [
+          {
+            label: "Reschedule",
+            onSelect: () => onReschedule(row),
+          },
+          {
+            label: "Cancel",
+            destructive: true,
+            onSelect: () => cancel(row),
+            confirm: {
+              title: `Cancel token ${row.tokenNumber}?`,
+              description: `${row.patient.name} will be removed from today's queue. This is logged and cannot be undone from here.`,
+              confirmLabel: "Cancel appointment",
+            },
+          },
+        ]
+      : []),
+  ];
+}
+
+function queuePanel(
+  row: QueueRow,
+  onBill: (appointmentId: number) => void,
+  onReschedule: (row: QueueRow) => void
+) {
+  return (
+    <div className="flex flex-col gap-2">
+      <ExpandedList
+        items={[
+          { label: "Doctor", value: row.doctor.user.name },
+          {
+            label: "Type",
+            value: row.type === "walk_in" ? "Walk-in" : "Scheduled",
+          },
+        ]}
+      />
+      <ExpandedActions
+        items={queueRowItems(row, onBill, onReschedule)}
+      />
+    </div>
+  );
+}
 
 export function QueueTable({ data }: { data: QueueRow[] }) {
   const [billingId, setBillingId] = useState<number | null>(null);
@@ -123,6 +164,9 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
         facets={[queueStatusFacet, appointmentTypeFacet]}
         exportFilename="queue"
         empty="No visits match these filters."
+        renderExpanded={(row) =>
+          queuePanel(row, setBillingId, setRescheduling)
+        }
       />
       <InvoiceDialog
         key={billingId ?? "none"}

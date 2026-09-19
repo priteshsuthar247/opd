@@ -7,9 +7,13 @@ import {
 } from "@tanstack/react-table";
 import {
   categoryTypeFacet,
+  ExpandedActions,
+  ExpandedList,
+  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
+  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -34,6 +38,18 @@ const typeLabels = {
 
 const toggleStatus = makeStatusToggle(setCategoryStatus, "Category");
 
+// One item list drives both the ellipsis menu and the expanded panel.
+function categoryMenu(row: CategoryRow, onEdit: (row: CategoryRow) => void) {
+  return statusRowItems(row, {
+    onEdit: () => onEdit(row),
+    onToggle: toggleStatus,
+    name: row.name,
+    noun: "Category",
+    deactivateHint:
+      "Past records keep it, but it can no longer be picked going forward.",
+  });
+}
+
 const columns = (onEdit: (row: CategoryRow) => void) =>
   helper.columns([
   selectionColumn<CategoryRow>(),
@@ -45,6 +61,7 @@ const columns = (onEdit: (row: CategoryRow) => void) =>
     header: sortHeader("Type"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => typeLabels[getValue()],
+    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
@@ -57,19 +74,11 @@ const columns = (onEdit: (row: CategoryRow) => void) =>
     enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <RowActions
-          items={statusRowItems(row.original, {
-            onEdit: () => onEdit(row.original),
-            onToggle: toggleStatus,
-            name: row.original.name,
-            noun: "Category",
-            deactivateHint:
-              "Past records keep it, but it can no longer be picked going forward.",
-          })}
-        />
+        <RowActions items={categoryMenu(row.original, onEdit)} />
       </div>
     ),
   }),
+  expandColumn<CategoryRow>(),
 ]);
 
 export function CategoriesTable({ data }: { data: CategoryRow[] }) {
@@ -99,6 +108,14 @@ export function CategoriesTable({ data }: { data: CategoryRow[] }) {
         facets={[categoryTypeFacet, statusFacet]}
         exportFilename="categories"
         empty="No categories match these filters."
+        renderExpanded={(row) => (
+          <div className="flex flex-col gap-2">
+            <ExpandedList
+              items={[{ label: "Type", value: typeLabels[row.type] }]}
+            />
+            <ExpandedActions items={categoryMenu(row, setEditing)} />
+          </div>
+        )}
       />
       {editing && (
         <CategoryDialog
