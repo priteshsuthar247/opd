@@ -15,11 +15,12 @@ import {
 // One dialog shell for every form in the app. Widths live here alone —
 // the sm:max-w-sm default on DialogContent beats bare max-w classes, so
 // every size carries its explicit sm: override in exactly one place.
+// Mobile is capped at full width minus 1rem gutters per side.
 const sizes = {
-  sm: "max-w-sm sm:max-w-sm",
-  md: "max-w-md sm:max-w-md",
-  lg: "max-w-lg sm:max-w-lg",
-  xl: "max-w-2xl sm:max-w-2xl",
+  sm: "max-w-[calc(100%-2rem)] sm:max-w-sm",
+  md: "max-w-[calc(100%-2rem)] sm:max-w-md",
+  lg: "max-w-[calc(100%-2rem)] sm:max-w-lg",
+  xl: "max-w-[calc(100%-2rem)] sm:max-w-2xl",
 } as const;
 
 export function FormDialog({
