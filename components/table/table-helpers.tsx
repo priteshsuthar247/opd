@@ -9,7 +9,6 @@ import {
   columnFilteringFeature,
   columnVisibilityFeature,
   createColumnHelper,
-  createExpandedRowModel,
   createFacetedRowModel,
   createFacetedUniqueValues,
   createFilteredRowModel,
@@ -17,7 +16,6 @@ import {
   createSortedRowModel,
   globalFilteringFeature,
   rowPaginationFeature,
-  rowExpandingFeature,
   rowSelectionFeature,
   rowSortingFeature,
   tableFeatures,
@@ -26,7 +24,6 @@ import {
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
@@ -69,17 +66,9 @@ export const tableFeaturesFull = tableFeatures({  rowSortingFeature,
   facetedUniqueValues: createFacetedUniqueValues(),
   globalFilteringFeature,
   rowSelectionFeature,
-  rowExpandingFeature,
-  expandedRowModel: createExpandedRowModel(),
 });
 
 export const defaultPageSize = 10;
-
-// Non-essential columns carry this via columnDef meta: visible on
-// desktop, hidden on small screens where the expanded panel shows them.
-// Applies to secondary data columns plus the select/actions chrome, so a
-// mobile row is identity + chevron only.
-export const secondaryColumnClass = "hidden md:table-cell";
 
 // Structural sort API: the real Column type composes these methods in via
 // the sorting feature, which generic code can't name — but every table
@@ -300,38 +289,10 @@ export function selectionColumn<TData extends RowData>() {
     ),
     enableSorting: false,
     enableHiding: false,
-    meta: { className: secondaryColumnClass },
   });
 }
 
-// Expander column: chevron button as the last column of a table. Toggles
-// the expanded detail panel rendered by DataTable (via renderExpanded).
-// Placed last so essentials stay left, matching the mobile-first layout.
-export function expandColumn<TData extends RowData>() {
-  const helper = createColumnHelper<typeof tableFeaturesFull, TData>();
-  return helper.display({
-    id: "expand",
-    header: () => null,
-    cell: ({ row }) => {
-      const expanded = row.getIsExpanded();
-      return (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={row.getToggleExpandedHandler()}
-          aria-label={expanded ? "Collapse row" : "Expand row"}
-          aria-expanded={expanded}
-        >
-          {expanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-        </Button>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  });
-}
-
-// Label/value list rendered inside an expanded row panel. Keeps detail
+// Label/value list rendered inside the mobile detail sheet. Keeps detail
 // markup uniform across all nine tables — no per-table panel styling.
 export type ExpandedItem = {
   label: string;
@@ -344,7 +305,7 @@ export function ExpandedList({ items }: { items: ExpandedItem[] }) {
       {items.map((item) => (
         <div key={item.label} className="min-w-0">
           <dt className="text-muted-foreground text-xs">{item.label}</dt>
-          <dd className="truncate text-sm">{item.value}</dd>
+          <dd className="break-words text-sm">{item.value}</dd>
         </div>
       ))}
     </dl>

@@ -8,11 +8,9 @@ import {
 import {
   ExpandedActions,
   ExpandedList,
-  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
-  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -57,34 +55,28 @@ const columns = (
     helper.accessor((r) => r.doctor.department.name, {
     id: "department",
     header: sortHeader("Department"),
-    meta: { className: secondaryColumnClass },
     }),
     helper.accessor("slotDurationMinutes", {
       header: sortHeader("Slot (min)"),
-      meta: { className: secondaryColumnClass },
     }),
     helper.accessor("maxTokensPerDay", {
       header: sortHeader("Max tokens/day"),
-      meta: { className: secondaryColumnClass },
     }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
       cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
-      meta: { className: secondaryColumnClass },
     }),
     helper.display({
       id: "actions",
       header: "",
       enableHiding: false,
-      meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={queueConfigMenu(row.original, onEdit)} />
       </div>
     ),
   }),
-  expandColumn<QueueConfigRow>(),
 ]);
 
 export function QueueConfigsTable({

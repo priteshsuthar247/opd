@@ -8,11 +8,9 @@ import {
 import {
   ExpandedActions,
   ExpandedList,
-  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
-  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -66,31 +64,26 @@ const columns = (onEdit: (row: PatientRow) => void) =>
     id: "age",
     header: "Age",
     cell: ({ row }) => ageOn(row.original.dob),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("gender", {
     header: sortHeader("Gender"),
     cell: ({ getValue }) => getValue() ?? "—",
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
-    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
-    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={patientMenu(row.original, onEdit)} />
       </div>
     ),
   }),
-  expandColumn<PatientRow>(),
 ]);
 
 export function PatientsTable({ data }: { data: PatientRow[] }) {
@@ -151,6 +144,12 @@ export function PatientsTable({ data }: { data: PatientRow[] }) {
                     { label: "Status", value: <ActiveBadge status={row.status} /> },
                     { label: "Age", value: ageOn(row.dob) },
                     { label: "Gender", value: row.gender ?? "—" },
+                    { label: "Blood group", value: row.bloodGroup ?? "—" },
+                    { label: "Address", value: row.address ?? "—" },
+                    {
+                      label: "Emergency contact",
+                      value: row.emergencyContact ?? "—",
+                    },
                   ]}
                 />
                 <ExpandedActions

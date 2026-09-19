@@ -8,11 +8,9 @@ import {
 import {
   ExpandedActions,
   ExpandedList,
-  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
-  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -52,31 +50,26 @@ const columns = (onEdit: (row: BillingItemRow) => void) =>
   }),
   helper.accessor("type", {
     header: sortHeader("Type"),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("amount", {
     header: sortHeader("Amount (₹)"),
     cell: ({ getValue }) => Number(getValue()).toFixed(2),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
-    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
-    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={billingItemMenu(row.original, onEdit)} />
       </div>
     ),
   }),
-  expandColumn<BillingItemRow>(),
 ]);
 
 export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {

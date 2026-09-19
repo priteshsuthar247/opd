@@ -8,11 +8,9 @@ import {
 import {
   ExpandedActions,
   ExpandedList,
-  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
-  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -60,31 +58,26 @@ const columns = (
   }),
   helper.accessor("qualification", {
     header: sortHeader("Qualification"),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("consultationFee", {
     header: sortHeader("Fee (₹)"),
     cell: ({ getValue }) => Number(getValue()).toFixed(2),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
-    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
-    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={doctorMenu(row.original, onEdit)} />
       </div>
     ),
   }),
-  expandColumn<DoctorRow>(),
 ]);
 
 export function DoctorsTable({
@@ -133,6 +126,10 @@ export function DoctorsTable({
               items={[
                 { label: "Status", value: <ActiveBadge status={row.status} /> },
                 { label: "Qualification", value: row.qualification },
+                {
+                  label: "Registration No.",
+                  value: row.registrationNo ?? "—",
+                },
                 {
                   label: "Fee (₹)",
                   value: Number(row.consultationFee).toFixed(2),

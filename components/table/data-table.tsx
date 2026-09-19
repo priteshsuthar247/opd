@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import {
   flexRender,
@@ -34,12 +34,12 @@ import {
 } from "@/components/table/table-helpers";
 
 // One master table for the whole app (tablecn-style shell): toolbar with
-// search and faceted filters, bordered table, empty state, pagination.
+// search and faceted filters, desktop table, empty state, pagination.
 // Fixed on our shared feature set so row/cell APIs resolve; generic only
 // on the row data, keeping full type-checking at each call site.
 // On small screens the table becomes a card list: each card shows the
-// mobile summary, and tapping it opens a detail sheet with the same
-// content the desktop expanded panel shows (data + actions).
+// mobile summary, and tapping it opens a detail sheet with the full
+// record (data + actions) supplied by renderExpanded.
 type AppFeatures = typeof tableFeaturesFull;
 
 export function DataTable<TData extends RowData>({
@@ -66,14 +66,6 @@ export function DataTable<TData extends RowData>({
   const rows = table.getRowModel().rows;
   const selected = table.getSelectedRowModel().rows;
   const [detail, setDetail] = useState<TData | null>(null);
-
-  // Per-column responsive class via columnDef meta (see
-  // secondaryColumnClass): non-essentials hide on small screens, where
-  // the expanded panel carries the same data.
-  function cellClass(column: { columnDef: unknown }): string | undefined {
-    const def = column.columnDef as { meta?: { className?: string } };
-    return def.meta?.className;
-  }
 
   function exportSelected() {
     if (!exportFilename || selected.length === 0) return;
@@ -107,17 +99,13 @@ export function DataTable<TData extends RowData>({
         searchPlaceholder={searchPlaceholder}
         facets={facets}
       />
-      <div className="hidden overflow-hidden rounded-md border md:block">
+      <div className="hidden overflow-hidden border md:block">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((h) => (
-                  <TableHead
-                    key={h.id}
-                    colSpan={h.colSpan}
-                    className={cellClass(h.column)}
-                  >
+                  <TableHead key={h.id} colSpan={h.colSpan}>
                     {h.isPlaceholder
                       ? null
                       : flexRender(h.column.columnDef.header, h.getContext())}
@@ -128,39 +116,18 @@ export function DataTable<TData extends RowData>({
           </TableHeader>
           <TableBody>
             {rows.length > 0 ? (
-              rows.map((row) => {
-                const expanded =
-                  !!renderExpanded &&
-                  row.getCanExpand() &&
-                  row.getIsExpanded();
-                return (
-                  <Fragment key={row.id}>
-                    <TableRow>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className={cellClass(cell.column)}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                    {expanded && (
-                      <TableRow>
-                        <TableCell
-                          colSpan={row.getVisibleCells().length}
-                          className="bg-muted/40"
-                        >
-                          {renderExpanded(row.original)}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </Fragment>
-                );
-              })
+              rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             ) : (
               <TableRow>
                 <TableCell
@@ -181,7 +148,7 @@ export function DataTable<TData extends RowData>({
               <button
                 type="button"
                 onClick={() => setDetail(row.original)}
-                className="flex w-full items-center gap-3 rounded-md border bg-card px-3 py-2.5 text-left"
+                className="flex w-full items-center gap-3 border bg-card px-3 py-2.5 text-left"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">
@@ -197,7 +164,7 @@ export function DataTable<TData extends RowData>({
           ))}
         </ul>
       ) : (
-        <div className="rounded-md border py-12 text-center md:hidden">
+        <div className="border py-12 text-center md:hidden">
           {empty}
         </div>
       )}

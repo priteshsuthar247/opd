@@ -9,11 +9,9 @@ import {
 import {
   ExpandedActions,
   ExpandedList,
-  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
-  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -53,30 +51,25 @@ const columns = (onEdit: (row: MedicineRow) => void) =>
   }),
   helper.accessor("genericName", {
     header: sortHeader("Generic name"),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("form", {
     header: sortHeader("Form"),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
-    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
-    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={medicineMenu(row.original, onEdit)} />
       </div>
     ),
   }),
-  expandColumn<MedicineRow>(),
 ]);
 
 export function MedicinesTable({ data }: { data: MedicineRow[] }) {
@@ -120,6 +113,7 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
                 { label: "Status", value: <ActiveBadge status={row.status} /> },
                 { label: "Generic name", value: row.genericName ?? "—" },
                 { label: "Form", value: row.form ?? "—" },
+                { label: "Dosage note", value: row.defaultDosageNote ?? "—" },
               ]}
             />
             <ExpandedActions items={medicineMenu(row, setEditing)} />

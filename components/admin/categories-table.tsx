@@ -9,11 +9,9 @@ import {
   categoryTypeFacet,
   ExpandedActions,
   ExpandedList,
-  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
-  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -61,26 +59,22 @@ const columns = (onEdit: (row: CategoryRow) => void) =>
     header: sortHeader("Type"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => typeLabels[getValue()],
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
-    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
-    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions items={categoryMenu(row.original, onEdit)} />
       </div>
     ),
   }),
-  expandColumn<CategoryRow>(),
 ]);
 
 export function CategoriesTable({ data }: { data: CategoryRow[] }) {

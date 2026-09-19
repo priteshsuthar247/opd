@@ -9,11 +9,9 @@ import { ActiveBadge } from "@/components/ui/active-badge";
 import {
   ExpandedActions,
   ExpandedList,
-  expandColumn,
   filterIncludesAny,
   makeStatusToggle,
   RowActions,
-  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   statusFacet,
@@ -52,26 +50,22 @@ const columns = (onEdit: (row: DepartmentRow) => void) =>
     }),
     helper.accessor("code", {
       header: sortHeader("Code"),
-      meta: { className: secondaryColumnClass },
     }),
     helper.accessor("status", {
       header: sortHeader("Status"),
       filterFn: filterIncludesAny,
       cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
-      meta: { className: secondaryColumnClass },
     }),
     helper.display({
       id: "actions",
       header: "",
       enableHiding: false,
-      meta: { className: secondaryColumnClass },
       cell: ({ row }) => (
         <div className="flex justify-end">
           <RowActions items={departmentMenu(row.original, onEdit)} />
         </div>
       ),
     }),
-    expandColumn<DepartmentRow>(),
   ]);
 
 export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {

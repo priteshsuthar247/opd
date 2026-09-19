@@ -9,12 +9,10 @@ import {
   appointmentTypeFacet,
   ExpandedActions,
   ExpandedList,
-  expandColumn,
   filterIncludesAny,
   queueStatusFacet,
   RowAction,
   RowActions,
-  secondaryColumnClass,
   selectionColumn,
   sortHeader,
   tableFeaturesFull,
@@ -51,25 +49,21 @@ const columns = (
   helper.accessor((r) => r.doctor.user.name, {
     id: "doctor",
     header: sortHeader("Doctor"),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("type", {
     header: sortHeader("Type"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => (getValue() === "walk_in" ? "Walk-in" : "Scheduled"),
-    meta: { className: secondaryColumnClass },
   }),
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
     cell: ({ getValue }) => <StatusBadge status={getValue()} />,
-    meta: { className: secondaryColumnClass },
   }),
   helper.display({
     id: "actions",
     header: "",
     enableHiding: false,
-    meta: { className: secondaryColumnClass },
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions
@@ -78,7 +72,6 @@ const columns = (
       </div>
     ),
   }),
-  expandColumn<QueueRow>(),
 ]);
 
 // One item list drives both the ellipsis menu and the expanded panel,
@@ -121,7 +114,11 @@ function queuePanel(
       <ExpandedList
         items={[
           { label: "Status", value: <StatusBadge status={row.status} /> },
-          { label: "Doctor", value: row.doctor.user.name },
+          { label: "Phone", value: row.patient.phone },
+          {
+            label: "Doctor",
+            value: `${row.doctor.user.name} · ${row.doctor.department.name}`,
+          },
           {
             label: "Type",
             value: row.type === "walk_in" ? "Walk-in" : "Scheduled",
