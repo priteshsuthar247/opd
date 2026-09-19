@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import {
   columnFacetingFeature,
@@ -601,4 +602,54 @@ export function RowActions({ items }: { items: RowAction[] }) {
       </AlertDialog>
     </>
   );
+}
+
+export type StatusActionResult = { ok: true } | { ok: false; error: string };
+
+// One status-flip for every master table: was 9 copy-pasted toggleStatus
+// functions differing only in action and noun.
+export function makeStatusToggle<T extends { id: number; status: string }>(
+  action: (input: {
+    id: number;
+    status: "active" | "inactive";
+  }) => Promise<StatusActionResult>,
+  noun: string
+) {
+  return async (row: T): Promise<void> => {
+    const next = row.status === "active" ? "inactive" : "active";
+    const result = await action({ id: row.id, status: next });
+    if (!result.ok) toast.error(result.error);
+    else toast.success(`${noun} ${next === "active" ? "activated" : "deactivated"}.`);
+  };
+}
+
+// The Edit + Activate/Deactivate row menu shared by every master table.
+export function statusRowItems<T extends { id: number; status: string }>(
+  row: T,
+  opts: {
+    onEdit: () => void;
+    onToggle: (row: T) => void;
+    name: string;
+    noun: string;
+    deactivateHint: string;
+  }
+): RowAction[] {
+  return [
+    { label: "Edit", onSelect: opts.onEdit },
+    row.status === "active"
+      ? {
+          label: "Deactivate",
+          destructive: true,
+          onSelect: () => opts.onToggle(row),
+          confirm: {
+            title: `Deactivate ${opts.name}?`,
+            description: opts.deactivateHint,
+            confirmLabel: "Deactivate",
+          },
+        }
+      : {
+          label: "Activate",
+          onSelect: () => opts.onToggle(row),
+        },
+  ];
 }

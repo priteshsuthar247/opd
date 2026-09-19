@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useFormDialog } from "@/components/ui/form-dialog";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -67,10 +67,10 @@ export function DoctorDialog({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const [internalOpen, setInternalOpen] = useState(false);
-  const controlled = open !== undefined;
-  const openState = open ?? internalOpen;
-  const setOpenState = onOpenChange ?? setInternalOpen;
+  const { controlled, openState, setOpenState } = useFormDialog({
+    open,
+    onOpenChange,
+  });
   const isEdit = !!doctor;
   const {
     register,

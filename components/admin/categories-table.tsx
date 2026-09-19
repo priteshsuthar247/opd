@@ -8,15 +8,16 @@ import {
 import {
   categoryTypeFacet,
   filterIncludesAny,
+  makeStatusToggle,
   RowActions,
   selectionColumn,
   sortHeader,
   statusFacet,
+  statusRowItems,
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { CategoryDialog } from "@/components/admin/category-dialog";
 import type { CategoryRow } from "@/db/queries/categories";
@@ -31,15 +32,7 @@ const typeLabels = {
   complaint: "Complaint",
 } as const;
 
-async function toggleStatus(row: CategoryRow) {
-  const next = row.status === "active" ? "inactive" : "active";
-  const result = await setCategoryStatus({ id: row.id, status: next });
-  if (!result.ok) toast.error(result.error);
-  else
-    toast.success(
-      next === "active" ? "Category activated." : "Category deactivated."
-    );
-}
+const toggleStatus = makeStatusToggle(setCategoryStatus, "Category");
 
 const columns = (onEdit: (row: CategoryRow) => void) =>
   helper.columns([
@@ -72,25 +65,14 @@ const columns = (onEdit: (row: CategoryRow) => void) =>
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions
-          items={[
-            { label: "Edit", onSelect: () => onEdit(row.original) },
-            row.original.status === "active"
-              ? {
-                  label: "Deactivate",
-                  destructive: true,
-                  onSelect: () => toggleStatus(row.original),
-                  confirm: {
-                    title: `Deactivate ${row.original.name}?`,
-                    description:
-                      "Past records keep it, but it can no longer be picked going forward.",
-                    confirmLabel: "Deactivate",
-                  },
-                }
-              : {
-                  label: "Activate",
-                  onSelect: () => toggleStatus(row.original),
-                },
-          ]}
+          items={statusRowItems(row.original, {
+            onEdit: () => onEdit(row.original),
+            onToggle: toggleStatus,
+            name: row.original.name,
+            noun: "Category",
+            deactivateHint:
+              "Past records keep it, but it can no longer be picked going forward.",
+          })}
         />
       </div>
     ),

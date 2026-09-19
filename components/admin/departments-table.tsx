@@ -6,14 +6,15 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import { Check } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import {
   filterIncludesAny,
+  makeStatusToggle,
   RowActions,
   selectionColumn,
   sortHeader,
   statusFacet,
+  statusRowItems,
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
@@ -24,15 +25,7 @@ import { setDepartmentStatus } from "@/app/admin/departments/actions";
 const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, DepartmentRow>();
 
-async function toggleStatus(row: DepartmentRow) {
-  const next = row.status === "active" ? "inactive" : "active";
-  const result = await setDepartmentStatus({ id: row.id, status: next });
-  if (!result.ok) toast.error(result.error);
-  else
-    toast.success(
-      next === "active" ? "Department activated." : "Department deactivated."
-    );
-}
+const toggleStatus = makeStatusToggle(setDepartmentStatus, "Department");
 
 const columns = (onEdit: (row: DepartmentRow) => void) =>
   helper.columns([
@@ -61,25 +54,14 @@ const columns = (onEdit: (row: DepartmentRow) => void) =>
       cell: ({ row }) => (
         <div className="flex justify-end">
           <RowActions
-            items={[
-              { label: "Edit", onSelect: () => onEdit(row.original) },
-              row.original.status === "active"
-                ? {
-                    label: "Deactivate",
-                    destructive: true,
-                    onSelect: () => toggleStatus(row.original),
-                    confirm: {
-                      title: `Deactivate ${row.original.name}?`,
-                      description:
-                        "Doctors in this department stay untouched, but it can no longer be picked for new doctors.",
-                      confirmLabel: "Deactivate",
-                    },
-                  }
-                : {
-                    label: "Activate",
-                    onSelect: () => toggleStatus(row.original),
-                  },
-            ]}
+            items={statusRowItems(row.original, {
+              onEdit: () => onEdit(row.original),
+              onToggle: toggleStatus,
+              name: row.original.name,
+              noun: "Department",
+              deactivateHint:
+                "Doctors in this department stay untouched, but it can no longer be picked for new doctors.",
+            })}
           />
         </div>
       ),

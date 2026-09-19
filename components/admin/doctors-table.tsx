@@ -7,15 +7,16 @@ import {
 } from "@tanstack/react-table";
 import {
   filterIncludesAny,
+  makeStatusToggle,
   RowActions,
   selectionColumn,
   sortHeader,
   statusFacet,
+  statusRowItems,
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
 import { Check } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { DoctorDialog } from "@/components/admin/doctor-dialog";
 import type { DoctorRow } from "@/db/queries/doctors";
@@ -24,15 +25,7 @@ import { setDoctorStatus } from "@/app/admin/doctors/actions";
 const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, DoctorRow>();
 
-async function toggleStatus(row: DoctorRow) {
-  const next = row.status === "active" ? "inactive" : "active";
-  const result = await setDoctorStatus({ id: row.id, status: next });
-  if (!result.ok) toast.error(result.error);
-  else
-    toast.success(
-      next === "active" ? "Doctor activated." : "Doctor deactivated."
-    );
-}
+const toggleStatus = makeStatusToggle(setDoctorStatus, "Doctor");
 
 const columns = (
   departments: { id: number; name: string }[],
@@ -73,25 +66,14 @@ const columns = (
     cell: ({ row }) => (
       <div className="flex justify-end">
         <RowActions
-          items={[
-            { label: "Edit", onSelect: () => onEdit(row.original) },
-            row.original.status === "active"
-              ? {
-                  label: "Deactivate",
-                  destructive: true,
-                  onSelect: () => toggleStatus(row.original),
-                  confirm: {
-                    title: `Deactivate ${row.original.user.name}?`,
-                    description:
-                      "Their queue and history stay, but no new appointments can be booked with them.",
-                    confirmLabel: "Deactivate",
-                  },
-                }
-              : {
-                  label: "Activate",
-                  onSelect: () => toggleStatus(row.original),
-                },
-          ]}
+          items={statusRowItems(row.original, {
+            onEdit: () => onEdit(row.original),
+            onToggle: toggleStatus,
+            name: row.original.user.name,
+            noun: "Doctor",
+            deactivateHint:
+              "Their queue and history stay, but no new appointments can be booked with them.",
+          })}
         />
       </div>
     ),

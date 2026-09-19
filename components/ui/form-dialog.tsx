@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -91,4 +91,21 @@ export function FormDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+// Controlled/uncontrolled open state shared by every dialog: pages render
+// dialogs uncontrolled (own trigger), tables render them controlled (row
+// menu opens them). Returns the resolved open flag, setter, and whether
+// the parent controls it (to hide the built-in trigger).
+export function useFormDialog(external?: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = external?.open !== undefined;
+  return {
+    controlled,
+    openState: external?.open ?? internalOpen,
+    setOpenState: external?.onOpenChange ?? setInternalOpen,
+  };
 }

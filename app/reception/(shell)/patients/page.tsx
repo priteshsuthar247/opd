@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/roles";
 import { listPatients } from "@/db/queries/patients";
 import { PatientDialog } from "@/components/reception/patient-dialog";
 import { PatientsTable } from "@/components/reception/patients-table";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function PatientsPage() {
   if (!(await requireRole("receptionist", "admin"))) redirect("/");
@@ -11,15 +12,11 @@ export default async function PatientsPage() {
 
   return (
     <main className="w-full px-4 lg:px-6 py-4 md:py-6">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">Patients</h1>
-          <p className="text-xs text-muted-foreground">
-            {patients.length} patient{patients.length === 1 ? "" : "s"}
-          </p>
-        </div>
-        {patients.length > 0 && <PatientDialog />}
-      </div>
+      <PageHeader
+        title="Patients"
+        count={`${patients.length} patient${patients.length === 1 ? "" : "s"}`}
+        action={patients.length > 0 && <PatientDialog />}
+      />
       <PatientsTable data={patients} />
     </main>
   );

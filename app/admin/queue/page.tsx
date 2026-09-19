@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { PageHeader } from "@/components/ui/page-header";
 import { listQueueConfigs } from "@/db/queries/queue-configs";
 import { listDoctors } from "@/db/queries/doctors";
 import { QueueConfigDialog } from "@/components/admin/queue-config-dialog";
@@ -20,17 +21,15 @@ export default async function QueuePage() {
 
   return (
     <main className="w-full px-4 lg:px-6 py-4 md:py-6">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">Queue Configuration</h1>
-          <p className="text-xs text-muted-foreground">
-            {configs.length} configuration{configs.length === 1 ? "" : "s"}
-          </p>
-        </div>
-        {configs.length > 0 && eligibleDoctors.length > 0 && (
-          <QueueConfigDialog doctors={eligibleDoctors} />
-        )}
-      </div>
+      <PageHeader
+        title="Queue Configuration"
+        count={`${configs.length} configuration${configs.length === 1 ? "" : "s"}`}
+        action={
+          configs.length > 0 && eligibleDoctors.length > 0 && (
+            <QueueConfigDialog doctors={eligibleDoctors} />
+          )
+        }
+      />
       {doctors.length === 0 ? (
         <div className="flex flex-col items-center gap-3 border py-12 text-center">
           <p className="text-sm text-muted-foreground">
