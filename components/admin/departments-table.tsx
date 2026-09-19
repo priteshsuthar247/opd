@@ -5,8 +5,7 @@ import {
   createColumnHelper,
   useTable,
 } from "@tanstack/react-table";
-import { Check } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { ActiveBadge } from "@/components/ui/active-badge";
 import {
   filterIncludesAny,
   makeStatusToggle,
@@ -18,6 +17,7 @@ import {
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
+import { TableEmpty } from "@/components/ui/table-empty";
 import { DepartmentDialog } from "@/components/admin/department-dialog";
 import type { DepartmentRow } from "@/db/queries/departments";
 import { setDepartmentStatus } from "@/app/admin/departments/actions";
@@ -38,14 +38,7 @@ const columns = (onEdit: (row: DepartmentRow) => void) =>
     helper.accessor("status", {
       header: sortHeader("Status"),
       filterFn: filterIncludesAny,
-      cell: ({ getValue }) =>
-        getValue() === "active" ? (
-          <Badge variant="secondary">
-            <Check className="size-3" /> Active
-          </Badge>
-        ) : (
-          <Badge variant="outline">Inactive</Badge>
-        ),
+      cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
     }),
     helper.display({
       id: "actions",
@@ -79,12 +72,10 @@ export function DepartmentsTable({ data }: { data: DepartmentRow[] }) {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          No departments yet. Add the first one to start organizing doctors.
-        </p>
-        <DepartmentDialog />
-      </div>
+      <TableEmpty
+        message="No departments yet. Add the first one to start organizing doctors."
+        action={<DepartmentDialog />}
+      />
     );
   }
 

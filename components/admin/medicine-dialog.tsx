@@ -5,13 +5,14 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { StatusField, TextField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import { FormSelect } from "@/components/ui/form-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { MedicineRow } from "@/db/queries/medicines";
 import { medicineSchema, type MedicineFormValues } from "@/lib/validations/medicine";
-import { medicineForms, statusOptions } from "@/lib/options";
+import { medicineForms } from "@/lib/options";
 import { createMedicine, updateMedicine } from "@/app/admin/medicines/actions";
 
 export function MedicineDialog({
@@ -92,17 +93,14 @@ export function MedicineDialog({
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup>
-            <Field data-invalid={!!errors.name}>
-              <FieldLabel htmlFor="med-name">Name</FieldLabel>
-              <Input
-                id="med-name"
-                placeholder="Paracetamol 500mg"
-                autoFocus
-                aria-invalid={!!errors.name}
-                {...register("name")}
-              />
-              <FieldError errors={[errors.name]} />
-            </Field>
+            <TextField
+              label="Name"
+              id="med-name"
+              placeholder="Paracetamol 500mg"
+              autoFocus
+              error={errors.name}
+              {...register("name")}
+            />
             <Field data-invalid={!!errors.genericName}>
               <FieldLabel htmlFor="med-generic">Generic name</FieldLabel>
               <Input
@@ -146,21 +144,7 @@ export function MedicineDialog({
               />
               <FieldError errors={[errors.defaultDosageNote]} />
             </Field>
-            <Field data-invalid={!!errors.status}>
-              <FieldLabel>Status</FieldLabel>
-              <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <FormSelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    options={[...statusOptions]}
-                  />
-                )}
-              />
-              <FieldError errors={[errors.status]} />
-            </Field>
+            <StatusField control={control} error={errors.status} />
           </FieldGroup>
     </FormDialog>
   );

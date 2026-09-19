@@ -16,8 +16,8 @@ import {
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
-import { Check } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { TableEmpty } from "@/components/ui/table-empty";
+import { ActiveBadge } from "@/components/ui/active-badge";
 import { QueueConfigDialog } from "@/components/admin/queue-config-dialog";
 import type { QueueConfigRow } from "@/db/queries/queue-configs";
 import { setQueueConfigStatus } from "@/app/admin/queue/actions";
@@ -47,14 +47,7 @@ const columns = (
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
-      cell: ({ getValue }) =>
-        getValue() === "active" ? (
-          <Badge variant="secondary">
-            <Check className="size-3" /> Active
-          </Badge>
-        ) : (
-          <Badge variant="outline">Inactive</Badge>
-        ),
+      cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
     }),
     helper.display({
       id: "actions",
@@ -94,13 +87,11 @@ export function QueueConfigsTable({
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          No queue configurations yet. Set slot length and token caps per
-          doctor.
-        </p>
-        <QueueConfigDialog doctors={doctors} />
-      </div>
+      <TableEmpty
+        message="No queue configurations yet. Set slot length and token caps per
+          doctor."
+        action={<QueueConfigDialog doctors={doctors} />}
+      />
     );
   }
 

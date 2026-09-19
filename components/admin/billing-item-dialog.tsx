@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { StatusField, TextField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import { FormSelect } from "@/components/ui/form-select";
@@ -17,7 +18,7 @@ import {
   createBillingItem,
   updateBillingItem,
 } from "@/app/admin/billing-items/actions";
-import { billingItemTypes, statusOptions } from "@/lib/options";
+import { billingItemTypes } from "@/lib/options";
 
 function listedType(
   v: string | null | undefined
@@ -94,17 +95,14 @@ export function BillingItemDialog({
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup>
-            <Field data-invalid={!!errors.name}>
-              <FieldLabel htmlFor="bill-name">Name</FieldLabel>
-              <Input
-                id="bill-name"
-                placeholder="Dressing"
-                autoFocus
-                aria-invalid={!!errors.name}
-                {...register("name")}
-              />
-              <FieldError errors={[errors.name]} />
-            </Field>
+            <TextField
+              label="Name"
+              id="bill-name"
+              placeholder="Dressing"
+              autoFocus
+              error={errors.name}
+              {...register("name")}
+            />
             <Field data-invalid={!!errors.type}>
               <FieldLabel>Type</FieldLabel>
               <Controller
@@ -139,21 +137,7 @@ export function BillingItemDialog({
               />
               <FieldError errors={[errors.amount]} />
             </Field>
-            <Field data-invalid={!!errors.status}>
-              <FieldLabel>Status</FieldLabel>
-              <Controller
-              control={control}
-              name="status"
-              render={({ field }) => (
-                <FormSelect
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  options={[...statusOptions]}
-                />
-              )}
-              />
-              <FieldError errors={[errors.status]} />
-            </Field>
+            <StatusField control={control} error={errors.status} />
           </FieldGroup>
     </FormDialog>
   );

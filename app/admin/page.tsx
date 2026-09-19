@@ -18,13 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-function todayStr(): string {
-  const d = new Date();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
-}
+import { todayStr } from "@/lib/dates";
 
 export default async function AdminHome() {
   const session = await auth();

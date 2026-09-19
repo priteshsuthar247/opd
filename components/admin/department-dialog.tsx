@@ -1,20 +1,18 @@
 "use client";
 
 import { useFormDialog } from "@/components/ui/form-dialog";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FieldGroup } from "@/components/ui/field";
 import { FormDialog } from "@/components/ui/form-dialog";
-import { Input } from "@/components/ui/input";
-import { FormSelect } from "@/components/ui/form-select";
+import { StatusField, TextField } from "@/components/ui/form-fields";
 import type { DepartmentRow } from "@/db/queries/departments";
 import {
   departmentSchema,
   type DepartmentInput,
 } from "@/lib/validations/department";
 import { createDepartment, updateDepartment } from "@/app/admin/departments/actions";
-import { statusOptions } from "@/lib/options";
 
 export function DepartmentDialog({
   department,
@@ -85,42 +83,22 @@ export function DepartmentDialog({
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup>
-        <Field data-invalid={!!errors.name}>
-          <FieldLabel htmlFor="dept-name">Name</FieldLabel>
-          <Input
-            id="dept-name"
-            placeholder="General Medicine"
-            autoFocus
-            aria-invalid={!!errors.name}
-            {...register("name")}
-          />
-          <FieldError errors={[errors.name]} />
-        </Field>
-        <Field data-invalid={!!errors.code}>
-          <FieldLabel htmlFor="dept-code">Code</FieldLabel>
-          <Input
-            id="dept-code"
-            placeholder="GEN"
-            aria-invalid={!!errors.code}
-            {...register("code")}
-          />
-          <FieldError errors={[errors.code]} />
-        </Field>
-        <Field data-invalid={!!errors.status}>
-          <FieldLabel>Status</FieldLabel>
-          <Controller
-            control={control}
-            name="status"
-            render={({ field }) => (
-              <FormSelect
-                value={field.value}
-                onValueChange={field.onChange}
-                options={[...statusOptions]}
-              />
-            )}
-          />
-          <FieldError errors={[errors.status]} />
-        </Field>
+        <TextField
+          label="Name"
+          id="dept-name"
+          placeholder="General Medicine"
+          autoFocus
+          error={errors.name}
+          {...register("name")}
+        />
+        <TextField
+          label="Code"
+          id="dept-code"
+          placeholder="GEN"
+          error={errors.code}
+          {...register("code")}
+        />
+        <StatusField control={control} error={errors.status} />
       </FieldGroup>
     </FormDialog>
   );

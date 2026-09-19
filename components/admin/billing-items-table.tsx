@@ -16,8 +16,8 @@ import {
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
-import { Check } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { TableEmpty } from "@/components/ui/table-empty";
+import { ActiveBadge } from "@/components/ui/active-badge";
 import { BillingItemDialog } from "@/components/admin/billing-item-dialog";
 import type { BillingItemRow } from "@/db/queries/billing-items";
 import { setBillingItemStatus } from "@/app/admin/billing-items/actions";
@@ -42,14 +42,7 @@ const columns = (onEdit: (row: BillingItemRow) => void) =>
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
-    cell: ({ getValue }) =>
-      getValue() === "active" ? (
-        <Badge variant="secondary">
-          <Check className="size-3" /> Active
-        </Badge>
-      ) : (
-        <Badge variant="outline">Inactive</Badge>
-      ),
+    cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
   }),
   helper.display({
     id: "actions",
@@ -83,12 +76,10 @@ export function BillingItemsTable({ data }: { data: BillingItemRow[] }) {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          No billing items yet. Add the first one for invoice extras.
-        </p>
-        <BillingItemDialog />
-      </div>
+      <TableEmpty
+        message="No billing items yet. Add the first one for invoice extras."
+        action={<BillingItemDialog />}
+      />
     );
   }
 

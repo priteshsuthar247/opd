@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { StatusField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,6 @@ import {
   type QueueConfigFormValues,
 } from "@/lib/validations/queue-config";
 import { createQueueConfig, updateQueueConfig } from "@/app/admin/queue/actions";
-import { statusOptions } from "@/lib/options";
 
 export function QueueConfigDialog({
   config,
@@ -131,21 +131,7 @@ export function QueueConfigDialog({
                 <FieldError errors={[errors.maxTokensPerDay]} />
               </Field>
             </div>
-            <Field data-invalid={!!errors.status}>
-              <FieldLabel>Status</FieldLabel>
-              <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <FormSelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    options={[...statusOptions]}
-                  />
-                )}
-              />
-              <FieldError errors={[errors.status]} />
-            </Field>
+            <StatusField control={control} error={errors.status} />
           </FieldGroup>
     </FormDialog>
   );

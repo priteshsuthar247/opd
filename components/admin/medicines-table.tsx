@@ -17,8 +17,8 @@ import {
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
-import { Check } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { TableEmpty } from "@/components/ui/table-empty";
+import { ActiveBadge } from "@/components/ui/active-badge";
 import { MedicineDialog } from "@/components/admin/medicine-dialog";
 import type { MedicineRow } from "@/db/queries/medicines";
 import { setMedicineStatus } from "@/app/admin/medicines/actions";
@@ -40,14 +40,7 @@ const columns = (onEdit: (row: MedicineRow) => void) =>
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
-    cell: ({ getValue }) =>
-      getValue() === "active" ? (
-        <Badge variant="secondary">
-          <Check className="size-3" /> Active
-        </Badge>
-      ) : (
-        <Badge variant="outline">Inactive</Badge>
-      ),
+    cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
   }),
   helper.display({
     id: "actions",
@@ -81,12 +74,10 @@ export function MedicinesTable({ data }: { data: MedicineRow[] }) {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          No medicines yet. Add the first one for prescription building.
-        </p>
-        <MedicineDialog />
-      </div>
+      <TableEmpty
+        message="No medicines yet. Add the first one for prescription building."
+        action={<MedicineDialog />}
+      />
     );
   }
 

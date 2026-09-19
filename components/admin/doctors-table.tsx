@@ -16,8 +16,8 @@ import {
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
 import { DataTable } from "@/components/table/data-table";
-import { Check } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { TableEmpty } from "@/components/ui/table-empty";
+import { ActiveBadge } from "@/components/ui/active-badge";
 import { DoctorDialog } from "@/components/admin/doctor-dialog";
 import type { DoctorRow } from "@/db/queries/doctors";
 import { setDoctorStatus } from "@/app/admin/doctors/actions";
@@ -50,14 +50,7 @@ const columns = (
   helper.accessor("status", {
     header: sortHeader("Status"),
     filterFn: filterIncludesAny,
-    cell: ({ getValue }) =>
-      getValue() === "active" ? (
-        <Badge variant="secondary">
-          <Check className="size-3" /> Active
-        </Badge>
-      ) : (
-        <Badge variant="outline">Inactive</Badge>
-      ),
+    cell: ({ getValue }) => <ActiveBadge status={String(getValue())} />,
   }),
   helper.display({
     id: "actions",
@@ -97,12 +90,10 @@ export function DoctorsTable({
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          No doctors yet. Add the first one with login, profile and hours.
-        </p>
-        <DoctorDialog departments={departments} />
-      </div>
+      <TableEmpty
+        message="No doctors yet. Add the first one with login, profile and hours."
+        action={<DoctorDialog departments={departments} />}
+      />
     );
   }
 

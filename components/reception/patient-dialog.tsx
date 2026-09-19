@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { StatusField, TextField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import { FormSelect } from "@/components/ui/form-select";
@@ -12,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { PatientRow } from "@/db/queries/patients";
 import { patientSchema, type PatientFormValues } from "@/lib/validations/patient";
 import { createPatient, updatePatient } from "@/app/reception/patients/actions";
-import { bloodGroups, statusOptions } from "@/lib/options";
+import { bloodGroups } from "@/lib/options";
 
 function defaults(patient?: PatientRow): PatientFormValues {
   // DB stores free-text history; only carry over values in the enum.
@@ -88,28 +89,22 @@ export function PatientDialog({
     >
       <FieldGroup>
             <div className="grid grid-cols-2 gap-3">
-              <Field data-invalid={!!errors.name}>
-                <FieldLabel htmlFor="pat-name">Name</FieldLabel>
-              <Input
+              <TextField
+                label="Name"
                 id="pat-name"
                 placeholder="Ramesh Patel"
                 autoFocus
-                aria-invalid={!!errors.name}
-                  {...register("name")}
-                />
-                <FieldError errors={[errors.name]} />
-              </Field>
-              <Field data-invalid={!!errors.phone}>
-                <FieldLabel htmlFor="pat-phone">Phone</FieldLabel>
-                <Input
-                  id="pat-phone"
-                  inputMode="tel"
-                  placeholder="9800000001"
-                  aria-invalid={!!errors.phone}
-                  {...register("phone")}
-                />
-                <FieldError errors={[errors.phone]} />
-              </Field>
+                error={errors.name}
+                {...register("name")}
+              />
+              <TextField
+                label="Phone"
+                id="pat-phone"
+                inputMode="tel"
+                placeholder="9800000001"
+                error={errors.phone}
+                {...register("phone")}
+              />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <Field data-invalid={!!errors.dob}>
@@ -191,21 +186,7 @@ export function PatientDialog({
                 />
                 <FieldError errors={[errors.emergencyContact]} />
               </Field>
-              <Field data-invalid={!!errors.status}>
-                <FieldLabel>Status</FieldLabel>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormSelect
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      options={[...statusOptions]}
-                    />
-                  )}
-                />
-                <FieldError errors={[errors.status]} />
-              </Field>
+              <StatusField control={control} error={errors.status} />
             </div>
           </FieldGroup>
     </FormDialog>

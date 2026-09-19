@@ -10,13 +10,7 @@ import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
 import type { QueueRow } from "@/db/queries/appointments";
 import { rescheduleAppointment } from "@/app/reception/queue/actions";
-
-function todayStr(): string {
-  const d = new Date();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
-}
+import { todayStr } from "@/lib/dates";
 
 const formSchema = z.object({
   date: z

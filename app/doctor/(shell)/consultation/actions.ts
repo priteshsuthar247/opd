@@ -20,18 +20,12 @@ import {
   prescriptionItemRemoveSchema,
   prescriptionItemSchema,
 } from "@/lib/validations/prescription";
+import { todayStr } from "@/lib/dates";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type CallNextResult =
   | { ok: true; appointmentId: number; token: number }
   | { ok: false; error: string };
-
-function todayStr(): string {
-  const d = new Date();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
-}
 
 async function requireDoctor() {
   const session = await auth();
