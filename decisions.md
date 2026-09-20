@@ -213,10 +213,25 @@ order taken. All entries implemented unless marked otherwise.
 68. **FormSelect gained `label`** — the booking spec exposed that
     select triggers had no accessible name; now a supported prop.
 
+## 2026-09-20 — Audit program close-out
+
+69. **All four audit phases shipped** (`phase-34` security, `phase-35`
+    UI standards, `phase-36` DB hardening, `phase-37` E2E) — every
+    finding either fixed with a browser-verified commit or moved below
+    with a reason. E2E covers 3 of the 5 audit targets (role matrix,
+    booking smoke, token race); prescription immutability and the
+    no-show business rule stay code-reviewed only.
+70. **Single-tenant launch posture** — one pooled DB role, no RLS,
+    app-level `requireRole` + 5-min JWT revalidation. Multi-clinic
+    needs tenant-id + RLS design before onboarding clinic two.
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,
   leaderboards, multi-branch).
-- Reschedule click-through and finalized-guard direct tests (code
-  reviewed, UI-enforced, not directly exercised).
-- Production rebuild after the latest theme work.
+- Prescription-immutability and no-show-rule E2E (code reviewed,
+  UI-enforced, not directly exercised).
+- Sentry/structured logging, `serial`→identity, money-math decimal
+  handling, seed `target:` args — low value/churn, post-launch.
+- Production rebuild + first deploy (Neon pooler URL, AUTH_SECRET,
+  AUTH_URL, CRON_SECRET, no seed).
