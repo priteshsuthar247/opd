@@ -198,9 +198,12 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     mirroring the Zod shapes (including undefined-tolerant days). [joint]
 63. **Bounded pool, pruned search** — Pool max 10 + timeouts; patient
     search returns id/name/phone/status only and nothing on empty query. [joint]
-64. **No-show cron + global error** — `/api/cron/no-show` every 15 min
-    (CRON_SECRET-guarded) with `flagAllNoShows` sweep; lazy per-render
-    call stays as fallback; `app/global-error.tsx` last resort. [joint]
+64. **No-show cron removed — lazy render is the mechanism** — the
+    `*/15` Vercel cron broke the free-tier deploy check (1 cron/day
+    allowed), and per-render flagging on both queue boards already
+    covers the working day. `vercel.json`, the cron route, and
+    `flagAllNoShows` deleted; revisit only if flags arrive late in
+    practice. `app/global-error.tsx` last resort. [joint]
 
 ## 2026-09-20 — Phase D Playwright suite (audit remediation)
 
@@ -235,4 +238,4 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
 - Sentry/structured logging, `serial`→identity, money-math decimal
   handling, seed `target:` args — low value/churn, post-launch.
 - Production rebuild + first deploy (Neon pooler URL, AUTH_SECRET,
-  AUTH_URL, CRON_SECRET, no seed).
+  AUTH_URL, no seed).
