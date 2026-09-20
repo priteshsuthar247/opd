@@ -9,11 +9,13 @@ declare module "next-auth" {
     user: {
       id: string;
       role: "admin" | "doctor" | "receptionist";
+      active: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
     role: "admin" | "doctor" | "receptionist";
+    active: boolean;
   }
 }
 
@@ -21,5 +23,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     role: "admin" | "doctor" | "receptionist";
+    active: boolean;
+    checkedAt: number;
   }
 }

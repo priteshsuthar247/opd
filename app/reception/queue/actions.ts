@@ -1,16 +1,26 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, queueStatusLogs } from "@/db/schema";
 import { requireRole } from "@/lib/roles";
+import { assignToken } from "@/lib/tokens";
 import {
   appointmentCancelSchema,
   appointmentRescheduleSchema,
 } from "@/lib/validations/appointment";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
+
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code: unknown }).code === "23505"
+  );
+}
 
 type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -38,16 +48,27 @@ export async function cancelAppointment(input: unknown): Promise<ActionResult> {
 
   const current = await db.query.appointments.findFirst({
     where: eq(appointments.id, parsed.data.id),
+    columns: { id: true, status: true },
   });
   if (!current) return { ok: false, error: "Appointment not found." };
   if (current.status !== "waiting")
     return { ok: false, error: "Only waiting appointments can be cancelled." };
 
-  await db.transaction(async (tx) => {
-    await tx
+  // Conditional update inside the tx: if a concurrent callNext flipped
+  // this row to in_progress after our read, zero rows update and we
+  // refuse instead of cancelling a live consultation.
+  const updated = await db.transaction(async (tx) => {
+    const rows = await tx
       .update(appointments)
       .set({ status: "cancelled" })
-      .where(eq(appointments.id, current.id));
+      .where(
+        and(
+          eq(appointments.id, current.id),
+          eq(appointments.status, "waiting")
+        )
+      )
+      .returning({ id: appointments.id });
+    if (rows.length === 0) return false;
     await logStatus(
       tx,
       current.id,
@@ -55,7 +76,10 @@ export async function cancelAppointment(input: unknown): Promise<ActionResult> {
       "cancelled",
       Number.isInteger(changedBy) ? changedBy : null
     );
+    return true;
   });
+  if (!updated)
+    return { ok: false, error: "Only waiting appointments can be cancelled." };
   revalidatePath("/reception/queue");
   return { ok: true };
 }
@@ -80,22 +104,14 @@ export async function rescheduleAppointment(
       if (current.date === parsed.data.date)
         throw new Error("Already booked for this date.");
 
-      // Same lock-and-assign discipline as booking: serialize on the
-      // doctor row so the moved token can never collide (raw SQL because
-      // Drizzle cannot express SELECT ... FOR UPDATE).
-      await tx.execute(
-        sql`select id from doctors where id = ${current.doctorId} for update`
+      // Same lock-and-assign discipline as booking (including the
+      // per-day token cap) via the shared helper — a moved token must
+      // never collide and must never exceed the doctor's daily limit.
+      const { token } = await assignToken(
+        tx,
+        current.doctorId,
+        parsed.data.date
       );
-      const sameDay = await tx.query.appointments.findMany({
-        where: (t, { and, eq }) =>
-          and(
-            eq(t.doctorId, current.doctorId),
-            eq(t.date, parsed.data.date)
-          ),
-        columns: { tokenNumber: true },
-      });
-      const token =
-        sameDay.reduce((m, a) => Math.max(m, a.tokenNumber), 0) + 1;
 
       await tx
         .update(appointments)
@@ -105,6 +121,8 @@ export async function rescheduleAppointment(
       // is recorded on the appointment (new date + token).
     });
   } catch (err) {
+    if (isUniqueViolation(err))
+      return { ok: false, error: "That token was just taken — please retry." };
     if (err instanceof Error) return { ok: false, error: err.message };
     return { ok: false, error: "Could not reschedule the appointment." };
   }

@@ -18,8 +18,8 @@ export default async function ProfileLayout({
     session.user.role === "admin" ? "admin" : session.user.role
   ) as ShellRole;
   const [unreadCount, notifications] = await Promise.all([
-    countUnreadNotifications(),
-    listRecentNotifications(),
+    countUnreadNotifications(session.user.role),
+    listRecentNotifications(session.user.role),
   ]);
 
   return (

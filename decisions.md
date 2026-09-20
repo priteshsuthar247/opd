@@ -138,6 +138,29 @@ order taken. All entries implemented unless marked otherwise.
     book, tap-through, nested dialogs, and cleanup now run against
     the user's `:3000` before commit.
 
+## 2026-09-20 — Phase A launch blockers (audit remediation)
+
+47. **Seed refuses production** — demo users/visits gated behind
+    non-prod or `SEED_DEMO=1`; real `db/migrate.ts` runner replaces
+    the no-op `drizzle-kit migrate` script; unused `date-fns`,
+    `takumi-pdf`, `@takumi-rs/helpers` removed, `shadcn` to devDeps.
+48. **Sessions expire, logins disable** — 8h JWT maxAge, `users.status`,
+    role/status rechecked in the jwt callback (5-min throttle), enforced
+    in `requireRole` + middleware; deactivating a doctor locks their
+    login too.
+49. **Login rate-limited** — 5 attempts/min per email+IP, failing exactly
+    like bad credentials; in-memory (single-instance), Redis before
+    multi-instance.
+50. **Headers + healthz** — HSTS/nosniff/DENY/referrer/permissions via
+    `next.config.ts`; `/api/healthz` checks DB reachability.
+51. **Races closed** — `callNextToken` selects `FOR UPDATE SKIP LOCKED`
+    + conditional flip inside one tx; cancel uses conditional update;
+    `assignToken` centralized in `lib/tokens.ts` so rescheduling gets
+    the same cap; `23505` checked before `instanceof Error`.
+52. **Notifications scoped by audience** — reception sees bookings/turns/
+    recalls, doctors their queue/Rx/recalls, admins all; mark-read
+    respects the same scope; unread count via SQL `count()`.
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,

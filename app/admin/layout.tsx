@@ -15,8 +15,8 @@ export default async function AdminLayout({
   if (session?.user?.role !== "admin") redirect("/");
 
   const [unreadCount, notifications] = await Promise.all([
-    countUnreadNotifications(),
-    listRecentNotifications(),
+    countUnreadNotifications("admin"),
+    listRecentNotifications("admin"),
   ]);
 
   return (

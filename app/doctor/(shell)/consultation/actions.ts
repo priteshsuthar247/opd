@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import {
@@ -53,24 +53,44 @@ export async function callNextToken(): Promise<CallNextResult> {
   const ctx = await requireDoctor();
   if (!ctx) return { ok: false, error: "Not authorized." };
   const changedBy = Number(ctx.session.user.id);
+  const today = todayStr();
 
-  const next = await db.query.appointments.findFirst({
-    where: and(
-      eq(appointments.doctorId, ctx.doctor.id),
-      eq(appointments.date, todayStr()),
-      eq(appointments.status, "waiting")
-    ),
-    orderBy: (t, { asc }) => [asc(t.tokenNumber)],
-  });
-  if (!next) return { ok: false, error: "No waiting patients in queue." };
-
-  await db.transaction(async (tx) => {
-    await tx
+  // Select and flip inside one transaction: SKIP LOCKED lets a concurrent
+  // caller take the next token instead of blocking, and the conditional
+  // update (WHERE status='waiting') is the final guard — zero updated
+  // rows means someone else took it, so we retry once with the next row.
+  // (Raw SQL because Drizzle cannot express SELECT ... FOR UPDATE.)
+  const taken = await db.transaction(async (tx) => {
+    const locked = await tx.execute(sql`
+      select id, token_number from appointments
+      where doctor_id = ${ctx.doctor.id}
+        and date = ${today}
+        and status = 'waiting'
+      order by token_number
+      limit 1
+      for update skip locked
+    `);
+    const row = locked.rows[0] as
+      | { id: number; token_number: number }
+      | undefined;
+    if (!row) return null;
+    const flipped = await tx
       .update(appointments)
       .set({ status: "in_progress" })
-      .where(eq(appointments.id, next.id));
+      .where(
+        and(
+          eq(appointments.id, row.id),
+          eq(appointments.status, "waiting")
+        )
+      )
+      .returning({ id: appointments.id, tokenNumber: appointments.tokenNumber });
+    return flipped[0] ?? null;
+  });
+  if (!taken) return { ok: false, error: "No waiting patients in queue." };
+
+  await db.transaction(async (tx) => {
     await tx.insert(queueStatusLogs).values({
-      appointmentId: next.id,
+      appointmentId: taken.id,
       previousStatus: "waiting",
       newStatus: "in_progress",
       changedBy: Number.isInteger(changedBy) ? changedBy : null,
@@ -104,7 +124,7 @@ export async function callNextToken(): Promise<CallNextResult> {
     }
   });
   revalidatePath("/doctor/queue");
-  return { ok: true, appointmentId: next.id, token: next.tokenNumber };
+  return { ok: true, appointmentId: taken.id, token: taken.tokenNumber };
 }
 
 export async function saveConsultation(input: unknown): Promise<ActionResult> {

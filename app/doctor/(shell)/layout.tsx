@@ -15,8 +15,8 @@ export default async function DoctorShellLayout({
   if (session?.user?.role !== "doctor") redirect("/");
 
   const [unreadCount, notifications] = await Promise.all([
-    countUnreadNotifications(),
-    listRecentNotifications(),
+    countUnreadNotifications("doctor"),
+    listRecentNotifications("doctor"),
   ]);
 
   return (

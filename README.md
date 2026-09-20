@@ -15,10 +15,10 @@ React Hook Form + Zod · TanStack Table v9.
 
 ```bash
 pnpm install
-cp .env.example .env   # fill in DATABASE_URL + AUTH_SECRET
+cp .env.example .env   # fill in DATABASE_URL + AUTH_SECRET + AUTH_URL
 pnpm db:generate       # create a migration from db/schema.ts
-pnpm db:migrate        # apply migrations
-pnpm db:seed           # masters + demo accounts
+pnpm db:migrate        # apply migrations (tsx runner, not drizzle-kit)
+pnpm db:seed           # masters + demo accounts (dev only; refused in prod)
 pnpm dev               # http://localhost:3000
 ```
 
@@ -47,10 +47,15 @@ Other scripts: `pnpm build`, `pnpm start`, `pnpm lint`.
 
 ## Deploying
 
-- App: Vercel (or any Node host). Set `AUTH_SECRET` (and `AUTH_URL` or
-  `NEXTAUTH_URL`) in the host env. `trustHost` is enabled in `lib/auth.ts`.
-- Database: any reachable Postgres; point `DATABASE_URL` at it and run
-  `pnpm db:migrate` + `pnpm db:seed` once.
+- App: Vercel (or any Node host). Set `AUTH_SECRET` + `AUTH_URL` in the
+  host env. `trustHost` is enabled in `lib/auth.ts`.
+- Database: Neon (pooled driver with WebSocket is required — plain
+  `pg` cannot run the `SELECT ... FOR UPDATE` transactions). Point
+  `DATABASE_URL` at the **-pooler** host and run `pnpm db:migrate`.
+  Do NOT run `pnpm db:seed` in production (it refuses unless
+  `SEED_DEMO=1`); create the first admin directly in the database.
+- Sessions last 8h; deactivating a user (doctors table) locks their
+  login within ~5 minutes.
 
 ## Versioning
 

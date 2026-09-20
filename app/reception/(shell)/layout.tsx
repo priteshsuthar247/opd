@@ -19,8 +19,8 @@ export default async function ReceptionLayout({
     redirect("/");
 
   const [unreadCount, notifications] = await Promise.all([
-    countUnreadNotifications(),
-    listRecentNotifications(),
+    countUnreadNotifications(session.user.role),
+    listRecentNotifications(session.user.role),
   ]);
 
   return (

@@ -98,10 +98,24 @@ export async function setDoctorStatus(input: unknown): Promise<ActionResult> {
   const parsed = doctorStatusSchema.safeParse(input);
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
-  await db
-    .update(doctors)
-    .set({ status: parsed.data.status })
-    .where(eq(doctors.id, parsed.data.id));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(doctors)
+      .set({ status: parsed.data.status })
+      .where(eq(doctors.id, parsed.data.id));
+    // Deactivating the clinical profile also locks the login — an
+    // inactive doctor must not keep booking access with a live JWT.
+    const [doctor] = await tx
+      .select({ userId: doctors.userId })
+      .from(doctors)
+      .where(eq(doctors.id, parsed.data.id));
+    if (doctor) {
+      await tx
+        .update(users)
+        .set({ status: parsed.data.status })
+        .where(eq(users.id, doctor.userId));
+    }
+  });
   revalidatePath(PATH);
   return { ok: true };
 }

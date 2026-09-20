@@ -17,6 +17,12 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
+  // Deactivated mid-session — force re-login. The jwt callback flips
+  // active to false within 5 minutes of a deactivation.
+  if (req.auth?.user?.active === false) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
   // Logged in, but wrong role for this section.
   // Admin is intentionally allowed into /reception too — reception
   // is the one area an admin may need to operate directly.

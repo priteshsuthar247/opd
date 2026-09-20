@@ -23,6 +23,17 @@ import {
 } from "./db/schema";
 
 async function main() {
+  // Demo data (known-password users, fake patients/visits) must never
+  // land in production by accident. Prod gets a separate bootstrap
+  // (admin user only) — this script refuses unless explicitly allowed.
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.SEED_DEMO !== "1"
+  ) {
+    throw new Error(
+      "Refusing to seed demo data in production. Set SEED_DEMO=1 to override."
+    );
+  }
   console.log("Seeding database...");
 
   /* ------------------------------------------------------------ */

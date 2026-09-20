@@ -54,12 +54,15 @@ export const notificationStatusEnum = pgEnum("notification_status", [
 
 // Auth identity for every logged-in person (admin, doctor, or receptionist).
 // A Doctor row extends this with clinical profile fields via user_id.
+// status gates login: deactivating a user locks them out even with a
+// still-valid JWT (rechecked in the auth jwt callback).
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: roleEnum("role").notNull(),
+  status: statusEnum("status").default("active").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
