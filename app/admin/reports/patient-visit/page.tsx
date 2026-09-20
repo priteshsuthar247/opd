@@ -6,6 +6,10 @@ import { patients } from "@/db/schema";
 import { ExportCsvButton } from "@/components/admin/export-csv-button";
 import { ReportPatientPicker } from "@/components/admin/report-patient-picker";
 import { StatusBadge } from "@/components/queue/status-badge";
+import {
+  PaymentBadge,
+  PrescriptionBadge,
+} from "@/components/billing/status-badges";
 
 export default async function PatientVisitPage({
   searchParams,
@@ -112,8 +116,11 @@ export default async function PatientVisitPage({
                   {v.consultation.prescription &&
                     v.consultation.prescription.items.length > 0 && (
                       <div>
-                        <dt className="font-medium text-foreground">
-                          Medicines ({v.consultation.prescription.status})
+                        <dt className="flex items-center gap-2 font-medium text-foreground">
+                          Medicines{" "}
+                          <PrescriptionBadge
+                            status={v.consultation.prescription.status}
+                          />
                         </dt>
                         <dd>
                           {v.consultation.prescription.items
@@ -130,9 +137,9 @@ export default async function PatientVisitPage({
                 <p className="text-muted-foreground">No consultation recorded.</p>
               )}
               {v.invoice && (
-                <p className="mt-1 text-muted-foreground">
+                <p className="mt-1 flex items-center gap-2 text-muted-foreground">
                   Billed ₹{Number(v.invoice.totalAmount).toFixed(2)} ·{" "}
-                  {v.invoice.paymentStatus}
+                  <PaymentBadge status={v.invoice.paymentStatus} />
                 </p>
               )}
             </div>

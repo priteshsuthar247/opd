@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { PrescriptionBadge } from "@/components/billing/status-badges";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   Card,
@@ -130,9 +131,11 @@ export function PrescriptionBuilder({
           <div>
             <CardTitle>Prescription</CardTitle>
             <CardDescription>
-              {prescription
-                ? `Status: ${prescription.status}`
-                : "Save the consultation first to open a draft."}
+              {prescription ? (
+                <PrescriptionBadge status={prescription.status} />
+              ) : (
+                "Save the consultation first to open a draft."
+              )}
             </CardDescription>
           </div>
           {prescription && !finalized && items.length > 0 && (
@@ -233,7 +236,7 @@ export function PrescriptionBuilder({
                   <FieldError errors={[errors.freeTextName]} />
                 </Field>
               )}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <Field data-invalid={!!errors.dosage}>
                   <FieldLabel htmlFor="rx-dosage">Dosage</FieldLabel>
                   <Input

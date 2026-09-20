@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -492,6 +492,26 @@ export function DataTableToolbar({
   });
   const isFiltered = globalFilter !== "" || activeFacets.length > 0;
 
+  // "/" focuses the toolbar search from anywhere on the page (unless
+  // already typing). Lives here so all nine tables share it.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const el = e.target as HTMLElement | null;
+      const typing =
+        el !== null &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.tagName === "SELECT" ||
+          el.isContentEditable);
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        document.getElementById("table-search")?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Input
@@ -546,6 +566,10 @@ export type RowAction = {
 export function ExpandedActions({ items }: { items: RowAction[] }) {
   const [pending, setPending] = useState<RowAction | null>(null);
 
+  // Rows without actions (e.g. a waiting row in the doctor queue) render
+  // no buttons at all — never an empty action row.
+  if (items.length === 0) return null;
+
   return (
     <>
       <div className="flex flex-wrap gap-2 px-1 pt-1">
@@ -584,6 +608,8 @@ export function ExpandedActions({ items }: { items: RowAction[] }) {
 // so tables never nest dialog triggers inside menu items.
 export function RowActions({ items }: { items: RowAction[] }) {
   const [pending, setPending] = useState<RowAction | null>(null);
+
+  if (items.length === 0) return null;
 
   return (
     <>

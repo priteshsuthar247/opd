@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/queue/status-badge";
+import { PrescriptionBadge } from "@/components/billing/status-badges";
 import {
   Card,
   CardContent,
@@ -47,8 +48,11 @@ export function HistoryPanel({ history }: { history: History }) {
                 {v.consultation.prescription &&
                   v.consultation.prescription.items.length > 0 && (
                     <div>
-                      <dt className="font-medium text-foreground">
-                        Medicines ({v.consultation.prescription.status})
+                      <dt className="flex items-center gap-2 font-medium text-foreground">
+                        Medicines{" "}
+                        <PrescriptionBadge
+                          status={v.consultation.prescription.status}
+                        />
                       </dt>
                       <dd>
                         {v.consultation.prescription.items

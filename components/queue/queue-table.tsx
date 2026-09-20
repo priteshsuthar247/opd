@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   createColumnHelper,
   useTable,
@@ -35,8 +36,7 @@ async function cancel(row: QueueRow) {
 }
 
 const columns = (
-  onBill: (appointmentId: number) => void,
-  onReschedule: (row: QueueRow) => void
+  menuItems: (row: QueueRow) => RowAction[]
 ) =>
   helper.columns([
   selectionColumn<QueueRow>(),
@@ -66,9 +66,7 @@ const columns = (
     enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <RowActions
-          items={queueRowItems(row.original, onBill, onReschedule)}
-        />
+        <RowActions items={menuItems(row.original)} />
       </div>
     ),
   }),
@@ -132,15 +130,42 @@ function queuePanel(
   );
 }
 
-export function QueueTable({ data }: { data: QueueRow[] }) {
+// Reception actions (Bill/Reschedule/Cancel) and doctor actions (Consult)
+// share one table: the variant picks the menu, the panel, and whether the
+// billing dialogs mount. Reception-only imports (InvoiceDialog) never load
+// for the doctor route.
+export function QueueTable({
+  data,
+  variant = "reception",
+}: {
+  data: QueueRow[];
+  variant?: "reception" | "doctor";
+}) {
   const [billingId, setBillingId] = useState<number | null>(null);
   const [rescheduling, setRescheduling] = useState<QueueRow | null>(null);
+  const router = useRouter();
+  const isReception = variant === "reception";
+
+  const menuItems = useMemo(
+    () =>
+      isReception
+        ? (row: QueueRow) =>
+            queueRowItems(row, setBillingId, setRescheduling)
+        : (row: QueueRow) =>
+            row.status === "in_progress"
+              ? [
+                  {
+                    label: "Consult",
+                    onSelect: () =>
+                      router.push(`/doctor/consultation/${row.id}`),
+                  },
+                ]
+              : [],
+    [isReception, router]
+  );
   const table = useTable({
     features,
-    columns: useMemo(
-      () => columns(setBillingId, setRescheduling),
-      []
-    ),
+    columns: useMemo(() => columns(menuItems), [menuItems]),
     data,
     initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
@@ -149,7 +174,9 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
         <p className="text-sm text-muted-foreground">
-          Queue is empty for this selection.
+          {isReception
+            ? "Queue is empty for this selection."
+            : "No appointments today. New bookings appear here live."}
         </p>
       </div>
     );
@@ -161,29 +188,51 @@ export function QueueTable({ data }: { data: QueueRow[] }) {
         table={table}
         total={data.length}
         searchPlaceholder="Search queue…"
-        facets={[queueStatusFacet, appointmentTypeFacet]}
-        exportFilename="queue"
+        facets={isReception ? [queueStatusFacet, appointmentTypeFacet] : [queueStatusFacet]}
+        exportFilename={isReception ? "queue" : "doctor-queue"}
         empty="No visits match these filters."
         mobileTitle={(row) => `#${row.tokenNumber} · ${row.patient.name}`}
         mobileSummary={(row) => (
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
             <StatusBadge status={row.status} />
-            {row.doctor.user.name}
+            {isReception ? row.doctor.user.name : row.patient.phone}
           </span>
         )}
         renderExpanded={(row) =>
-          queuePanel(row, setBillingId, setRescheduling)
+          isReception ? (
+            queuePanel(row, setBillingId, setRescheduling)
+          ) : (
+            <div className="flex flex-col gap-2">
+              <ExpandedList
+                items={[
+                  {
+                    label: "Status",
+                    value: <StatusBadge status={row.status} />,
+                  },
+                  { label: "Phone", value: row.patient.phone },
+                  {
+                    label: "Type",
+                    value:
+                      row.type === "walk_in" ? "Walk-in" : "Scheduled",
+                  },
+                ]}
+              />
+              <ExpandedActions items={menuItems(row)} />
+            </div>
+          )
         }
       />
-      <InvoiceDialog
-        key={billingId ?? "none"}
-        appointmentId={billingId}
-        open={billingId !== null}
-        onOpenChange={(open) => {
-          if (!open) setBillingId(null);
-        }}
-      />
-      {rescheduling && (
+      {isReception && (
+        <InvoiceDialog
+          key={billingId ?? "none"}
+          appointmentId={billingId}
+          open={billingId !== null}
+          onOpenChange={(open) => {
+            if (!open) setBillingId(null);
+          }}
+        />
+      )}
+      {isReception && rescheduling && (
         <RescheduleDialog
           row={rescheduling}
           open

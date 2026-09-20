@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { LockIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PaymentBadge } from "@/components/billing/status-badges";
 import {
   Card,
   CardContent,
@@ -214,8 +215,8 @@ export function InvoiceManager({
             </div>
             <div className="flex justify-between text-muted-foreground">
               <dt>Payment</dt>
-              <dd>
-                {invoice.paymentStatus === "paid" ? "Paid" : "Pending"}
+              <dd className="flex items-center gap-1">
+                <PaymentBadge status={invoice.paymentStatus} />
                 {invoice.paymentMode ? ` · ${invoice.paymentMode}` : ""}
               </dd>
             </div>
@@ -233,7 +234,7 @@ export function InvoiceManager({
         <CardContent>
           <form onSubmit={handleSubmit(onUpdate)}>
             <FieldGroup>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field data-invalid={!!errors.discount}>
                   <FieldLabel htmlFor="inv-discount">Discount (₹)</FieldLabel>
                   <Input

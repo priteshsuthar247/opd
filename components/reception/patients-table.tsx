@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   createColumnHelper,
   useTable,
@@ -87,25 +87,6 @@ const columns = (onEdit: (row: PatientRow) => void) =>
 ]);
 
 export function PatientsTable({ data }: { data: PatientRow[] }) {
-  // "/" focuses the toolbar search from anywhere on the page (unless
-  // already typing).
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const el = e.target as HTMLElement | null;
-      const typing =
-        el !== null &&
-        (el.tagName === "INPUT" ||
-          el.tagName === "TEXTAREA" ||
-          el.tagName === "SELECT" ||
-          el.isContentEditable);
-      if (e.key === "/" && !typing) {
-        e.preventDefault();
-        document.getElementById("table-search")?.focus();
-      }
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, []);
   const [editing, setEditing] = useState<PatientRow | null>(null);
   const table = useTable({
     features,

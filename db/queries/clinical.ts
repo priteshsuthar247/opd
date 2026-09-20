@@ -10,12 +10,18 @@ export function findDoctorByUserId(userId: number) {
 }
 
 export function listDoctorQueue(doctorId: number, date: string) {
+  // Includes the doctor relation (same doctor on every row) so the page
+  // can reuse the shared QueueTable, which is typed on QueueRow.
   return db.query.appointments.findMany({
     where: and(
       eq(appointments.doctorId, doctorId),
       eq(appointments.date, date)
     ),
-    with: { patient: true, consultation: true },
+    with: {
+      patient: true,
+      consultation: true,
+      doctor: { with: { user: true, department: true } },
+    },
     orderBy: (t, { asc }) => [asc(t.tokenNumber)],
   });
 }

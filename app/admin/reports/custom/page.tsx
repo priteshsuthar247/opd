@@ -5,7 +5,7 @@ import { listDoctors } from "@/db/queries/doctors";
 import { listAppointmentsInRange } from "@/db/queries/reports";
 import { ExportCsvButton } from "@/components/admin/export-csv-button";
 import { ReportPatientPicker } from "@/components/admin/report-patient-picker";
-import { StatusBadge } from "@/components/queue/status-badge";
+import { ReportResultsTable } from "@/components/admin/report-results-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,14 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 const statuses = [
   "waiting",
@@ -232,36 +224,7 @@ export default async function CustomReportPage({
           No visits match these filters.
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Token</TableHead>
-              <TableHead>Patient</TableHead>
-              <TableHead>Doctor</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Diagnosis</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell>{r.date}</TableCell>
-                <TableCell>{r.tokenNumber}</TableCell>
-                <TableCell>
-                  <span className="font-medium">{r.patient.name}</span>
-                </TableCell>
-                <TableCell>{r.doctor.user.name}</TableCell>
-                <TableCell>
-                  <StatusBadge status={r.status} />
-                </TableCell>
-                <TableCell>{r.consultation?.diagnosis ?? "—"}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        </div>
+        <ReportResultsTable data={filtered} />
       )}
     </main>
   );

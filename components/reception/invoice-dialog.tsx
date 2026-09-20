@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/ui/form-dialog";
+import { FormSkeleton } from "@/components/shell/loading-blocks";
 import {
   InvoiceManager,
   type ManagerBundle,
@@ -76,9 +77,7 @@ export function InvoiceDialog({
       }
     >
       {bundle === null ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Loading invoice…
-        </p>
+        <FormSkeleton fields={5} />
       ) : (
         <InvoiceManager
           key={JSON.stringify(bundle.invoice)}

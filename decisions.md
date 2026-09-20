@@ -161,6 +161,26 @@ order taken. All entries implemented unless marked otherwise.
     recalls, doctors their queue/Rx/recalls, admins all; mark-read
     respects the same scope; unread count via SQL `count()`.
 
+## 2026-09-20 — Phase B UI standard gaps (audit remediation)
+
+53. **Payment/prescription badges** — shared `PaymentBadge` /
+    `PrescriptionBadge` in `components/billing/` per the AGENTS.md
+    color logic; replaced raw text in invoice, history, builder, and
+    patient-visit report. Print views stay plain text (paper).
+54. **Doctor queue reuses QueueTable** — `variant="doctor"` (Consult
+    menu, phone-first mobile cards, no billing dialogs); empty
+    RowActions/ExpandedActions render nothing; patient-visit report
+    stays a narrative list by design (not tabular data).
+55. **Custom report on DataTable** — new `ReportResultsTable` client
+    wrapper: search, status facet, pagination, mobile cards + sheets.
+56. **Booking picker is a cmdk combobox** — arrow/Enter/Esc from the
+    primitive, no-results state with register link, blur-timer hack
+    deleted. No new Popover dep.
+57. **Radius truth resolved** — AGENTS.md now matches the shipped
+    rounded preset instead of contradicting it; avatar overrides
+    removed; `/` search lifted into the shared toolbar; invoice
+    dialog uses FormSkeleton; tight grids go single-column on mobile.
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,

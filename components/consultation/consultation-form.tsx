@@ -90,7 +90,7 @@ export function ConsultationForm({
           <FieldGroup>
             <Field>
               <FieldLabel>Vitals</FieldLabel>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
                 <Field data-invalid={!!errors.vitals?.bp}>
                   <FieldLabel htmlFor="vit-bp">BP</FieldLabel>
                   <Input
@@ -151,7 +151,7 @@ export function ConsultationForm({
               <Textarea id="con-notes" rows={3} {...register("notes")} />
               <FieldError errors={[errors.notes]} />
             </Field>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field>
                 <Controller
                   control={control}

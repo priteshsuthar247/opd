@@ -7,6 +7,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -38,6 +46,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
   const [patientQuery, setPatientQuery] = useState("");
   const [options, setOptions] = useState<PatientOption[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [searched, setSearched] = useState(false);
   const [booked, setBooked] = useState<{ token: number; date: string } | null>(
     null
   );
@@ -66,16 +75,19 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
   // effect rule rejects the useEffect + setTimeout shape.
   function handlePatientQueryChange(value: string) {
     setPatientQuery(value);
+    setSearched(false);
     // A new keystroke after a pick invalidates the picked patient.
     if (watch("patientId") !== 0)
       setValue("patientId", 0, { shouldValidate: true });
     if (debounce.current) clearTimeout(debounce.current);
     if (value.trim().length < 2) {
       setOptions([]);
+      setPickerOpen(false);
       return;
     }
     debounce.current = setTimeout(async () => {
       setOptions(await searchPatientOptions(value.trim()));
+      setSearched(true);
       setPickerOpen(true);
     }, 250);
   }
@@ -135,34 +147,62 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
           <FieldGroup>
             <Field data-invalid={!!errors.patientId}>
               <FieldLabel htmlFor="book-patient">Patient</FieldLabel>
-              <div className="relative">
-                <Input
+              {/* cmdk combobox: arrow-key navigation, Enter to pick, and
+              Esc to dismiss come from the primitive — the old blur-timer
+              + preventDefault hack is gone. */}
+              <Command
+                shouldFilter={false}
+                label="Patient"
+                className="relative"
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget))
+                    setPickerOpen(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setPickerOpen(false);
+                }}
+              >
+                <CommandInput
                   id="book-patient"
                   placeholder="Type at least 2 letters of name or phone…"
                   value={patientQuery}
-                  autoFocus
-                  onChange={(e) => handlePatientQueryChange(e.target.value)}
-                  onBlur={() => setTimeout(() => setPickerOpen(false), 150)}
+                  onValueChange={handlePatientQueryChange}
                   onFocus={() => options.length > 0 && setPickerOpen(true)}
+                  autoFocus
                   autoComplete="off"
+                  aria-invalid={!!errors.patientId}
                 />
-                {pickerOpen && options.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full border bg-popover">
-                    {options.map((o) => (
-                      <button
-                        key={o.id}
-                        type="button"
-                        className="flex w-full flex-col px-2.5 py-1.5 text-left text-xs hover:bg-muted"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => pickPatient(o)}
+                {pickerOpen && searched && (
+                  <CommandList className="absolute inset-x-0 top-full z-10 mt-1 max-h-60 border bg-popover shadow-md">
+                    <CommandEmpty>
+                      No patients found —{" "}
+                      <Link
+                        href="/reception/patients"
+                        className="underline"
                       >
-                        <span className="font-medium">{o.name}</span>
-                        <span className="text-muted-foreground">{o.phone}</span>
-                      </button>
-                    ))}
-                  </div>
+                        register them first
+                      </Link>
+                      .
+                    </CommandEmpty>
+                    <CommandGroup>
+                      {options.map((o) => (
+                        <CommandItem
+                          key={o.id}
+                          value={`${o.name} ${o.phone}`}
+                          onSelect={() => pickPatient(o)}
+                        >
+                          <span className="flex flex-col">
+                            <span className="font-medium">{o.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {o.phone}
+                            </span>
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
                 )}
-              </div>
+              </Command>
               <FieldError errors={[errors.patientId]} />
             </Field>
             <Field data-invalid={!!errors.doctorId}>

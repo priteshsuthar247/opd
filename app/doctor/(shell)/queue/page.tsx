@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   CircleCheckIcon,
@@ -12,23 +11,14 @@ import { eq } from "drizzle-orm";
 import { listDoctorQueue, listFollowUpsDue } from "@/db/queries/clinical";
 import { flagNoShows } from "@/lib/no-show";
 import { CallNextButton } from "@/components/consultation/call-next-button";
-import { StatusBadge } from "@/components/queue/status-badge";
+import { QueueTable } from "@/components/queue/queue-table";
 import { StatCard } from "@/components/shell/stat-card";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { todayStr } from "@/lib/dates";
 
 export default async function DoctorQueuePage() {
@@ -91,55 +81,7 @@ export default async function DoctorQueuePage() {
           </CardContent>
         </Card>
       )}
-      {rows.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              No appointments today. New bookings appear here live.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="pt-4">
-            <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Token</TableHead>
-              <TableHead>Patient</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell>{r.tokenNumber}</TableCell>
-                <TableCell>
-                  <span className="font-medium">{r.patient.name}</span>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={r.status} />
-                </TableCell>
-                <TableCell className="text-right">
-                  {r.status === "in_progress" && (
-                    <Button
-                      size="sm"
-                      render={
-                        <Link href={`/doctor/consultation/${r.id}`}>
-                          Consult
-                        </Link>
-                      }
-                    />
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-            </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+      <QueueTable data={rows} variant="doctor" />
     </div>
   );
 }
