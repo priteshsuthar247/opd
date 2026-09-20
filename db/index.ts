@@ -12,7 +12,14 @@ if (!process.env.DATABASE_URL) {
 // concurrency-safe token assignment (Spec Section 8).
 neonConfig.webSocketConstructor = ws;
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Bounded pool: serverless bursts must not exhaust Neon connections.
+// Single-flight clinic traffic never needs more than a handful.
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+});
 
 // `schema` is passed through so `db.query.<table>.findMany({ with: {...} })`
 // relational queries work out of the box in Server Actions.

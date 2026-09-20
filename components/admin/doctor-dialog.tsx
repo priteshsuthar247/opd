@@ -31,7 +31,7 @@ const days = [
 type DayKey = (typeof days)[number]["key"];
 
 function dayDefault(
-  workingHours: DoctorRow["workingHours"],
+  workingHours: DoctorRow["workingHours"] | undefined,
   day: DayKey
 ): { start: string; end: string } {
   const record =

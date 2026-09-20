@@ -63,7 +63,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   role: roleEnum("role").notNull(),
   status: statusEnum("status").default("active").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 });
 
 export const departments = pgTable("departments", {
@@ -71,7 +71,7 @@ export const departments = pgTable("departments", {
   name: varchar("name", { length: 255 }).notNull(),
   code: varchar("code", { length: 50 }).notNull().unique(),
   status: statusEnum("status").default("active").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 });
 
 export const doctors = pgTable(
@@ -90,26 +90,40 @@ export const doctors = pgTable(
       .notNull()
       .default("0"),
     // { mon: { start: "09:00", end: "17:00" }, tue: {...}, ... }
-    workingHours: jsonb("working_hours").notNull().default({}),
+    // Blank days persist as undefined (day off) — mirrors the Zod
+    // working-hours output shape in lib/validations/doctor.ts.
+    workingHours: jsonb("working_hours")
+      .$type<Record<string, { start?: string; end?: string }>>()
+      .notNull()
+      .default({}),
     status: statusEnum("status").default("active").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
   },
-  // One clinical profile per login.
-  (t) => [uniqueIndex("doctors_user_id_unique").on(t.userId)]
+  // One clinical profile per login, plus the department join index.
+  (t) => [
+    uniqueIndex("doctors_user_id_unique").on(t.userId),
+    index("doctors_department_idx").on(t.departmentId),
+  ]
 );
 
-export const patients = pgTable("patients", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  phone: varchar("phone", { length: 20 }).notNull().unique(),
-  dob: date("dob"),
-  gender: genderEnum("gender"),
-  bloodGroup: varchar("blood_group", { length: 5 }),
-  address: text("address"),
-  emergencyContact: varchar("emergency_contact", { length: 20 }),
-  status: statusEnum("status").default("active").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const patients = pgTable(
+  "patients",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull().unique(),
+    dob: date("dob"),
+    gender: genderEnum("gender"),
+    bloodGroup: varchar("blood_group", { length: 5 }),
+    address: text("address"),
+    emergencyContact: varchar("emergency_contact", { length: 20 }),
+    status: statusEnum("status").default("active").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  },
+  // Trigram index for the leading-wildcard ILIKE in patient search
+  // (requires the pg_trgm extension — see the migration).
+  (t) => [index("patients_name_trgm_idx").using("gin", t.name.op("gin_trgm_ops"))]
+);
 
 export const medicines = pgTable(
   "medicines",
@@ -178,7 +192,7 @@ export const appointments = pgTable(
     tokenNumber: integer("token_number").notNull(),
     type: appointmentTypeEnum("type").notNull().default("walk_in"),
     status: appointmentStatusEnum("status").notNull().default("waiting"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
   },
   (t) => [
     // Backs the per-doctor-per-day token transaction: the unique index is
@@ -194,69 +208,87 @@ export const appointments = pgTable(
       t.date,
       t.status
     ),
+    // Patient history lookups join on patient_id.
+    index("appointments_patient_idx").on(t.patientId),
   ]
 );
 
 // Audit trail of every status change on an Appointment — drives wait-time
 // reporting and the No-show auto-flag rule from Spec Section 8.
-export const queueStatusLogs = pgTable("queue_status_logs", {
-  id: serial("id").primaryKey(),
-  appointmentId: integer("appointment_id")
-    .notNull()
-    .references(() => appointments.id, { onDelete: "cascade" }),
-  previousStatus: appointmentStatusEnum("previous_status"),
-  newStatus: appointmentStatusEnum("new_status").notNull(),
-  changedBy: integer("changed_by").references(() => users.id),
-  changedAt: timestamp("changed_at").defaultNow().notNull(),
-});
+export const queueStatusLogs = pgTable(
+  "queue_status_logs",
+  {
+    id: serial("id").primaryKey(),
+    appointmentId: integer("appointment_id")
+      .notNull()
+      .references(() => appointments.id),
+    previousStatus: appointmentStatusEnum("previous_status"),
+    newStatus: appointmentStatusEnum("new_status").notNull(),
+    changedBy: integer("changed_by").references(() => users.id),
+    changedAt: timestamp("changed_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => [index("queue_status_logs_appointment_idx").on(t.appointmentId)]
+);
 
-export const consultations = pgTable("consultations", {
-  id: serial("id").primaryKey(),
-  appointmentId: integer("appointment_id")
-    .notNull()
-    .unique()
-    .references(() => appointments.id, { onDelete: "cascade" }),
-  // { bp: "120/80", tempC: 37.0, pulse: 72, weightKg: 68 }
-  vitals: jsonb("vitals").default({}),
-  chiefComplaint: text("chief_complaint"),
-  diagnosis: text("diagnosis"),
-  notes: text("notes"),
-  followUpRequired: boolean("follow_up_required").notNull().default(false),
-  followUpDate: date("follow_up_date"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const consultations = pgTable(
+  "consultations",
+  {
+    id: serial("id").primaryKey(),
+    appointmentId: integer("appointment_id")
+      .notNull()
+      .unique()
+      .references(() => appointments.id),
+    // { bp: "120/80", tempC: 37.0, pulse: 72, weightKg: 68 }
+    // Unset vitals persist as undefined — mirrors the Zod vitals output.
+    vitals: jsonb("vitals")
+      .$type<Record<string, string | number | undefined>>()
+      .default({}),
+    chiefComplaint: text("chief_complaint"),
+    diagnosis: text("diagnosis"),
+    notes: text("notes"),
+    followUpRequired: boolean("follow_up_required").notNull().default(false),
+    followUpDate: date("follow_up_date"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  },
+  // Drives the follow-up-due query (required + date predicate).
+  (t) => [index("consultations_followup_idx").on(t.followUpRequired, t.followUpDate)]
+);
 
 export const prescriptions = pgTable("prescriptions", {
   id: serial("id").primaryKey(),
   consultationId: integer("consultation_id")
     .notNull()
     .unique()
-    .references(() => consultations.id, { onDelete: "cascade" }),
+    .references(() => consultations.id),
   status: prescriptionStatusEnum("status").notNull().default("draft"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 });
 
-export const prescriptionItems = pgTable("prescription_items", {
-  id: serial("id").primaryKey(),
-  prescriptionId: integer("prescription_id")
-    .notNull()
-    .references(() => prescriptions.id, { onDelete: "cascade" }),
-  medicineId: integer("medicine_id").references(() => medicines.id),
-  // Free-text fallback so the front desk isn't blocked if a medicine
-  // isn't in the master list yet.
-  freeTextName: varchar("free_text_name", { length: 255 }),
-  dosage: varchar("dosage", { length: 100 }).notNull(),
-  frequency: varchar("frequency", { length: 100 }).notNull(),
-  duration: varchar("duration", { length: 100 }).notNull(),
-  instructions: text("instructions"),
-});
+export const prescriptionItems = pgTable(
+  "prescription_items",
+  {
+    id: serial("id").primaryKey(),
+    prescriptionId: integer("prescription_id")
+      .notNull()
+      .references(() => prescriptions.id),
+    medicineId: integer("medicine_id").references(() => medicines.id),
+    // Free-text fallback so the front desk isn't blocked if a medicine
+    // isn't in the master list yet.
+    freeTextName: varchar("free_text_name", { length: 255 }),
+    dosage: varchar("dosage", { length: 100 }).notNull(),
+    frequency: varchar("frequency", { length: 100 }).notNull(),
+    duration: varchar("duration", { length: 100 }).notNull(),
+    instructions: text("instructions"),
+  },
+  (t) => [index("prescription_items_prescription_idx").on(t.prescriptionId)]
+);
 
 export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
   appointmentId: integer("appointment_id")
     .notNull()
     .unique()
-    .references(() => appointments.id, { onDelete: "cascade" }),
+    .references(() => appointments.id),
   consultationFee: numeric("consultation_fee", { precision: 10, scale: 2 })
     .notNull()
     .default("0"),
@@ -268,29 +300,33 @@ export const invoices = pgTable("invoices", {
     .default("0"),
   paymentStatus: paymentStatusEnum("payment_status").notNull().default("pending"),
   paymentMode: varchar("payment_mode", { length: 50 }),
-  paidAt: timestamp("paid_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  paidAt: timestamp("paid_at", { withTimezone: true, mode: "date" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 });
 
 // Ad-hoc charges beyond the base consultation fee (dressing, minor
 // procedure, etc.), sourced from the Billing Item master.
-export const invoiceItems = pgTable("invoice_items", {
-  id: serial("id").primaryKey(),
-  invoiceId: integer("invoice_id")
-    .notNull()
-    .references(() => invoices.id, { onDelete: "cascade" }),
-  billingItemId: integer("billing_item_id").references(() => billingItems.id),
-  name: varchar("name", { length: 255 }).notNull(),
-  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
-});
+export const invoiceItems = pgTable(
+  "invoice_items",
+  {
+    id: serial("id").primaryKey(),
+    invoiceId: integer("invoice_id")
+      .notNull()
+      .references(() => invoices.id),
+    billingItemId: integer("billing_item_id").references(() => billingItems.id),
+    name: varchar("name", { length: 255 }).notNull(),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  },
+  (t) => [index("invoice_items_invoice_idx").on(t.invoiceId)]
+);
 
 // Clinic-wide toggles from Spec Section 8: no-show thresholds, auto fee
 // calculation, and per-event notification switches. One row per key.
 export const settings = pgTable("settings", {
   id: serial("id").primaryKey(),
   key: varchar("key", { length: 100 }).notNull().unique(),
-  value: jsonb("value").notNull().default({}),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  value: jsonb("value").$type<Record<string, unknown>>().notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 });
 
 // In-app notification feed (Spec Section 8: booked confirmation, turn
@@ -307,9 +343,13 @@ export const notifications = pgTable(
     type: varchar("type", { length: 50 }).notNull(),
     message: text("message").notNull(),
     status: notificationStatusEnum("status").notNull().default("unread"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
   },
-  (t) => [index("notifications_appointment_idx").on(t.appointmentId)]
+  (t) => [
+    index("notifications_appointment_idx").on(t.appointmentId),
+    index("notifications_patient_idx").on(t.patientId),
+    index("notifications_status_created_idx").on(t.status, t.createdAt),
+  ]
 );
 
 /* -------------------------------------------------------------------------- */

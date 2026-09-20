@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, lte } from "drizzle-orm";
 import { db } from "@/db";
-import { appointments, consultations } from "@/db/schema";
+import { appointments, consultations, patients } from "@/db/schema";
 
 export function findDoctorByUserId(userId: number) {
   return db.query.doctors.findFirst({
@@ -74,26 +74,33 @@ export async function findConsultationByAppointment(appointmentId: number) {
 }
 
 // Follow-ups due for a doctor's patients on or before today — surfaced on
-// the doctor queue (Spec Section 8 follow-up reminder). Filtered in code:
-// the predicate spans the consultation join and clinic-scale volumes.
+// the doctor queue (Spec Section 8 follow-up reminder). The predicate runs
+// in SQL (join + where), so history growth never loads the table into Node.
 export async function listFollowUpsDue(doctorId: number, today: string) {
-  const rows = await db.query.appointments.findMany({
-    where: eq(appointments.doctorId, doctorId),
-    with: { patient: true, consultation: true },
-    orderBy: (t, { asc }) => [asc(t.date)],
-  });
-  return rows
-    .filter(
-      (a) =>
-        a.consultation?.followUpRequired === true &&
-        a.consultation.followUpDate !== null &&
-        a.consultation.followUpDate <= today
+  const rows = await db
+    .select({
+      appointmentId: appointments.id,
+      date: appointments.date,
+      followUpDate: consultations.followUpDate,
+      patientName: patients.name,
+      patientPhone: patients.phone,
+    })
+    .from(consultations)
+    .innerJoin(
+      appointments,
+      eq(consultations.appointmentId, appointments.id)
     )
-    .map((a) => ({
-      appointmentId: a.id,
-      date: a.date,
-      followUpDate: a.consultation!.followUpDate as string,
-      patientName: a.patient.name,
-      patientPhone: a.patient.phone,
-    }));
+    .innerJoin(patients, eq(appointments.patientId, patients.id))
+    .where(
+      and(
+        eq(appointments.doctorId, doctorId),
+        eq(consultations.followUpRequired, true),
+        lte(consultations.followUpDate, today)
+      )
+    )
+    .orderBy(asc(appointments.date));
+  return rows.map((r) => ({
+    ...r,
+    followUpDate: r.followUpDate as string,
+  }));
 }

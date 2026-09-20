@@ -181,6 +181,26 @@ order taken. All entries implemented unless marked otherwise.
     removed; `/` search lifted into the shared toolbar; invoice
     dialog uses FormSkeleton; tight grids go single-column on mobile.
 
+## 2026-09-20 — Phase C hardening (audit remediation)
+
+58. **Clinical history can't cascade away** — consultations, prescriptions,
+    items, invoices, and logs are now `no action` on delete; identity-owned
+    rows (users→doctors, queue configs) keep cascade deliberately.
+59. **Instants are timestamptz** — all 12 timestamp columns converted;
+    calendar days stay `date`. Verified via migration 0004 on dev.
+60. **Hot-path indexes** — FK indexes on status logs, Rx/invoice items,
+    notifications (+status/created), patient + department joins;
+    pg_trgm GIN for patient search; follow-up composite.
+61. **Follow-ups in SQL** — the full-table-scan + JS filter is now a
+    3-table join with where/order; same rows verified in browser.
+62. **Typed jsonb** — workingHours/vitals/settings carry `$type`
+    mirroring the Zod shapes (including undefined-tolerant days).
+63. **Bounded pool, pruned search** — Pool max 10 + timeouts; patient
+    search returns id/name/phone/status only and nothing on empty query.
+64. **No-show cron + global error** — `/api/cron/no-show` every 15 min
+    (CRON_SECRET-guarded) with `flagAllNoShows` sweep; lazy per-render
+    call stays as fallback; `app/global-error.tsx` last resort.
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,

@@ -64,3 +64,16 @@ export async function flagNoShows(
   });
   return stale.length;
 }
+
+// Cron sweep across all doctors for one date (the lazy per-render call
+// stays as a fallback). Idempotent — flagNoShows only touches waiting.
+export async function flagAllNoShows(date: string): Promise<number> {
+  const all = await db.query.doctors.findMany({
+    columns: { id: true },
+  });
+  let total = 0;
+  for (const d of all) {
+    total += await flagNoShows(d.id, date);
+  }
+  return total;
+}

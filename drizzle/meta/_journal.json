@@ -29,6 +29,20 @@
       "when": 1789903147501,
       "tag": "0003_abandoned_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789904742235,
+      "tag": "0004_fair_wong",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789905028374,
+      "tag": "0005_last_multiple_man",
+      "breakpoints": true
     }
   ]
 }
