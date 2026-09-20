@@ -214,6 +214,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                   <FormSelect
                     value={field.value ? String(field.value) : ""}
                     onValueChange={(v) => field.onChange(Number(v))}
+                    label="Doctor"
                     options={doctors.map((d) => ({
                       value: String(d.id),
                       label: `${d.name} · ${d.department} · ₹${Number(d.fee).toFixed(2)}`,
@@ -245,6 +246,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                   <FormSelect
                     value={field.value}
                     onValueChange={field.onChange}
+                    label="Type"
                     options={[
                       { value: "walk_in", label: "Walk-in" },
                       { value: "scheduled", label: "Scheduled" },

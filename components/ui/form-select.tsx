@@ -22,12 +22,16 @@ export function FormSelect({
   options,
   placeholder,
   disabled,
+  label,
 }: {
   value: string;
   onValueChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
   disabled?: boolean;
+  // Accessible name for the trigger (the visible FieldLabel is not
+  // associated). Also the hook screen readers and tests use.
+  label?: string;
 }) {
   return (
     <Select
@@ -40,7 +44,7 @@ export function FormSelect({
       items={Object.fromEntries(options.map((o) => [o.value, o.label]))}
       disabled={disabled}
     >
-      <SelectTrigger>
+      <SelectTrigger aria-label={label}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="w-auto min-w-(--anchor-width) max-w-[calc(100vw-2rem)]">

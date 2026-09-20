@@ -201,6 +201,18 @@ order taken. All entries implemented unless marked otherwise.
     (CRON_SECRET-guarded) with `flagAllNoShows` sweep; lazy per-render
     call stays as fallback; `app/global-error.tsx` last resort.
 
+## 2026-09-20 — Phase D Playwright suite (audit remediation)
+
+65. **E2E runs against the user's dev server** — no webServer in config
+    (never boot a second Next on :3000); seeded DB required; specs that
+    write cancel their own bookings so dev stays pristine.
+66. **Role storage states per login** — one setup project saves
+    admin/receptionist/doctor sessions; specs load them directly.
+67. **Race spec proves the lock** — two contexts book the same
+    doctor+day in one tick; asserts distinct tokens or retry message.
+68. **FormSelect gained `label`** — the booking spec exposed that
+    select triggers had no accessible name; now a supported prop.
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,
