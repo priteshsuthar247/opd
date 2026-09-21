@@ -269,6 +269,25 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     app-level `requireRole` + 5-min JWT revalidation. Multi-clinic
     needs tenant-id + RLS design before onboarding clinic two. [agent]
 
+## 2026-09-21 — Bugfix batch (audit leftovers)
+
+76. **Menu, picker, select states [fix(a11y)]** — Clear-filter is a
+    real `DropdownMenuItem`; report picker rebuilt as the booking
+    cmdk combobox; `FormSelect` takes `label` + `invalid` (wired on
+    booking + queue-config). [joint]
+77. **shadcn conformance [refactor(ui)]** — `PasswordInput` on
+    `InputGroup`; `data-icon` on Button/Badge icons (standalone
+    brand/card/row icons keep sizing); `SelectGroup`+labels
+    (+separator before free-text); `Separator` for invoice totals.
+    ToggleGroup rejected for 2-option sets: the installed primitive
+    is multi-select, FormSelect has correct single-select semantics. [agent]
+78. **Dead code + money math [chore(hygiene)]** — removed `drawer`,
+    `toggle-group`, `breadcrumb` primitives and `statusLabels`;
+    de-exported file-local table types; invoice recompute + seed
+    totals in integer paise. `serial`→identity skipped: sequence
+    conversion on populated tables is risk without benefit (ids are
+    opaque). [agent]
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,
