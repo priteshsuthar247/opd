@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { StatusField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
-import { FormSelect } from "@/components/ui/form-select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import { Input } from "@/components/ui/input";
 import type { QueueConfigRow } from "@/db/queries/queue-configs";
 import {
@@ -96,7 +96,7 @@ export function QueueConfigDialog({
                   control={control}
                   name="doctorId"
                   render={({ field, fieldState }) => (
-                    <FormSelect
+                    <FormCombobox
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
                       label="Doctor"

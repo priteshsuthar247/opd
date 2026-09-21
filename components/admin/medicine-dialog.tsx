@@ -8,7 +8,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { StatusField, TextField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
-import { FormSelect } from "@/components/ui/form-select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import { Textarea } from "@/components/ui/textarea";
 import type { MedicineRow } from "@/db/queries/medicines";
 import { medicineSchema, type MedicineFormValues } from "@/lib/validations/medicine";
@@ -116,9 +116,11 @@ export function MedicineDialog({
               <Controller
                 control={control}
                 name="form"
-                render={({ field }) => (
-                  <FormSelect
+                render={({ field, fieldState }) => (
+                  <FormCombobox
                     value={field.value ?? ""}
+                    label="Form"
+                    invalid={!!fieldState.error}
                     onValueChange={(v) =>
                       field.onChange(
                         v === "" ? undefined : (v as (typeof medicineForms)[number])

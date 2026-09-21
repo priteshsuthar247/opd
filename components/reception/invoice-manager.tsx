@@ -19,7 +19,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { FormSelect } from "@/components/ui/form-select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import { paymentModes, paymentStatusOptions } from "@/lib/options";
 import {
   invoiceUpdateSchema,
@@ -196,8 +196,9 @@ export function InvoiceManager({
               );
             })}
           </ul>
-          <FormSelect
+          <FormCombobox
             value=""
+            label="Add a charge"
             onValueChange={(v) => void onAddItem(Number(v))}
             options={masterItems.map((m) => ({
               value: String(m.id),
@@ -251,10 +252,12 @@ export function InvoiceManager({
                   <Controller
                     control={control}
                   name="paymentStatus"
-                  render={({ field }) => (
-                    <FormSelect
+                  render={({ field, fieldState }) => (
+                    <FormCombobox
                       value={field.value}
                       onValueChange={field.onChange}
+                      label="Status"
+                      invalid={!!fieldState.error}
                       options={[...paymentStatusOptions]}
                     />
                   )}
@@ -268,10 +271,12 @@ export function InvoiceManager({
                   <Controller
                     control={control}
                     name="paymentMode"
-                    render={({ field }) => (
-                      <FormSelect
+                    render={({ field, fieldState }) => (
+                      <FormCombobox
                         value={field.value ?? ""}
                         onValueChange={field.onChange}
+                        label="Mode"
+                        invalid={!!fieldState.error}
                         options={paymentModes.map((m) => ({
                           value: m,
                           label: m,

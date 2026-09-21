@@ -288,6 +288,15 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     conversion on populated tables is risk without benefit (ids are
     opaque). [agent]
 
+## 2026-09-21 — Combobox for all entry selects
+
+79. **One `FormCombobox` parent** (`components/ui/form-combobox.tsx`)
+    owns the whole contract — filter, pick, Esc, blur-reconcile,
+    invalid, accessible name. Nine files swapped 1:1; `FormSelect`
+    stays only for toolbar chrome (rows-per-page); URL filter bars
+    stay native `Select` (server GET forms). E2E green; dialog
+    keyboard pick verified live. [user]
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,

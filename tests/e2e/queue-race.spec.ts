@@ -13,6 +13,8 @@ async function fillBooking(page: Page, patient: string) {
 }
 
 async function cancelWaitingRow(page: Page, patient: string) {
+  // Narrow first: the seeded board spans pages.
+  await page.getByPlaceholder("Search queue…").fill(patient);
   const row = page.getByRole("row", {
     name: new RegExp(`${patient}.*Waiting`),
   });

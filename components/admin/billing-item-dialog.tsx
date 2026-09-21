@@ -8,7 +8,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { StatusField, TextField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
-import { FormSelect } from "@/components/ui/form-select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import type { BillingItemRow } from "@/db/queries/billing-items";
 import {
   billingItemSchema,
@@ -108,9 +108,11 @@ export function BillingItemDialog({
               <Controller
                 control={control}
                 name="type"
-                render={({ field }) => (
-                  <FormSelect
+                render={({ field, fieldState }) => (
+                  <FormCombobox
                     value={field.value ?? ""}
+                    label="Type"
+                    invalid={!!fieldState.error}
                     onValueChange={(v) =>
                       field.onChange(
                         v === "" ? undefined : (v as (typeof billingItemTypes)[number])

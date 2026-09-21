@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { StatusField, TextField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
-import { FormSelect } from "@/components/ui/form-select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import type { CategoryRow } from "@/db/queries/categories";
 import { categorySchema, type CategoryInput } from "@/lib/validations/category";
 import { createCategory, updateCategory } from "@/app/admin/categories/actions";
@@ -95,10 +95,12 @@ export function CategoryDialog({
               <Controller
               control={control}
               name="type"
-              render={({ field }) => (
-                <FormSelect
+              render={({ field, fieldState }) => (
+                <FormCombobox
                   value={field.value}
                   onValueChange={field.onChange}
+                  label="Type"
+                  invalid={!!errors.type}
                   options={(
                     Object.keys(typeLabels) as (keyof typeof typeLabels)[]
                   ).map((t) => ({ value: t, label: typeLabels[t] }))}

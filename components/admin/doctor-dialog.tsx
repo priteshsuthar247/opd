@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { StatusField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
-import { FormSelect } from "@/components/ui/form-select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import type { DoctorRow } from "@/db/queries/doctors";
@@ -183,8 +183,8 @@ export function DoctorDialog({
                 <Controller
                   control={control}
                   name="departmentId"
-                  render={({ field }) => (
-                    <FormSelect
+                  render={({ field, fieldState }) => (
+                    <FormCombobox
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
                       options={departments.map((d) => ({
@@ -192,6 +192,8 @@ export function DoctorDialog({
                         label: d.name,
                       }))}
                       placeholder="Pick…"
+                      label="Department"
+                      invalid={!!fieldState.error}
                     />
                   )}
                 />

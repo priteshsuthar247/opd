@@ -8,7 +8,7 @@ import {
   type Path,
 } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { FormSelect } from "@/components/ui/form-select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import { Input } from "@/components/ui/input";
 import { statusOptions } from "@/lib/options";
 
@@ -45,11 +45,13 @@ export function StatusField<T extends FieldValues>({
       <Controller
         control={control}
         name={"status" as Path<T>}
-        render={({ field }) => (
-          <FormSelect
+        render={({ field, fieldState }) => (
+          <FormCombobox
             value={(field.value as string) ?? ""}
             onValueChange={field.onChange}
             options={[...statusOptions]}
+            label="Status"
+            invalid={!!fieldState.error}
           />
         )}
       />

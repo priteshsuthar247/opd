@@ -25,8 +25,12 @@ test.describe("@smoke booking flow", () => {
     // Booked card replaces the form (View queue affordance proves success).
     await expect(page.getByText("View queue")).toBeVisible({ timeout: 10000 });
 
-    // Queue board shows the new token for Ramesh Patel.
+    // Queue board shows the new token for Ramesh Patel. The seeded
+    // board spans pages, so narrow with the toolbar search first.
     await page.goto("/reception/queue");
+    await page
+      .getByPlaceholder("Search queue…")
+      .fill("Ramesh Patel");
     const row = page.getByRole("row", { name: /Ramesh Patel.*Waiting/ });
     await expect(row.first()).toBeVisible({ timeout: 10000 });
 

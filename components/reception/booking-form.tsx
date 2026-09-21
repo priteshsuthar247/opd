@@ -22,7 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { FormSelect } from "@/components/ui/form-select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import { Input } from "@/components/ui/input";
 import {
   appointmentSchema,
@@ -216,7 +216,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                 control={control}
                 name="doctorId"
                 render={({ field, fieldState }) => (
-                  <FormSelect
+                  <FormCombobox
                     value={field.value ? String(field.value) : ""}
                     onValueChange={(v) => field.onChange(Number(v))}
                     label="Doctor"
@@ -249,7 +249,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                   control={control}
                   name="type"
                 render={({ field, fieldState }) => (
-                  <FormSelect
+                  <FormCombobox
                     value={field.value}
                     onValueChange={field.onChange}
                     label="Type"

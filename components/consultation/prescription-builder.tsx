@@ -17,16 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormCombobox } from "@/components/ui/form-combobox";
 import { Textarea } from "@/components/ui/textarea";
 import type { ConsultationBundle } from "@/db/queries/clinical";
 import {
@@ -186,8 +177,8 @@ export function PrescriptionBuilder({
                 <Controller
                   control={control}
                   name="medicineId"
-                  render={({ field }) => (
-                    <Select
+                  render={({ field, fieldState }) => (
+                    <FormCombobox
                       value={
                         freeText
                           ? FREE_TEXT
@@ -204,31 +195,17 @@ export function PrescriptionBuilder({
                           field.onChange(Number(v));
                         }
                       }}
-                      items={{
-                        ...Object.fromEntries(
-                          medicines.map((m) => [String(m.id), m.name])
-                        ),
-                        [FREE_TEXT]: "Other (type name)…",
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pick…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Medicines</SelectLabel>
-                          {medicines.map((m) => (
-                            <SelectItem key={m.id} value={String(m.id)}>
-                              {m.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                        <SelectSeparator />
-                        <SelectItem value={FREE_TEXT}>
-                          Other (type name)…
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                      options={[
+                        ...medicines.map((m) => ({
+                          value: String(m.id),
+                          label: m.name,
+                        })),
+                        { value: FREE_TEXT, label: "Other (type name)…" },
+                      ]}
+                      placeholder="Pick…"
+                      label="Medicine"
+                      invalid={!!fieldState.error}
+                    />
                   )}
                 />
               </Field>
