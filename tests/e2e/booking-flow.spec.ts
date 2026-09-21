@@ -26,16 +26,23 @@ test.describe("@smoke booking flow", () => {
     await expect(page.getByText("View queue")).toBeVisible({ timeout: 10000 });
 
     // Queue board shows the new token for Ramesh Patel. The seeded
-    // board spans pages, so narrow with the toolbar search first.
+    // board spans pages, so narrow with the toolbar search first, then
+    // walk pages until the waiting row is visible.
     await page.goto("/reception/queue");
-    await page
-      .getByPlaceholder("Search queue…")
-      .fill("Ramesh Patel");
+    await page.getByPlaceholder("Search queue…").fill("Ramesh Patel");
     const row = page.getByRole("row", { name: /Ramesh Patel.*Waiting/ });
+    for (let p = 0; p < 4; p++) {
+      if ((await row.count()) > 0) break;
+      await page.getByRole("button", { name: "Go to next page" }).click();
+    }
     await expect(row.first()).toBeVisible({ timeout: 10000 });
 
     // Cancel via the row menu + confirm — the spec's own cleanup.
-    await row.first().getByRole("button", { name: "Open row menu" }).click();
+    // Re-locate on the visible page (same paging as the assertion).
+    const cancelRow = page.getByRole("row", {
+      name: /Ramesh Patel.*Waiting/,
+    });
+    await cancelRow.first().getByRole("button", { name: "Open row menu" }).click();
     await page.getByRole("menuitem", { name: "Cancel" }).click();
     await page.getByRole("button", { name: "Cancel appointment" }).click();
     await expect(page.getByText(/cancelled\./)).toBeVisible({

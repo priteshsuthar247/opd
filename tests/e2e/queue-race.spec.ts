@@ -13,18 +13,26 @@ async function fillBooking(page: Page, patient: string) {
 }
 
 async function cancelWaitingRow(page: Page, patient: string) {
-  // Narrow first: the seeded board spans pages.
+  // Narrow first (the seeded board spans pages), then walk pages —
+  // count() only sees the current page.
   await page.getByPlaceholder("Search queue…").fill(patient);
-  const row = page.getByRole("row", {
-    name: new RegExp(`${patient}.*Waiting`),
-  });
-  if ((await row.count()) === 0) return;
-  await row.first().getByRole("button", { name: "Open row menu" }).click();
-  await page.getByRole("menuitem", { name: "Cancel" }).click();
-  await page.getByRole("button", { name: "Cancel appointment" }).click();
-  await expect(page.getByText(/cancelled\./)).toBeVisible({
-    timeout: 10000,
-  });
+  for (let p = 0; p < 4; p++) {
+    const row = page.getByRole("row", {
+      name: new RegExp(`${patient}.*Waiting`),
+    });
+    if ((await row.count()) > 0) {
+      await row.first().getByRole("button", { name: "Open row menu" }).click();
+      await page.getByRole("menuitem", { name: "Cancel" }).click();
+      await page
+        .getByRole("button", { name: "Cancel appointment" })
+        .click();
+      await expect(page.getByText(/cancelled\./)).toBeVisible({
+        timeout: 10000,
+      });
+      return;
+    }
+    await page.getByRole("button", { name: "Go to next page" }).click();
+  }
 }
 
 test.describe("@race concurrent booking", () => {
