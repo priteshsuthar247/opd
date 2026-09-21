@@ -251,6 +251,20 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     with a reason. E2E covers 3 of the 5 audit targets (role matrix,
     booking smoke, token race); prescription immutability and the
     no-show business rule stay code-reviewed only. [agent]
+
+## 2026-09-21 — Full-coverage seed
+
+74. **Every table paginates** — 12 depts/doctors/configs/categories,
+    28 patients, 14 medicines, 11 billing items; ~90 visits over 5 days
+    covering all 5 appointment statuses (cancelled was uncovered),
+    draft + finalized Rx, paid (Cash/UPI) + pending invoices with
+    extras, all 4 notification types. Deterministic generator, no
+    random. [joint]
+75. **Seed is additive and idempotent** — per-slot
+    (doctor,date,token) skip instead of the old all-or-nothing gate;
+    second run inserts ~0 rows. Crashed-run forensics: a splice had
+    swallowed the status-log block, nesting the slot body inside the
+    logs loop (duplicate invoices) — fixed and verified by rerun. [agent]
 70. **Single-tenant launch posture** — one pooled DB role, no RLS,
     app-level `requireRole` + 5-min JWT revalidation. Multi-clinic
     needs tenant-id + RLS design before onboarding clinic two. [agent]

@@ -45,12 +45,23 @@ async function main() {
       { name: "General Medicine", code: "GEN" },
       { name: "Pediatrics", code: "PED" },
       { name: "ENT", code: "ENT" },
+      { name: "Dermatology", code: "DERM" },
+      { name: "Orthopedics", code: "ORTHO" },
+      { name: "Ophthalmology", code: "OPH" },
+      { name: "Dental", code: "DENT" },
+      { name: "Physiotherapy", code: "PHYS" },
+      { name: "Psychiatry", code: "PSY" },
+      { name: "Cardiology", code: "CARD" },
+      { name: "Neurology", code: "NEURO" },
+      { name: "Gynecology", code: "GYN" },
     ])
     .onConflictDoNothing();
 
   const allDepartments = await db.query.departments.findMany();
   const generalMedicine = allDepartments.find((d) => d.code === "GEN")!;
   const pediatrics = allDepartments.find((d) => d.code === "PED")!;
+  const deptByCode = (code: string) =>
+    allDepartments.find((d) => d.code === code)!;
 
   /* ------------------------------------------------------------ */
   /* Users — one login per role, all sharing a demo password        */
@@ -64,12 +75,35 @@ async function main() {
       { name: "Reception Desk", email: "reception@opdclinic.com", passwordHash, role: "receptionist" },
       { name: "Dr. Aisha Verma", email: "aisha.verma@opdclinic.com", passwordHash, role: "doctor" },
       { name: "Dr. Rohan Mehta", email: "rohan.mehta@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Dr. Vikram Rao", email: "vikram.rao@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Dr. Neha Kulkarni", email: "neha.kulkarni@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Dr. Farhan Ali", email: "farhan.ali@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Dr. Pooja Menon", email: "pooja.menon@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Dr. Sanjay Gupta", email: "sanjay.gupta@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Dr. Kavita Reddy", email: "kavita.reddy@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Dr. Arvind Nair", email: "arvind.nair@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Dr. Shalini Bose", email: "shalini.bose@opdclinic.com", passwordHash, role: "doctor" },
+      // Inactive login: tests the deactivation lockout (users.status).
+      { name: "Dr. Ex Doctor", email: "ex.doctor@opdclinic.com", passwordHash, role: "doctor", status: "inactive" },
+      { name: "Dr. Old Account", email: "old.account@opdclinic.com", passwordHash, role: "doctor", status: "inactive" },
     ])
     .onConflictDoNothing();
 
   const allUsers = await db.query.users.findMany();
   const doctorUser1 = allUsers.find((u) => u.email === "aisha.verma@opdclinic.com")!;
   const doctorUser2 = allUsers.find((u) => u.email === "rohan.mehta@opdclinic.com")!;
+  const extraDoctorUsers = [
+    "vikram.rao@opdclinic.com",
+    "neha.kulkarni@opdclinic.com",
+    "farhan.ali@opdclinic.com",
+    "pooja.menon@opdclinic.com",
+    "sanjay.gupta@opdclinic.com",
+    "kavita.reddy@opdclinic.com",
+    "arvind.nair@opdclinic.com",
+    "shalini.bose@opdclinic.com",
+    "ex.doctor@opdclinic.com",
+    "old.account@opdclinic.com",
+  ].map((email) => allUsers.find((u) => u.email === email)!);
 
   /* ------------------------------------------------------------ */
   /* Doctor profiles                                                */
@@ -105,6 +139,36 @@ async function main() {
           fri: { start: "10:00", end: "18:00" },
         },
       },
+      // Generated profiles: one per extra login, spread across
+      // departments with varied fees and hours. Unique per user, so
+      // re-runs skip via onConflictDoNothing.
+      ...[
+        { dept: "DERM", qual: "MBBS, MD (Dermatology)", reg: "MCI-20101", fee: "600" },
+        { dept: "ORTHO", qual: "MBBS, MS (Orthopedics)", reg: "MCI-20102", fee: "700" },
+        { dept: "OPH", qual: "MBBS, MS (Ophthalmology)", reg: "MCI-20103", fee: "500" },
+        { dept: "DENT", qual: "BDS, MDS", reg: "MCI-20104", fee: "400" },
+        { dept: "PHYS", qual: "BPTh, MPTh", reg: "MCI-20105", fee: "300" },
+        { dept: "PSY", qual: "MBBS, MD (Psychiatry)", reg: "MCI-20106", fee: "800" },
+        { dept: "CARD", qual: "MBBS, MD, DM (Cardiology)", reg: "MCI-20107", fee: "900" },
+        { dept: "NEURO", qual: "MBBS, MD, DM (Neurology)", reg: "MCI-20108", fee: "900" },
+        { dept: "GYN", qual: "MBBS, MS (OBGY)", reg: "MCI-20109", fee: "600", inactive: true },
+        { dept: "ENT", qual: "MBBS, MS (ENT)", reg: "MCI-20110", fee: "500", inactive: true },
+      ].map((p, i) => ({
+        userId: extraDoctorUsers[i].id,
+        departmentId: deptByCode(p.dept).id,
+        qualification: p.qual,
+        registrationNo: p.reg,
+        consultationFee: p.fee,
+        workingHours: {
+          mon: { start: "09:00", end: "17:00" },
+          tue: { start: "09:00", end: "17:00" },
+          wed: { start: "09:00", end: "17:00" },
+          thu: { start: "09:00", end: "17:00" },
+          fri: { start: "09:00", end: "17:00" },
+          sat: { start: "10:00", end: "14:00" },
+        },
+        ...(p.inactive ? { status: "inactive" as const } : {}),
+      })),
     ])
     .onConflictDoNothing();
 
@@ -140,6 +204,26 @@ async function main() {
       { name: "Divya Rao", phone: "9810000003", gender: "female", dob: "2001-03-19", bloodGroup: "A+" },
       { name: "Kishore Kumar", phone: "9810000004", gender: "male", dob: "1960-12-25", bloodGroup: "AB+" },
       { name: "Anita Desai", phone: "9810000005", gender: "female", dob: "1988-08-08", bloodGroup: "O-" },
+      { name: "Rahul Verma", phone: "9820000001", gender: "male", dob: "1992-05-14", bloodGroup: "A+" },
+      { name: "Priya Iyer", phone: "9820000002", gender: "female", dob: "1987-11-30", bloodGroup: "B-", address: "14 MG Road" },
+      { name: "Amitabh Rao", phone: "9820000003", gender: "male", dob: "1975-02-17" },
+      { name: "Lakshmi Menon", phone: "9820000004", gender: "female", dob: "1999-07-08", bloodGroup: "O+", emergencyContact: "9820000005" },
+      { name: "Vikash Yadav", phone: "9820000005", gender: "male", dob: "1983-09-21", bloodGroup: "AB-" },
+      { name: "Sneha Kulkarni", phone: "9820000006", gender: "female", dob: "2005-12-03" },
+      { name: "Rohit Sharma", phone: "9820000007", gender: "male", dob: "1990-04-25", bloodGroup: "B+", address: "7 Park Street" },
+      { name: "Deepa Nair", phone: "9820000008", gender: "female", dob: "1970-06-19", bloodGroup: "A-" },
+      { name: "Manoj Tiwari", phone: "9820000009", gender: "male", dob: "1965-10-11" },
+      { name: "Kavya Reddy", phone: "9820000010", gender: "female", dob: "2010-01-28", bloodGroup: "O+" },
+      { name: "Suresh Pillai", phone: "9830000001", gender: "male", dob: "1958-03-15", bloodGroup: "B+", emergencyContact: "9830000002" },
+      { name: "Anjali Gupta", phone: "9830000002", gender: "female", dob: "1994-08-22" },
+      { name: "Nikhil Bose", phone: "9830000003", gender: "male", dob: "1989-12-09", bloodGroup: "A+" },
+      { name: "Pooja Singhania", phone: "9830000004", gender: "female", dob: "1997-05-06", address: "22 Lake View" },
+      { name: "Rajesh Khanna", phone: "9830000005", gender: "male", dob: "1972-11-17", bloodGroup: "O-" },
+      { name: "Fatima Sheikh", phone: "9830000006", gender: "female", dob: "1985-02-28", bloodGroup: "AB+" },
+      { name: "Gopal Das", phone: "9830000007", gender: "male", dob: "1962-07-13" },
+      { name: "Naina Kapoor", phone: "9830000008", gender: "female", dob: "2003-09-30", bloodGroup: "B-" },
+      { name: "Tarun Malhotra", phone: "9830000009", gender: "male", dob: "1979-04-04", bloodGroup: "A+", emergencyContact: "9830000010" },
+      { name: "Usha Rani", phone: "9830000010", gender: "female", dob: "1955-12-12", bloodGroup: "O+" },
     ])
     .onConflictDoNothing();
 
@@ -155,6 +239,14 @@ async function main() {
       { name: "Azithromycin 500mg", genericName: "Azithromycin", form: "Tablet" },
       { name: "ORS Sachet", genericName: "Oral Rehydration Salts", form: "Sachet" },
       { name: "Cough Syrup", genericName: "Dextromethorphan", form: "Syrup" },
+      { name: "Ibuprofen 400mg", genericName: "Ibuprofen", form: "Tablet", defaultDosageNote: "After food" },
+      { name: "Omeprazole 20mg", genericName: "Omeprazole", form: "Capsule", defaultDosageNote: "Before breakfast" },
+      { name: "Salbutamol Inhaler", genericName: "Salbutamol", form: "Inhaler" },
+      { name: "Vitamin D3 60k", genericName: "Cholecalciferol", form: "Sachet", defaultDosageNote: "Weekly with milk" },
+      { name: "Metformin 500mg", genericName: "Metformin", form: "Tablet" },
+      { name: "Atorvastatin 10mg", genericName: "Atorvastatin", form: "Tablet", defaultDosageNote: "At bedtime" },
+      { name: "Betadine Ointment", genericName: "Povidone Iodine", form: "Ointment" },
+      { name: "Eye Drops Refresh", genericName: "Carboxymethylcellulose", form: "Drops" },
     ])
     .onConflictDoNothing();
 
@@ -170,6 +262,12 @@ async function main() {
       { name: "Viral Fever", type: "diagnosis" },
       { name: "Routine Checkup", type: "complaint" },
       { name: "Follow-up Visit", type: "complaint" },
+      { name: "Hypertension", type: "diagnosis" },
+      { name: "Type 2 Diabetes", type: "diagnosis" },
+      { name: "Migraine", type: "diagnosis" },
+      { name: "Skin Rash", type: "symptom" },
+      { name: "Back Pain", type: "symptom" },
+      { name: "New Prescription", type: "complaint" },
     ])
     .onConflictDoNothing();
 
@@ -182,6 +280,14 @@ async function main() {
       { name: "Dressing", type: "Procedure", amount: "150" },
       { name: "Minor Procedure", type: "Procedure", amount: "300" },
       { name: "Injection Administration", type: "Procedure", amount: "100" },
+      { name: "X-Ray Chest", type: "Imaging", amount: "500" },
+      { name: "ECG", type: "Imaging", amount: "350" },
+      { name: "Blood Sugar (Fasting)", type: "Lab", amount: "120" },
+      { name: "CBC", type: "Lab", amount: "250" },
+      { name: "Nebulization", type: "Procedure", amount: "200" },
+      { name: "Suture Removal", type: "Procedure", amount: "150" },
+      { name: "Eye Checkup", type: "Consult", amount: "400" },
+      { name: "Physiotherapy Session", type: "Therapy", amount: "450" },
     ])
     .onConflictDoNothing();
 
@@ -207,17 +313,11 @@ async function main() {
     .onConflictDoNothing();
 
   /* ------------------------------------------------------------ */
-  /* Demo visits — a lived-in clinic across three days. Skipped   */
-  /* entirely if any appointments already exist (re-runnable).   */
+  /* Demo visits — a lived-in clinic across five days. Each slot   */
+  /* (doctor, date, token) is skipped individually if present, so  */
+  /* re-runs only fill gaps (additive, idempotent).               */
   /* ------------------------------------------------------------ */
-  const existingVisits = await db.query.appointments.findMany({
-    columns: { id: true },
-  });
-  if (existingVisits.length === 0) {
-    await seedDemoVisits();
-  } else {
-    console.log("Appointments already present — skipping demo visits.");
-  }
+  await seedDemoVisits();
 
   console.log("\nSeed complete.");
   console.log("Demo accounts (all share the password below):");
@@ -242,13 +342,6 @@ function at(date: string, hm: string): Date {
 }
 
 async function seedDemoVisits() {
-  const byPhone = async (phone: string) => {
-    const p = await db.query.patients.findFirst({
-      where: eq(patients.phone, phone),
-    });
-    if (!p) throw new Error(`seed patient missing: ${phone}`);
-    return p.id;
-  };
   const byEmail = async (email: string) => {
     const u = await db.query.users.findFirst({
       where: eq(users.email, email),
@@ -270,6 +363,24 @@ async function seedDemoVisits() {
 
   const aisha = await byEmail("aisha.verma@opdclinic.com");
   const rohan = await byEmail("rohan.mehta@opdclinic.com");
+  const extraDocs = [];
+  for (const email of [
+    "vikram.rao@opdclinic.com",
+    "neha.kulkarni@opdclinic.com",
+    "farhan.ali@opdclinic.com",
+    "pooja.menon@opdclinic.com",
+    "sanjay.gupta@opdclinic.com",
+    "kavita.reddy@opdclinic.com",
+    "arvind.nair@opdclinic.com",
+    "shalini.bose@opdclinic.com",
+  ]) {
+    try {
+      extraDocs.push(await byEmail(email));
+    } catch {
+      // Profile missing (e.g. older DB) — skip its slots.
+    }
+  }
+  const laneDoctors = [aisha, rohan, ...extraDocs];
   const paracetamol = await medId("Paracetamol 500mg");
   const cetirizine = await medId("Cetirizine 10mg");
   const amoxicillin = await medId("Amoxicillin 250mg");
@@ -277,59 +388,123 @@ async function seedDemoVisits() {
     where: eq(billingItems.name, "Dressing"),
   });
 
-  const ramesh = await byPhone("9800000001");
-  const sunita = await byPhone("9800000002");
-  const karan = await byPhone("9800000003");
-  const meera = await byPhone("9810000001");
-  const arjun = await byPhone("9810000002");
-  const divya = await byPhone("9810000003");
-  const kishore = await byPhone("9810000004");
-  const anita = await byPhone("9810000005");
+  const patientRows = await db.query.patients.findMany({
+    columns: { id: true },
+    orderBy: (t, { asc }) => [asc(t.id)],
+  });
+  const patientIds = patientRows.map((r) => r.id);
+  if (patientIds.length === 0) throw new Error("seed patients missing");
 
-  // [dayOffset, doctorId, patientId, token, type, status, diagnosis?, feePaid?]
-  type Visit = [
+  const ibuprofen = await medId("Ibuprofen 400mg");
+  const omeprazole = await medId("Omeprazole 20mg");
+  const extraCharges = await db.query.billingItems.findMany({
+    columns: { id: true, name: true, amount: true },
+  });
+
+  // Deterministic 5-day matrix. Past days cycle all five statuses;
+  // today holds a live queue for the two flagship doctors.
+  // [dayOffset, doctorIdx, token, status, diagnosis?, paid?]
+  type GenVisit = [
     number,
     number,
     number,
-    number,
-    "walk_in" | "scheduled",
-    "waiting" | "in_progress" | "completed" | "no_show",
+    "waiting" | "in_progress" | "completed" | "cancelled" | "no_show",
     string | null,
     boolean,
   ];
-  const visits: Visit[] = [
-    // Two days ago — a full completed day.
-    [2, aisha.id, ramesh, 1, "walk_in", "completed", "Viral Fever", true],
-    [2, aisha.id, sunita, 2, "scheduled", "completed", "Upper Respiratory Infection", false],
-    [2, rohan.id, karan, 1, "walk_in", "completed", "Cough & Cold", true],
-    // Yesterday — includes a no-show and a follow-up.
-    [1, aisha.id, meera, 1, "scheduled", "completed", "Routine Checkup", true],
-    [1, aisha.id, arjun, 2, "walk_in", "no_show", null, false],
-    [1, rohan.id, divya, 1, "walk_in", "completed", "Viral Fever", false],
-    // Today — live queue.
-    [0, aisha.id, ramesh, 1, "walk_in", "waiting", null, false],
-    [0, aisha.id, sunita, 2, "scheduled", "waiting", null, false],
-    [0, aisha.id, kishore, 3, "walk_in", "in_progress", null, false],
-    [0, rohan.id, anita, 1, "walk_in", "waiting", null, false],
-    [0, rohan.id, karan, 2, "scheduled", "waiting", null, false],
+  const pastStatuses = [
+    "completed",
+    "completed",
+    "completed",
+    "no_show",
+    "cancelled",
+    "completed",
+  ] as const;
+  const pastDiagnoses = [
+    "Viral Fever",
+    "Upper Respiratory Infection",
+    "Cough & Cold",
+    "Routine Checkup",
+    "Hypertension",
+    "Migraine",
   ];
+  const visits: GenVisit[] = [];
+  for (let off = 4; off >= 1; off--) {
+    // Three doctor lanes per day, rotating so every doctor works most days.
+    const laneIdx = [(off * 2) % laneDoctors.length, (off * 2 + 1) % laneDoctors.length, (off * 2 + 5) % laneDoctors.length];
+    for (const di of laneIdx) {
+      for (let token = 1; token <= 6; token++) {
+        const status = pastStatuses[
+          (token - 1) % pastStatuses.length
+        ] as GenVisit[3];
+        visits.push([
+          off,
+          di,
+          token,
+          status,
+          status === "completed" || status === "in_progress"
+            ? pastDiagnoses[(token - 1) % pastDiagnoses.length]
+            : null,
+          token % 2 === 0,
+        ]);
+      }
+    }
+  }
+  // Today — live queue (waiting + one in progress per flagship doctor).
+  const todayLanes = [
+    { di: 0, tokens: [1, 2, 3, 4] as const, live: 5 },
+    { di: 1, tokens: [1, 2, 3] as const, live: 4 },
+  ];
+  for (const lane of todayLanes) {
+    for (const token of lane.tokens) {
+      visits.push([0, lane.di, token, "waiting", null, false]);
+    }
+    visits.push([0, lane.di, lane.live, "in_progress", null, false]);
+  }
 
   const rxLines: Record<string, { med: number; dosage: string; frequency: string; duration: string }[]> = {
     "Viral Fever": [
       { med: paracetamol, dosage: "500mg", frequency: "1-0-1", duration: "5 days" },
     ],
     "Upper Respiratory Infection": [
-      { med: amoxicillin, dosage: "250mg", frequency: "1-0-1", duration: "5 days" },
+      { med: amoxicillin, dosage: "500mg", frequency: "1-0-1", duration: "5 days" },
       { med: cetirizine, dosage: "10mg", frequency: "0-0-1", duration: "5 days" },
     ],
     "Cough & Cold": [
       { med: cetirizine, dosage: "10mg", frequency: "0-0-1", duration: "3 days" },
     ],
     "Routine Checkup": [],
+    "Hypertension": [
+      { med: ibuprofen, dosage: "400mg", frequency: "1-0-0", duration: "7 days" },
+    ],
+    "Migraine": [
+      { med: ibuprofen, dosage: "400mg", frequency: "1-0-1", duration: "3 days" },
+      { med: omeprazole, dosage: "20mg", frequency: "1-0-0", duration: "3 days" },
+    ],
   };
 
-  for (const [off, doctorId, patientId, token, type, status, diagnosis, paid] of visits) {
+  let skipped = 0;
+  for (const [off, di, token, status, diagnosis, paid] of visits) {
+    const doctor = laneDoctors[di % laneDoctors.length];
+    const doctorId = doctor.id;
     const date = dayStr(off);
+    // Per-slot idempotency: skip slots already taken (re-runs, or the
+    // developer's own test bookings from browser verification).
+    const taken = await db.query.appointments.findFirst({
+      where: (t, { and, eq }) =>
+        and(
+          eq(t.doctorId, doctorId),
+          eq(t.date, date),
+          eq(t.tokenNumber, token)
+        ),
+      columns: { id: true },
+    });
+    if (taken) {
+      skipped++;
+      continue;
+    }
+    const patientId = patientIds[(off * 7 + di * 6 + token) % patientIds.length];
+    const type = token % 2 === 0 ? "scheduled" : "walk_in";
     const [appt] = await db
       .insert(appointments)
       .values({ patientId, doctorId, date, tokenNumber: token, type, status })
@@ -348,7 +523,12 @@ async function seedDemoVisits() {
               { prev: null, next: "waiting", hm: "09:05" },
               { prev: "waiting", next: "in_progress", hm: "09:30" },
             ]
-          : [{ prev: null, next: "waiting", hm: "09:10" }];
+          : status === "cancelled"
+            ? [
+                { prev: null, next: "waiting", hm: "09:10" },
+                { prev: "waiting", next: "cancelled", hm: "09:35" },
+              ]
+            : [{ prev: null, next: "waiting", hm: "09:10" }];
     for (const l of logs) {
       await db.insert(queueStatusLogs).values({
         appointmentId: appt.id,
@@ -359,30 +539,34 @@ async function seedDemoVisits() {
       });
     }
 
-    const doctor = doctorId === aisha.id ? aisha : rohan;
     const fee = String(doctor.consultationFee);
     const [invoice] = await db
       .insert(invoices)
       .values({
         appointmentId: appt.id,
         consultationFee: fee,
-        discount: "0",
+        discount: token % 5 === 0 ? "50" : "0",
         totalAmount: fee,
         paymentStatus: paid ? "paid" : "pending",
-        paymentMode: paid ? "Cash" : null,
+        paymentMode: paid ? (token % 4 === 0 ? "UPI" : "Cash") : null,
         paidAt: paid ? at(date, "10:00") : null,
       })
       .returning({ id: invoices.id });
 
-    // Dressing charge on Ramesh's completed visit from two days ago.
-    if (diagnosis === "Viral Fever" && off === 2 && dressing) {
+    // Rotating extra charge on even tokens of completed visits.
+    if (status === "completed" && token % 2 === 0 && extraCharges.length > 0) {
+      const extra = extraCharges[token % extraCharges.length];
       await db.insert(invoiceItems).values({
         invoiceId: invoice.id,
-        billingItemId: dressing.id,
-        name: dressing.name,
-        amount: dressing.amount,
+        billingItemId: extra.id,
+        name: extra.name,
+        amount: extra.amount,
       });
-      const total = (Number(fee) + Number(dressing.amount)).toFixed(2);
+      const total = (
+        Number(fee) +
+        Number(extra.amount) -
+        (token % 5 === 0 ? 50 : 0)
+      ).toFixed(2);
       await db
         .update(invoices)
         .set({ totalAmount: total })
@@ -395,19 +579,30 @@ async function seedDemoVisits() {
         .insert(consultations)
         .values({
           appointmentId: appt.id,
-          vitals: { bp: "120/80", tempC: 37.5, pulse: 78, weightKg: 65 },
-          chiefComplaint: diagnosis === "Routine Checkup" ? "Annual checkup" : "Fever and body ache",
+          vitals: {
+            bp: `${110 + (token % 4) * 5}/80`,
+            tempC: 37 + (token % 3) * 0.5,
+            pulse: 70 + token * 2,
+            weightKg: 60 + token,
+          },
+          chiefComplaint:
+            diagnosis === "Routine Checkup"
+              ? "Annual checkup"
+              : `${diagnosis} with fever`,
           diagnosis,
           notes: "Rest and fluids advised.",
           followUpRequired: followUp,
           followUpDate: followUp ? dayStr(0) : null,
         })
         .returning({ id: consultations.id });
+      // Two in three completed prescriptions are finalized (read-only);
+      // the rest stay draft. In-progress visits are always draft.
+      const finalized = status === "completed" && token % 3 !== 0;
       const [rx] = await db
         .insert(prescriptions)
         .values({
           consultationId: con.id,
-          status: status === "completed" ? "finalized" : "draft",
+          status: finalized ? "finalized" : "draft",
         })
         .returning({ id: prescriptions.id });
       for (const line of rxLines[diagnosis ?? ""] ?? []) {
@@ -419,12 +614,14 @@ async function seedDemoVisits() {
           duration: line.duration,
         });
       }
-      await db.insert(notifications).values({
-        patientId,
-        appointmentId: appt.id,
-        type: "prescription_finalized",
-        message: "Prescription finalized.",
-      });
+      if (finalized) {
+        await db.insert(notifications).values({
+          patientId,
+          appointmentId: appt.id,
+          type: "prescription_finalized",
+          message: "Prescription finalized.",
+        });
+      }
       if (followUp) {
         await db.insert(notifications).values({
           patientId,
@@ -443,9 +640,17 @@ async function seedDemoVisits() {
         message: `Token ${token} booked for ${date}.`,
       });
     }
+    if (off === 0 && status === "in_progress") {
+      await db.insert(notifications).values({
+        patientId,
+        appointmentId: appt.id,
+        type: "turn_approaching",
+        message: `Token ${token} is next — please proceed for consultation.`,
+      });
+    }
   }
 
-  console.log("Demo visits seeded (3 days, 11 appointments).");
+  console.log(`Demo visits seeded (5-day matrix). Skipped ${skipped} taken slots.`);
 }
 
 main().catch((err) => {
