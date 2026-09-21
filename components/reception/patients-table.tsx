@@ -27,7 +27,7 @@ import { setPatientStatus } from "@/app/reception/patients/actions";
 const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, PatientRow>();
 
-function ageOn(dob: string | null): string {
+export function ageOn(dob: string | null): string {
   if (!dob) return "—";
   const birth = new Date(dob);
   if (Number.isNaN(birth.getTime())) return "—";

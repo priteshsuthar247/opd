@@ -354,6 +354,10 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     + token + doctor), clinical sections grouped, billing behind a
     divider, cancelled/no-show collapsed to one line. Same section
     boundary, same data. [user]
+89. **Visit report opens on a browser, not an empty page** — dedicated
+    read-only `PatientPickerTable` (search/sort/paginate/mobile
+    cards, View → `?patientId=`); search picker stays as the switcher
+    once selected. Seed "null with fever" complaints repaired. [user]
 
 ## 2026-09-21 — pdfcn invoice PDFs
 

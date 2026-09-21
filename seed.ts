@@ -589,7 +589,7 @@ async function seedDemoVisits() {
           chiefComplaint:
             diagnosis === "Routine Checkup"
               ? "Annual checkup"
-              : `${diagnosis} with fever`,
+              : `${diagnosis ?? "General checkup"} with fever`,
           diagnosis,
           notes: "Rest and fluids advised.",
           followUpRequired: followUp,
