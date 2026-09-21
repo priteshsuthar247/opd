@@ -1,4 +1,4 @@
-import { and, gte, lte } from "drizzle-orm";
+import { and, count, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments } from "@/db/schema";
 
@@ -6,6 +6,19 @@ export type DateRange = { from: string; to: string };
 
 function inRange(dateCol: typeof appointments.date, range: DateRange) {
   return and(gte(dateCol, range.from), lte(dateCol, range.to));
+}
+
+// Light status counts for one day — drives overview stat cards without
+// loading the full appointment bundles.
+export async function countAppointmentsByStatus(
+  date: string
+): Promise<Record<string, number>> {
+  const rows = await db
+    .select({ status: appointments.status, n: count() })
+    .from(appointments)
+    .where(eq(appointments.date, date))
+    .groupBy(appointments.status);
+  return Object.fromEntries(rows.map((r) => [r.status, r.n]));
 }
 
 export function listAppointmentsInRange(range: DateRange) {

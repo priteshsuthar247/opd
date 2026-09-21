@@ -215,7 +215,17 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
 67. **Race spec proves the lock** — two contexts book the same
     doctor+day in one tick; asserts distinct tokens or retry message. [joint]
 68. **FormSelect gained `label`** — the booking spec exposed that
-    select triggers had no accessible name; now a supported prop. [joint]
+    select triggers had no accessible name; now a supported prop.
+
+## 2026-09-21 — Suspense streaming on slow pages
+
+71. **Fast shell paints, slow sections stream** — consultation header
+    from a light PK query while form/Rx (bundle join) and history
+    stream in sibling boundaries; overview stats from a new
+    `COUNT GROUP BY` query with recent/collected streaming behind
+    (one cached fetch shared across boundaries); custom-report
+    filters paint from masters while results stream. Queues untouched
+    (single bounded query each). [joint] [joint]
 
 ## 2026-09-20 — Audit program close-out
 

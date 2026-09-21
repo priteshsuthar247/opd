@@ -1,19 +1,21 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { doctors, medicines } from "@/db/schema";
+import { appointments, doctors } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import {
-  getConsultationBundle,
-  listPatientHistory,
-} from "@/db/queries/clinical";
-import { ConsultationForm } from "@/components/consultation/consultation-form";
+  ConsultationWorkspace,
+  HistorySection,
+} from "@/components/consultation/consultation-sections";
 import { CompleteVisitButton } from "@/components/consultation/complete-visit-button";
-import { HistoryPanel } from "@/components/consultation/history-panel";
-import { PrescriptionBuilder } from "@/components/consultation/prescription-builder";
 import { StatusBadge } from "@/components/queue/status-badge";
 import { Button } from "@/components/ui/button";
+import {
+  FormSkeleton,
+  TableSkeleton,
+} from "@/components/shell/loading-blocks";
 
 export default async function ConsultationPage({
   params,
@@ -31,65 +33,64 @@ export default async function ConsultationPage({
   const appointmentId = Number(id);
   if (!Number.isInteger(appointmentId)) redirect("/doctor/queue");
 
-  const bundle = await getConsultationBundle(appointmentId);
-  if (!bundle || bundle.doctorId !== doctor.id) redirect("/doctor/queue");
-
-  const [history, meds] = await Promise.all([
-    listPatientHistory(bundle.patientId, bundle.id),
-    db.query.medicines.findMany({
-      where: eq(medicines.status, "active"),
-      orderBy: (t, { asc }) => [asc(t.name)],
-    }),
-  ]);
+  // Light header query (primary key + patient name): paints the shell
+  // immediately while the heavy bundle, history, and form stream below.
+  const header = await db.query.appointments.findFirst({
+    where: eq(appointments.id, appointmentId),
+    columns: {
+      id: true,
+      tokenNumber: true,
+      status: true,
+      date: true,
+      type: true,
+      patientId: true,
+      doctorId: true,
+    },
+    with: { patient: { columns: { name: true, phone: true } } },
+  });
+  if (!header || header.doctorId !== doctor.id) redirect("/doctor/queue");
 
   return (
     <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-lg font-semibold">
-            Token {bundle.tokenNumber} · {bundle.patient.name}
+            Token {header.tokenNumber} · {header.patient.name}
           </h1>
           <p className="text-xs text-muted-foreground">
-            {bundle.patient.phone} · {bundle.date} ·{" "}
-            {bundle.type === "walk_in" ? "Walk-in" : "Scheduled"}
+            {header.patient.phone} · {header.date} ·{" "}
+            {header.type === "walk_in" ? "Walk-in" : "Scheduled"}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <StatusBadge status={bundle.status} />
-          {bundle.consultation?.prescription && (
-            <Button
-              variant="outline"
-              size="sm"
-              render={
-                <Link href={`/doctor/consultation/${bundle.id}/print`}>
-                  Print / PDF
-                </Link>
-              }
-            />
-          )}
-          {bundle.status === "in_progress" && (
+          <StatusBadge status={header.status} />
+          {header.status === "in_progress" && (
             <CompleteVisitButton
-              appointmentId={bundle.id}
-              tokenNumber={bundle.tokenNumber}
+              appointmentId={header.id}
+              tokenNumber={header.tokenNumber}
             />
           )}
         </div>
       </div>
-      {bundle.status !== "in_progress" ? (
+      {header.status !== "in_progress" ? (
         <div className="border p-4 text-sm text-muted-foreground">
-          This visit is {bundle.status}. Consultations can only be recorded
+          This visit is {header.status}. Consultations can only be recorded
           while the token is in progress.
         </div>
       ) : (
         <div className="grid items-start gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="flex flex-col gap-4">
-            <ConsultationForm bundle={bundle} />
-            <PrescriptionBuilder
-              consultation={bundle.consultation}
-              medicines={meds}
+          <Suspense fallback={<FormSkeleton fields={6} />}>
+            <ConsultationWorkspace
+              appointmentId={header.id}
+              doctorId={doctor.id}
             />
-          </div>
-          <HistoryPanel history={history} />
+          </Suspense>
+          <Suspense fallback={<TableSkeleton rows={5} />}>
+            <HistorySection
+              appointmentId={header.id}
+              patientId={header.patientId}
+            />
+          </Suspense>
         </div>
       )}
     </main>

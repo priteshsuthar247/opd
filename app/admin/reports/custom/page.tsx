@@ -1,11 +1,13 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/roles";
 import { listDepartments } from "@/db/queries/departments";
 import { listDoctors } from "@/db/queries/doctors";
-import { listAppointmentsInRange } from "@/db/queries/reports";
-import { ExportCsvButton } from "@/components/admin/export-csv-button";
 import { ReportPatientPicker } from "@/components/admin/report-patient-picker";
-import { ReportResultsTable } from "@/components/admin/report-results-table";
+import {
+  ReportResultsSection,
+  type ReportFilters,
+} from "@/components/admin/report-results-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TableSkeleton } from "@/components/shell/loading-blocks";
 
 const statuses = [
   "waiting",
@@ -60,50 +63,25 @@ export default async function CustomReportPage({
     : undefined;
   const diagnosis = params.diagnosis?.trim() || undefined;
 
-  const [departments, doctors, rows] = await Promise.all([
+  // Masters first (cheap): the filter bar paints immediately while
+  // the range bundle streams inside the results section below.
+  const [departments, doctors] = await Promise.all([
     listDepartments(),
     listDoctors(),
-    listAppointmentsInRange({ from, to }),
   ]);
 
-  const filtered = rows.filter(
-    (r) =>
-      (departmentId === undefined || r.doctor.departmentId === departmentId) &&
-      (doctorId === undefined || r.doctorId === doctorId) &&
-      (patientId === undefined || r.patientId === patientId) &&
-      (status === undefined || r.status === status) &&
-      (diagnosis === undefined ||
-        (r.consultation?.diagnosis ?? "")
-          .toLowerCase()
-          .includes(diagnosis.toLowerCase()))
-  );
-
-  const csvRows = filtered.map((r) => ({
-    Date: r.date,
-    Token: r.tokenNumber,
-    Patient: r.patient.name,
-    Phone: r.patient.phone,
-    Doctor: r.doctor.user.name,
-    Department: r.doctor.department.name,
-    Type: r.type,
-    Status: r.status,
-    Diagnosis: r.consultation?.diagnosis ?? "",
-  }));
+  const filters: ReportFilters = {
+    departmentId,
+    doctorId,
+    patientId,
+    from,
+    to,
+    status,
+    diagnosis,
+  };
 
   return (
     <main className="w-full px-4 lg:px-6 py-4 md:py-6">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-lg font-semibold">Custom Report</h1>
-          <p className="text-xs text-muted-foreground">
-            {filtered.length} {filtered.length === 1 ? "visit" : "visits"} match.
-          </p>
-        </div>
-        <ExportCsvButton
-          rows={csvRows}
-          filename={`custom-report-${from}-${to}`}
-        />
-      </div>
       <form
         action="/admin/reports/custom"
         method="get"
@@ -219,13 +197,9 @@ export default async function CustomReportPage({
           preserveParams
         />
       </div>
-      {filtered.length === 0 ? (
-        <div className="border py-12 text-center text-sm text-muted-foreground">
-          No visits match these filters.
-        </div>
-      ) : (
-        <ReportResultsTable data={filtered} />
-      )}
+      <Suspense fallback={<TableSkeleton rows={8} />}>
+        <ReportResultsSection filters={filters} />
+      </Suspense>
     </main>
   );
 }
