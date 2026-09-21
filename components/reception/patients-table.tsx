@@ -17,6 +17,7 @@ import {
   statusRowItems,
   tableFeaturesFull,
 } from "@/components/table/table-helpers";
+import { ageOn } from "@/lib/dates";
 import { DataTable } from "@/components/table/data-table";
 import { TableEmpty } from "@/components/ui/table-empty";
 import { ActiveBadge } from "@/components/ui/active-badge";
@@ -26,17 +27,6 @@ import { setPatientStatus } from "@/app/reception/patients/actions";
 
 const features = tableFeaturesFull;
 const helper = createColumnHelper<typeof features, PatientRow>();
-
-export function ageOn(dob: string | null): string {
-  if (!dob) return "—";
-  const birth = new Date(dob);
-  if (Number.isNaN(birth.getTime())) return "—";
-  const now = new Date();
-  let age = now.getFullYear() - birth.getFullYear();
-  const m = now.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
-  return age < 0 ? "—" : String(age);
-}
 
 const toggleStatus = makeStatusToggle(setPatientStatus, "Patient");
 

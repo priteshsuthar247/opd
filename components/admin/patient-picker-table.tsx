@@ -17,7 +17,7 @@ import { DataTable } from "@/components/table/data-table";
 import { TableEmpty } from "@/components/ui/table-empty";
 import { ActiveBadge } from "@/components/ui/active-badge";
 import { Button } from "@/components/ui/button";
-import { ageOn } from "@/components/reception/patients-table";
+import { ageOn } from "@/lib/dates";
 import type { PatientRow } from "@/db/queries/patients";
 
 const features = tableFeaturesFull;
