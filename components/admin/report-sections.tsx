@@ -4,6 +4,7 @@ import {
   waitMinutes,
 } from "@/db/queries/reports";
 import { ExportCsvButton } from "@/components/admin/export-csv-button";
+import { DownloadReportButton } from "@/components/reports/download-report-button";
 import { PrintButton } from "@/components/consultation/print-button";
 import {
   Table,
@@ -69,6 +70,7 @@ export async function DailySection({ date }: { date: string }) {
         </div>
         <div className="flex gap-2 print:hidden">
           <ExportCsvButton rows={doctorRows} filename={`daily-${date}`} />
+          <DownloadReportButton query={`report=daily&date=${date}`} filename={`daily-${date}`} />
           <PrintButton />
         </div>
       </div>
@@ -146,6 +148,7 @@ export async function TrendSection({
           rows={trendRows}
           filename={`diagnosis-trend-${from}-${to}`}
         />
+        <DownloadReportButton query={`report=trend&from=${from}&to=${to}`} filename={`diagnosis-trend-${from}-${to}`} />
       </div>
       {trendRows.length === 0 ? (
         <div className="border py-12 text-center text-sm text-muted-foreground">
@@ -241,6 +244,7 @@ export async function PerformanceSection({
           rows={perfRows}
           filename={`doctor-performance-${from}-${to}`}
         />
+        <DownloadReportButton query={`report=performance&from=${from}&to=${to}`} filename={`doctor-performance-${from}-${to}`} />
       </div>
       {perfRows.length === 0 ? (
         <div className="border py-12 text-center text-sm text-muted-foreground">

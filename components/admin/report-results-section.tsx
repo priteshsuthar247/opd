@@ -1,5 +1,6 @@
 import { listAppointmentsInRange } from "@/db/queries/reports";
 import { ExportCsvButton } from "@/components/admin/export-csv-button";
+import { DownloadReportButton } from "@/components/reports/download-report-button";
 import { ReportResultsTable } from "@/components/admin/report-results-table";
 
 export type ReportFilters = {
@@ -49,6 +50,19 @@ export async function ReportResultsSection({
     Diagnosis: r.consultation?.diagnosis ?? "",
   }));
 
+  const query = new URLSearchParams({
+    ...(departmentId !== undefined
+      ? { departmentId: String(departmentId) }
+      : {}),
+    ...(doctorId !== undefined ? { doctorId: String(doctorId) } : {}),
+    ...(patientId !== undefined ? { patientId: String(patientId) } : {}),
+    from,
+    to,
+    ...(status !== undefined ? { status } : {}),
+    ...(diagnosis !== undefined ? { diagnosis } : {}),
+  });
+  query.set("report", "custom");
+
   return (
     <>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
@@ -61,6 +75,10 @@ export async function ReportResultsSection({
         </div>
         <ExportCsvButton
           rows={csvRows}
+          filename={`custom-report-${from}-${to}`}
+        />
+        <DownloadReportButton
+          query={query.toString()}
           filename={`custom-report-${from}-${to}`}
         />
       </div>

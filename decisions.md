@@ -350,3 +350,12 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     on the invoice page + billing dialog, invoice print route retired.
     Inter via `googleFonts` per request: the default font lacks ₹ and
     Takumi fails loudly without coverage. E2E download green. [user]
+
+## 2026-09-21 — pdfcn report PDFs
+
+86. **All five reports download as PDF** — one generic `ReportPdf`
+    (header/table/footer) + `lib/report-data.ts` builders (daily,
+    trend, performance, custom, visits) + one admin-gated route with
+    validated params. PDF sits next to CSV (augment, not replace).
+    Inter subset lacks → (U+2192): subtitles use "to". Verified by
+    direct render incl. a 133-row multi-page custom report. [user]

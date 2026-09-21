@@ -5,6 +5,7 @@ import {
   PrescriptionBadge,
 } from "@/components/billing/status-badges";
 import { ExportCsvButton } from "@/components/admin/export-csv-button";
+import { DownloadReportButton } from "@/components/reports/download-report-button";
 
 // Streaming visit history for the patient-visit report: the patient
 // header + picker paint from a PK lookup while the full history (with
@@ -57,9 +58,13 @@ export async function PatientVisitsSection({
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex justify-end gap-2">
         <ExportCsvButton
           rows={csvRows}
+          filename={`patient-${patientId}-visits`}
+        />
+        <DownloadReportButton
+          query={`report=visits&patientId=${patientId}`}
           filename={`patient-${patientId}-visits`}
         />
       </div>
