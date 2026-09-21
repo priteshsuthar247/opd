@@ -89,6 +89,11 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
       setOptions(await searchPatientOptions(value.trim()));
       setSearched(true);
       setPickerOpen(true);
+      // Results arriving can drop input focus (stale row click,
+      // re-render) — restore it so arrow/Enter work immediately.
+      // getElementById because the ref would stop at the CommandInput
+      // wrapper instead of reaching the native input.
+      document.getElementById("book-patient")?.focus();
     }, 250);
   }
 

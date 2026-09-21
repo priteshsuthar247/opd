@@ -225,7 +225,12 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     `COUNT GROUP BY` query with recent/collected streaming behind
     (one cached fetch shared across boundaries); custom-report
     filters paint from masters while results stream. Queues untouched
-    (single bounded query each). [joint] [joint]
+    (single bounded query each). [joint]
+
+72. **Picker restores input focus on results** — async arrival could
+    drop focus so arrows did nothing until re-click; the debounced
+    callback refocuses `#book-patient` (by id — a ref stops at the
+    CommandInput wrapper). Verified ArrowDown+Enter with no re-click. [user] [joint]
 
 ## 2026-09-20 — Audit program close-out
 
