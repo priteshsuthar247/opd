@@ -23,6 +23,7 @@ export function FormSelect({
   placeholder,
   disabled,
   label,
+  invalid,
 }: {
   value: string;
   onValueChange: (value: string) => void;
@@ -32,6 +33,8 @@ export function FormSelect({
   // Accessible name for the trigger (the visible FieldLabel is not
   // associated). Also the hook screen readers and tests use.
   label?: string;
+  // Mirrors Field data-invalid on the trigger itself.
+  invalid?: boolean;
 }) {
   return (
     <Select
@@ -44,7 +47,7 @@ export function FormSelect({
       items={Object.fromEntries(options.map((o) => [o.value, o.label]))}
       disabled={disabled}
     >
-      <SelectTrigger aria-label={label}>
+      <SelectTrigger aria-label={label} aria-invalid={invalid || undefined}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="w-auto min-w-(--anchor-width) max-w-[calc(100vw-2rem)]">

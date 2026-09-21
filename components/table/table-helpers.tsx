@@ -429,14 +429,18 @@ function FacetFilterMenu({
 }
 
 function DropdownMenuItemClear({ onClear }: { onClear: () => void }) {
+  // A real menu item (not a raw button) so keyboard nav, typeahead, and
+  // the menu's focus contract treat Clear like every other row.
   return (
-    <button
-      type="button"
-      onClick={onClear}
-      className="flex w-full items-center justify-center px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+    <DropdownMenuItem
+      onSelect={(e) => {
+        e.preventDefault();
+        onClear();
+      }}
+      className="justify-center text-xs text-muted-foreground"
     >
       Clear filter
-    </button>
+    </DropdownMenuItem>
   );
 }
 

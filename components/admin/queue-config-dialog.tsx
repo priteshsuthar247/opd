@@ -95,10 +95,12 @@ export function QueueConfigDialog({
                 <Controller
                   control={control}
                   name="doctorId"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormSelect
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(Number(v))}
+                      label="Doctor"
+                      invalid={!!fieldState.error}
                       options={doctors.map((d) => ({
                         value: String(d.id),
                         label: d.name,
