@@ -63,12 +63,15 @@ async function recompute(
     }),
   ]);
   if (!invoice) throw new Error("Invoice not found.");
-  const fee = Number(invoice.consultationFee);
-  const extras = items.reduce((s, i) => s + Number(i.amount), 0);
-  const total = Math.max(0, fee + extras - Number(discount));
+  // Integer paise throughout: numeric(10,2) arrives as decimal strings
+  // and Number() float math rounds wrong on money (e.g. 0.1 + 0.2).
+  const toPaise = (v: string) => Math.round(Number(v) * 100);
+  const fee = toPaise(invoice.consultationFee);
+  const extras = items.reduce((s, i) => s + toPaise(i.amount), 0);
+  const total = Math.max(0, fee + extras - toPaise(discount));
   await tx
     .update(invoices)
-    .set({ discount, totalAmount: total.toFixed(2) })
+    .set({ discount, totalAmount: (total / 100).toFixed(2) })
     .where(eq(invoices.id, invoiceId));
 }
 

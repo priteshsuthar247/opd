@@ -562,14 +562,15 @@ async function seedDemoVisits() {
         name: extra.name,
         amount: extra.amount,
       });
+      // Integer paise: decimal strings through Number() round wrong.
       const total = (
-        Number(fee) +
-        Number(extra.amount) -
-        (token % 5 === 0 ? 50 : 0)
-      ).toFixed(2);
+        Math.round(Number(fee) * 100) +
+        Math.round(Number(extra.amount) * 100) -
+        (token % 5 === 0 ? 5000 : 0)
+      );
       await db
         .update(invoices)
-        .set({ totalAmount: total })
+        .set({ totalAmount: (total / 100).toFixed(2) })
         .where(eq(invoices.id, invoice.id));
     }
 

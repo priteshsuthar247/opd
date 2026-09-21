@@ -68,12 +68,12 @@ export const tableFeaturesFull = tableFeatures({  rowSortingFeature,
   rowSelectionFeature,
 });
 
-export const defaultPageSize = 10;
+const defaultPageSize = 10;
 
 // Structural sort API: the real Column type composes these methods in via
 // the sorting feature, which generic code can't name — but every table
 // built on tableFeaturesFull carries them, verified by tsc at each site.
-export type SortableColumn = {
+type SortableColumn = {
   getCanSort: () => boolean;
   getIsSorted: () => false | "asc" | "desc";
   getToggleSortingHandler: () => ((event: unknown) => void) | undefined;
@@ -297,7 +297,7 @@ export function selectionColumn<TData extends RowData>() {
 
 // Label/value list rendered inside the mobile detail sheet. Keeps detail
 // markup uniform across all nine tables — no per-table panel styling.
-export type ExpandedItem = {
+type ExpandedItem = {
   label: string;
   value: ReactNode;
 };
@@ -326,14 +326,14 @@ export function filterIncludesAny(
   return filterValue.includes(row.getValue(columnId));
 }
 
-export type FacetOption = { value: string; label: string };
+type FacetOption = { value: string; label: string };
 export type FacetFilter = {
   columnId: string;
   title: string;
   options: FacetOption[];
 };
 
-export type FilterColumn = {
+type FilterColumn = {
   id: string;
   getFilterValue: () => unknown;
   setFilterValue: (value: unknown) => void;
@@ -666,7 +666,7 @@ export function RowActions({ items }: { items: RowAction[] }) {
   );
 }
 
-export type StatusActionResult = { ok: true } | { ok: false; error: string };
+type StatusActionResult = { ok: true } | { ok: false; error: string };
 
 // One status-flip for every master table: was 9 copy-pasted toggleStatus
 // functions differing only in action and noun.

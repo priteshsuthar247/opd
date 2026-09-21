@@ -36,11 +36,6 @@ export const paymentModes = ["Cash", "UPI", "Card", "Other"] as const;
 // items, so a closed select falls back to the raw value. Every Select
 // below passes one of these maps via the `items` prop — keep them next
 // to the option lists so value and label can never drift.
-export const statusLabels = {
-  active: "Active",
-  inactive: "Inactive",
-} as const;
-
 export const statusOptions = [
   { value: "active", label: "Active" },
   { value: "inactive", label: "Inactive" },
