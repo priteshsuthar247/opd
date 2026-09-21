@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Headless browser automation in this environment reaches the dev
   // server via 127.0.0.1, which Next 16 treats as a cross-site origin.
   allowedDevOrigins: ["127.0.0.1"],
+  // Takumi ships a WASM loader that bundlers cannot statically resolve —
+  // keep it external so the Node runtime loads it directly instead.
+  serverExternalPackages: ["takumi-pdf", "@takumi-rs/helpers"],
   // Baseline SaaS headers. CSP is intentionally absent: print views and
   // seeded inline handlers predate it; add a nonce-based CSP before
   // embedding any third-party scripts.

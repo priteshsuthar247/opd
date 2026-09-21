@@ -16,8 +16,9 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
    but v4 was installed (broken at runtime). Upgraded the package to match
    the code. [agent]
 3. **Client-side PDFs over pdfcn/Takumi** — spec said client-side,
-   `AGENTS.md` said server-side Takumi. User chose client-side: print
-   views + browser Print-to-PDF, zero server files. [user]
+    `AGENTS.md` said server-side Takumi. User chose client-side: print
+    views + browser Print-to-PDF, zero server files.
+    *Superseded by #82 — user reversed to pdfcn for all PDFs.* [user]
 4. **New tables allowed** — `settings` (Section 8 toggles) and
    `notifications` (in-app feed), plus a token uniqueness index. [user]
 5. **Report exports: CSV + print-PDF first** — Excel deferred. [joint]
@@ -144,7 +145,8 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
 47. **Seed refuses production** — demo users/visits gated behind
     non-prod or `SEED_DEMO=1`; real `db/migrate.ts` runner replaces
     the no-op `drizzle-kit migrate` script; unused `date-fns`,
-    `takumi-pdf`, `@takumi-rs/helpers` removed, `shadcn` to devDeps. [joint]
+    `takumi-pdf`, `@takumi-rs/helpers` removed, `shadcn` to devDeps.
+    *Takumi deps reinstalled under #82 (pdfcn pilot).* [joint]
 48. **Sessions expire, logins disable** — 8h JWT maxAge, `users.status`,
     role/status rechecked in the jwt callback (5-min throttle), enforced
     in `requireRole` + middleware; deactivating a doctor locks their
@@ -319,3 +321,18 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
   handling, seed `target:` args — low value/churn, post-launch.
 - Production rebuild + first deploy (Neon pooler URL, AUTH_SECRET,
   AUTH_URL, no seed).
+
+## 2026-09-21 — pdfcn prescription PDFs
+
+82. **pdfcn for all PDFs, starting with prescriptions** — user reversed
+    #3: Takumi deps reinstalled, `@pdfcn` registry wired, Text +
+    minimal theme + three hand-written alias shims the CLI omits
+    (`pdf-components`, `pdf-themes`, `professional` → minimal theme).
+    Server renders via a binary-capable API route (actions can't
+    return bytes); prescription print route retired. Invoice + reports
+    keep print/CSV until their turn. [user]
+83. **Download buttons live where doctors print** — workspace section
+    plus the completed-visit gate (caught by E2E: finalized visits
+    never reach the workspace, so the button was unreachable where it
+    matters most); light header query carries prescription existence.
+    Takumi WASM needs `serverExternalPackages` or dev 500s globally. [agent]

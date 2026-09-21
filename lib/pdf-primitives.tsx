@@ -245,7 +245,7 @@ export const Image = ({
 } & Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "style">) => {
   const resolved = typeof src === "string" ? src : src.uri;
   return (
-    // eslint-disable-next-line eslint(nextjs/no-img-element) -- PDF primitive, not Next.js page
+    // eslint-disable-next-line @next/next/no-img-element -- PDF primitive, not a Next.js page
     <img
       src={resolved}
       style={flatten(style) as React.CSSProperties}

@@ -10,6 +10,7 @@ import {
   HistorySection,
 } from "@/components/consultation/consultation-sections";
 import { CompleteVisitButton } from "@/components/consultation/complete-visit-button";
+import { DownloadPdfButton } from "@/components/prescription/download-pdf-button";
 import { StatusBadge } from "@/components/queue/status-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,8 @@ export default async function ConsultationPage({
 
   // Light header query (primary key + patient name): paints the shell
   // immediately while the heavy bundle, history, and form stream below.
+  // Includes prescription existence so completed visits (the ones doctors
+  // actually print) get their download button without the bundle join.
   const header = await db.query.appointments.findFirst({
     where: eq(appointments.id, appointmentId),
     columns: {
@@ -46,7 +49,13 @@ export default async function ConsultationPage({
       patientId: true,
       doctorId: true,
     },
-    with: { patient: { columns: { name: true, phone: true } } },
+    with: {
+      patient: { columns: { name: true, phone: true } },
+      consultation: {
+        columns: { id: true },
+        with: { prescription: { columns: { id: true } } },
+      },
+    },
   });
   if (!header || header.doctorId !== doctor.id) redirect("/doctor/queue");
 
@@ -73,9 +82,19 @@ export default async function ConsultationPage({
         </div>
       </div>
       {header.status !== "in_progress" ? (
-        <div className="border p-4 text-sm text-muted-foreground">
-          This visit is {header.status}. Consultations can only be recorded
-          while the token is in progress.
+        <div className="flex flex-col gap-3">
+          <div className="border p-4 text-sm text-muted-foreground">
+            This visit is {header.status}. Consultations can only be recorded
+            while the token is in progress.
+          </div>
+          {header.consultation?.prescription && (
+            <div className="flex justify-end">
+              <DownloadPdfButton
+                appointmentId={header.id}
+                tokenNumber={header.tokenNumber}
+              />
+            </div>
+          )}
         </div>
       ) : (
         <div className="grid items-start gap-4 lg:grid-cols-[1fr_320px]">
