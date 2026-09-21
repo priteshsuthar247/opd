@@ -13,6 +13,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  inlineCommandClassName,
 } from "@/components/ui/command";
 import {
   Card,
@@ -158,7 +159,7 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
               <Command
                 shouldFilter={false}
                 label="Patient"
-                className="relative"
+                className={inlineCommandClassName}
                 onBlur={(e) => {
                   if (!e.currentTarget.contains(e.relatedTarget))
                     setPickerOpen(false);

@@ -33,6 +33,15 @@ function Command({
   )
 }
 
+// Inline-combobox override for Command roots that wrap an input with an
+// absolutely-positioned dropdown (booking picker, FormCombobox, report
+// picker). The base styles target the Ctrl+K palette panel —
+// overflow-hidden would clip the dropdown to the input's box, and the
+// popover chrome would double-border the input. tailwind-merge resolves
+// each conflict in favor of these.
+export const inlineCommandClassName =
+  "relative overflow-visible bg-transparent p-0";
+
 function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",

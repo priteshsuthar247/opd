@@ -9,6 +9,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  inlineCommandClassName,
 } from "@/components/ui/command";
 import {
   searchPatientOptions,
@@ -66,7 +67,7 @@ function PickerInner({
       <Command
         shouldFilter={false}
         label="Patient"
-        className="relative"
+        className={inlineCommandClassName}
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
         }}

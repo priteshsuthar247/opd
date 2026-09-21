@@ -8,6 +8,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  inlineCommandClassName,
 } from "@/components/ui/command";
 
 export type ComboOption = { value: string; label: string };
@@ -72,7 +73,7 @@ export function FormCombobox({
     <Command
       shouldFilter={false}
       label={label}
-      className="relative"
+      className={inlineCommandClassName}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) {
           reconcile(draft ?? shown);
