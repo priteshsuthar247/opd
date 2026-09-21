@@ -341,3 +341,12 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     KeyValue, Section, real Table, Divider, PdfSignatureBlock,
     PageFooter. Verified by text extraction incl. a 25-item
     multi-page stress render. [user]
+
+## 2026-09-21 — pdfcn invoice PDFs
+
+85. **Invoice joins prescriptions on pdfcn** — `InvoicePdf` (header,
+    KeyValue parties, charge Table with totals footer, signature),
+    `/api/invoices/[id]` route (receptionist/admin), download buttons
+    on the invoice page + billing dialog, invoice print route retired.
+    Inter via `googleFonts` per request: the default font lacks ₹ and
+    Takumi fails loudly without coverage. E2E download green. [user]

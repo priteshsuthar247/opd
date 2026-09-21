@@ -1,9 +1,11 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { eq } from "drizzle-orm";
 import { requireRole } from "@/lib/roles";
+import { db } from "@/db";
+import { appointments } from "@/db/schema";
 import { InvoiceSection } from "@/components/reception/invoice-section";
-import { Button } from "@/components/ui/button";
+import { DownloadInvoiceButton } from "@/components/billing/download-invoice-button";
 import { FormSkeleton } from "@/components/shell/loading-blocks";
 
 export default async function InvoicePage({
@@ -16,6 +18,13 @@ export default async function InvoicePage({
   const id = Number(appointmentId);
   if (!Number.isInteger(id)) redirect("/reception/queue");
 
+  // Token number for the download filename (light PK lookup; the full
+  // bundle streams inside the section below).
+  const header = await db.query.appointments.findFirst({
+    where: eq(appointments.id, id),
+    columns: { tokenNumber: true },
+  });
+
   return (
     <main className="mx-auto w-full max-w-3xl p-4">
       <div className="mb-4 flex items-start justify-between">
@@ -25,15 +34,9 @@ export default async function InvoicePage({
             Appointment #{id}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          nativeButton={false}
-          render={
-            <Link href={`/reception/invoices/${id}/print`}>
-              Print / PDF
-            </Link>
-          }
+        <DownloadInvoiceButton
+          appointmentId={id}
+          tokenNumber={header?.tokenNumber ?? 0}
         />
       </div>
       <Suspense fallback={<FormSkeleton fields={6} />}>

@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { FormSkeleton } from "@/components/shell/loading-blocks";
+import { DownloadInvoiceButton } from "@/components/billing/download-invoice-button";
 import {
   InvoiceManager,
   type ManagerBundle,
@@ -62,15 +61,9 @@ export function InvoiceDialog({
       footer={
         appointmentId !== null ? (
           <div className="mt-4 flex justify-start">
-            <Button
-              variant="outline"
-              size="sm"
-              nativeButton={false}
-              render={
-                <Link href={`/reception/invoices/${appointmentId}/print`}>
-                  Print / PDF
-                </Link>
-              }
+            <DownloadInvoiceButton
+              appointmentId={appointmentId}
+              tokenNumber={bundle?.tokenNumber ?? 0}
             />
           </div>
         ) : undefined
