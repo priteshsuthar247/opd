@@ -13,7 +13,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
@@ -33,19 +38,19 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { identifier: "", password: "" },
   });
 
   async function onSubmit(data: LoginInput) {
     // Generic failure message is deliberate — never reveal whether the
-    // email or the password was wrong (matches lib/auth.ts authorize).
+    // identifier or the password was wrong (matches lib/auth.ts authorize).
     const result = await signIn("credentials", {
-      email: data.email,
+      identifier: data.identifier,
       password: data.password,
       redirect: false,
     });
     if (!result || result.error) {
-      toast.error("Invalid email or password.");
+      toast.error("Invalid username or password.");
       return;
     }
     const session = await getSession();
@@ -68,18 +73,17 @@ export function LoginForm() {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <FieldGroup>
-            <Field data-invalid={!!errors.email}>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Field data-invalid={!!errors.identifier}>
+              <FieldLabel htmlFor="identifier">Username or email</FieldLabel>
               <Input
-                id="email"
-                type="email"
-                autoComplete="email"
+                id="identifier"
+                autoComplete="username"
                 autoFocus
-                placeholder="you@opdclinic.com"
-                aria-invalid={!!errors.email}
-                {...register("email")}
+                placeholder=""
+                aria-invalid={!!errors.identifier}
+                {...register("identifier")}
               />
-              <FieldError errors={[errors.email]} />
+              <FieldError errors={[errors.identifier]} />
             </Field>
             <Field data-invalid={!!errors.password}>
               <FieldLabel htmlFor="password">Password</FieldLabel>

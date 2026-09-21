@@ -4,6 +4,7 @@ import { compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
+import { normalizeUsername } from "@/lib/usernames";
 import { takeLoginAttempt } from "@/lib/rate-limit";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -18,25 +19,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
+        identifier: { label: "Username or email", type: "text" },
         password: { label: "Password", type: "password" },
       },
       // Returning null (not throwing) on any failure is deliberate —
-      // never leak whether it was the email or the password that was wrong.
+      // never leak whether it was the identifier or the password that was wrong.
       authorize: async (credentials, request) => {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.identifier || !credentials?.password) return null;
 
-        // 5 attempts/minute per email+IP. Throttled attempts fail exactly
-        // like bad credentials so attackers learn nothing.
+        const identifier = credentials.identifier as string;
+        // 5 attempts/minute per identifier+IP. Throttled attempts fail
+        // exactly like bad credentials so attackers learn nothing.
         const ip =
           request?.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
           "unknown";
-        if (!takeLoginAttempt(`${credentials.email as string}|${ip}`))
-          return null;
+        if (!takeLoginAttempt(`${identifier}|${ip}`)) return null;
 
-        const user = await db.query.users.findFirst({
-          where: eq(users.email, credentials.email as string),
-        });
+        // An @ means email, otherwise a username handle.
+        const user = identifier.includes("@")
+          ? await db.query.users.findFirst({
+              where: eq(users.email, identifier),
+            })
+          : await db.query.users.findFirst({
+              where: eq(users.username, normalizeUsername(identifier)),
+            });
 
         if (!user) return null;
 

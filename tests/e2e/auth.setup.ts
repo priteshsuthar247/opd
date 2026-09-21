@@ -6,9 +6,9 @@ import path from "path";
 const authFile = (role: string) =>
   path.resolve(__dirname, `../.auth/${role}.json`);
 
-async function loginAs(page: Page, email: string) {
+async function loginAs(page: Page, identifier: string) {
   await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Username or email").fill(identifier);
   await page.getByRole("textbox", { name: "Password" }).fill("password123");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).not.toHaveURL(/login/, { timeout: 15000 });
@@ -25,6 +25,7 @@ setup("authenticate as receptionist", async ({ page }) => {
 });
 
 setup("authenticate as doctor", async ({ page }) => {
-  await loginAs(page, "aisha.verma@opdclinic.com");
+  // Doctors log in with their short handle, not the full email.
+  await loginAs(page, "aisha.verma");
   await page.context().storageState({ path: authFile("doctor") });
 });

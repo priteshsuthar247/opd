@@ -43,6 +43,13 @@
       "when": 1789905028374,
       "tag": "0005_last_multiple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789980212092,
+      "tag": "0006_naive_martin_li",
+      "breakpoints": true
     }
   ]
 }

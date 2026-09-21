@@ -297,6 +297,18 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     stay native `Select` (server GET forms). E2E green; dialog
     keyboard pick verified live. [user]
 
+## 2026-09-21 — Username login + availability
+
+80. **Username-or-email login** — `users.username` (unique, NOT NULL,
+    migration 0006 backfills from email prefixes with numeric-suffix
+    collision handling); `@` decides the lookup column; same
+    silent-failure + rate-limit contract. [user]
+81. **Social-style availability** — `usernameSchema` (3–30,
+    `[a-z0-9._-]`), `checkUsernameAvailability` action, deterministic
+    server-side suggestions (repaired base + numbered variants, one
+    query); doctor dialog shows live status + clickable chips;
+    creation still guarded by the DB unique constraint. [joint]
+
 ## Open / Deferred
 
 - Excel export, invoice print polish, §9 bonuses (portal, SMS,

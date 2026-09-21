@@ -1,22 +1,35 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { useFormDialog } from "@/components/ui/form-dialog";
-import { Controller, useForm, type Resolver } from "react-hook-form";
+import {
+  Controller,
+  useForm,
+  type Control,
+  type Resolver,
+  type UseFormSetValue,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { CircleCheckIcon, CircleXIcon } from "lucide-react";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { StatusField } from "@/components/ui/form-fields";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { FormCombobox } from "@/components/ui/form-combobox";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Button } from "@/components/ui/button";
 import type { DoctorRow } from "@/db/queries/doctors";
 import {
   doctorEditSchema,
   doctorSchema,
   type DoctorFormValues,
 } from "@/lib/validations/doctor";
-import { createDoctor, updateDoctor } from "@/app/admin/doctors/actions";
+import {
+  checkUsernameAvailability,
+  createDoctor,
+  updateDoctor,
+} from "@/app/admin/doctors/actions";
 
 const days = [
   { key: "mon", label: "Mon" },
@@ -56,6 +69,117 @@ function hoursDefaults(
   };
 }
 
+type Availability =
+  | { state: "idle" }
+  | { state: "checking" }
+  | { state: "free" }
+  | { state: "taken"; suggestions: string[] }
+  | { state: "invalid"; message: string };
+
+// Social-style handle picker: debounced availability check with
+// clickable suggestions, same debounce discipline as the patient
+// search (handler timeout, never an effect).
+function UsernameField({
+  control,
+  setValue,
+  error,
+  initial,
+}: {
+  control: Control<DoctorFormValues>;
+  setValue: UseFormSetValue<DoctorFormValues>;
+  error?: { message?: string };
+  initial: string;
+}) {
+  const [availability, setAvailability] = useState<Availability>({
+    state: "idle",
+  });
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleChange(value: string) {
+    if (timer.current) clearTimeout(timer.current);
+    if (value.trim() === "" || value === initial) {
+      setAvailability({ state: "idle" });
+      return;
+    }
+    setAvailability({ state: "checking" });
+    timer.current = setTimeout(async () => {
+      const result = await checkUsernameAvailability(value);
+      if (!result.ok) {
+        setAvailability({ state: "invalid", message: result.error });
+        return;
+      }
+      setAvailability(
+        result.available
+          ? { state: "free" }
+          : { state: "taken", suggestions: result.suggestions }
+      );
+    }, 500);
+  }
+
+  return (
+    <Field data-invalid={!!error}>
+      <FieldLabel htmlFor="doc-username">Username</FieldLabel>
+      <Controller
+        control={control}
+        name="username"
+        render={({ field }) => (
+          <Input
+            id="doc-username"
+            placeholder="aisha.verma"
+            autoComplete="off"
+            aria-invalid={!!error}
+            value={field.value ?? ""}
+            onChange={(e) => {
+              field.onChange(e.target.value);
+              handleChange(e.target.value);
+            }}
+            onBlur={field.onBlur}
+            name={field.name}
+            ref={field.ref}
+          />
+        )}
+      />
+      {availability.state === "checking" && (
+        <p className="text-xs text-muted-foreground">Checking…</p>
+      )}
+      {availability.state === "free" && (
+        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <CircleCheckIcon data-icon="inline-start" />
+          Available
+        </p>
+      )}
+      {availability.state === "invalid" && (
+        <p className="text-xs text-destructive">{availability.message}</p>
+      )}
+      {availability.state === "taken" && (
+        <div className="flex flex-col gap-1">
+          <p className="flex items-center gap-1 text-xs text-destructive">
+            <CircleXIcon data-icon="inline-start" />
+            Taken — try one of these:
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {availability.suggestions.map((s) => (
+              <Button
+                key={s}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setValue("username", s, { shouldValidate: true });
+                  setAvailability({ state: "free" });
+                }}
+              >
+                {s}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+      <FieldError errors={[error]} />
+    </Field>
+  );
+}
+
 export function DoctorDialog({
   doctor,
   departments,
@@ -77,6 +201,7 @@ export function DoctorDialog({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<DoctorFormValues>({
     // Mode-correct schema at runtime. The cast bridges RHF's invariant
@@ -88,6 +213,7 @@ export function DoctorDialog({
     defaultValues: {
       name: doctor?.user.name ?? "",
       email: doctor?.user.email ?? "",
+      username: doctor?.user.username ?? "",
       password: "",
       // 0 = unpicked; positive() rejects it with "Pick a department".
       departmentId: doctor?.departmentId ?? 0,
@@ -105,6 +231,7 @@ export function DoctorDialog({
       reset({
         name: doctor?.user.name ?? "",
         email: doctor?.user.email ?? "",
+        username: doctor?.user.username ?? "",
         password: "",
         departmentId: doctor?.departmentId ?? 0,
         qualification: doctor?.qualification ?? "",
@@ -164,6 +291,12 @@ export function DoctorDialog({
                 />
                 <FieldError errors={[errors.email]} />
               </Field>
+              <UsernameField
+                control={control}
+                setValue={setValue}
+                error={errors.username}
+                initial={doctor?.user.username ?? ""}
+              />
             </div>
             <Field data-invalid={!!errors.password}>
               <FieldLabel htmlFor="doc-password">

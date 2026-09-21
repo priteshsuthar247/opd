@@ -60,6 +60,9 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  // Short login handle ([a-z0-9._-], 3–30). Unique, backfilled from the
+  // email prefix for existing rows (see migration 0006).
+  username: varchar("username", { length: 30 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: roleEnum("role").notNull(),
   status: statusEnum("status").default("active").notNull(),

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { usernameSchema } from "@/lib/validations/user";
 
 const money = z
   .string()
@@ -49,6 +50,7 @@ const profileFields = {
 export const doctorSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(255),
   email: z.email("Enter a valid email address"),
+  username: usernameSchema,
   password: z.string().min(8, "Minimum 8 characters"),
   ...profileFields,
 });

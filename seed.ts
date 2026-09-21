@@ -71,21 +71,21 @@ async function main() {
   await db
     .insert(users)
     .values([
-      { name: "Admin User", email: "admin@opdclinic.com", passwordHash, role: "admin" },
-      { name: "Reception Desk", email: "reception@opdclinic.com", passwordHash, role: "receptionist" },
-      { name: "Dr. Aisha Verma", email: "aisha.verma@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Rohan Mehta", email: "rohan.mehta@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Vikram Rao", email: "vikram.rao@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Neha Kulkarni", email: "neha.kulkarni@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Farhan Ali", email: "farhan.ali@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Pooja Menon", email: "pooja.menon@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Sanjay Gupta", email: "sanjay.gupta@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Kavita Reddy", email: "kavita.reddy@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Arvind Nair", email: "arvind.nair@opdclinic.com", passwordHash, role: "doctor" },
-      { name: "Dr. Shalini Bose", email: "shalini.bose@opdclinic.com", passwordHash, role: "doctor" },
+      { name: "Admin User", email: "admin@opdclinic.com", username: "admin", passwordHash, role: "admin" },
+      { name: "Reception Desk", email: "reception@opdclinic.com", username: "reception", passwordHash, role: "receptionist" },
+      { name: "Dr. Aisha Verma", email: "aisha.verma@opdclinic.com", username: "aisha.verma", passwordHash, role: "doctor" },
+      { name: "Dr. Rohan Mehta", email: "rohan.mehta@opdclinic.com", username: "rohan.mehta", passwordHash, role: "doctor" },
+      { name: "Dr. Vikram Rao", email: "vikram.rao@opdclinic.com", username: "vikram.rao", passwordHash, role: "doctor" },
+      { name: "Dr. Neha Kulkarni", email: "neha.kulkarni@opdclinic.com", username: "neha.kulkarni", passwordHash, role: "doctor" },
+      { name: "Dr. Farhan Ali", email: "farhan.ali@opdclinic.com", username: "farhan.ali", passwordHash, role: "doctor" },
+      { name: "Dr. Pooja Menon", email: "pooja.menon@opdclinic.com", username: "pooja.menon", passwordHash, role: "doctor" },
+      { name: "Dr. Sanjay Gupta", email: "sanjay.gupta@opdclinic.com", username: "sanjay.gupta", passwordHash, role: "doctor" },
+      { name: "Dr. Kavita Reddy", email: "kavita.reddy@opdclinic.com", username: "kavita.reddy", passwordHash, role: "doctor" },
+      { name: "Dr. Arvind Nair", email: "arvind.nair@opdclinic.com", username: "arvind.nair", passwordHash, role: "doctor" },
+      { name: "Dr. Shalini Bose", email: "shalini.bose@opdclinic.com", username: "shalini.bose", passwordHash, role: "doctor" },
       // Inactive login: tests the deactivation lockout (users.status).
-      { name: "Dr. Ex Doctor", email: "ex.doctor@opdclinic.com", passwordHash, role: "doctor", status: "inactive" },
-      { name: "Dr. Old Account", email: "old.account@opdclinic.com", passwordHash, role: "doctor", status: "inactive" },
+      { name: "Dr. Ex Doctor", email: "ex.doctor@opdclinic.com", username: "ex.doctor", passwordHash, role: "doctor", status: "inactive" },
+      { name: "Dr. Old Account", email: "old.account@opdclinic.com", username: "old.account", passwordHash, role: "doctor", status: "inactive" },
     ])
     .onConflictDoNothing();
 

@@ -6,6 +6,8 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { doctors, queueConfigurations, users } from "@/db/schema";
+import { usernameSchema } from "@/lib/validations/user";
+import { isUsernameTaken, suggestUsernames } from "@/lib/usernames";
 import {
   doctorSchema,
   doctorStatusSchema,
@@ -35,7 +37,7 @@ export async function createDoctor(input: unknown): Promise<ActionResult> {
   const parsed = doctorSchema.safeParse(input);
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
-  const { name, email, password, ...profile } = parsed.data;
+  const { name, email, username, password, ...profile } = parsed.data;
   try {
     // Login account, clinical profile and queue rules are one unit: a
     // doctor with no login (or no queue config) is unusable, so all three
@@ -43,7 +45,7 @@ export async function createDoctor(input: unknown): Promise<ActionResult> {
     await db.transaction(async (tx) => {
       const [user] = await tx
         .insert(users)
-        .values({ name, email, passwordHash: await hash(password, 10), role: "doctor" })
+        .values({ name, email, username, passwordHash: await hash(password, 10), role: "doctor" })
         .returning({ id: users.id });
       const [doctor] = await tx
         .insert(doctors)
@@ -53,7 +55,7 @@ export async function createDoctor(input: unknown): Promise<ActionResult> {
     });
   } catch (err) {
     if (isUniqueViolation(err))
-      return { ok: false, error: "A user with this email already exists." };
+      return { ok: false, error: "Email or username just taken — pick another username." };
     return { ok: false, error: "Could not create the doctor." };
   }
   revalidatePath(PATH);
@@ -65,7 +67,7 @@ export async function updateDoctor(input: unknown): Promise<ActionResult> {
   const parsed = doctorUpdateSchema.safeParse(input);
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
-  const { id, name, email, password, ...profile } = parsed.data;
+  const { id, name, email, username, password, ...profile } = parsed.data;
   try {
     await db.transaction(async (tx) => {
       const existing = await tx.query.doctors.findFirst({
@@ -77,6 +79,7 @@ export async function updateDoctor(input: unknown): Promise<ActionResult> {
         .set({
           name,
           email,
+          username,
           ...(password ? { passwordHash: await hash(password, 10) } : {}),
         })
         .where(eq(users.id, existing.userId));
@@ -86,15 +89,14 @@ export async function updateDoctor(input: unknown): Promise<ActionResult> {
     if (err instanceof Error && err.message === "Doctor not found.")
       return { ok: false, error: "Doctor not found." };
     if (isUniqueViolation(err))
-      return { ok: false, error: "A user with this email already exists." };
+      return { ok: false, error: "Email or username just taken — pick another username." };
     return { ok: false, error: "Could not update the doctor." };
   }
   revalidatePath(PATH);
   return { ok: true };
 }
 
-export async function setDoctorStatus(input: unknown): Promise<ActionResult> {
-  if (!(await requireAdmin())) return { ok: false, error: "Not authorized." };
+export async function setDoctorStatus(input: unknown): Promise<ActionResult> {  if (!(await requireAdmin())) return { ok: false, error: "Not authorized." };
   const parsed = doctorStatusSchema.safeParse(input);
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
@@ -118,4 +120,26 @@ export async function setDoctorStatus(input: unknown): Promise<ActionResult> {
   });
   revalidatePath(PATH);
   return { ok: true };
+}
+
+// Social-style availability check for the doctor dialog: validates the
+// handle format, then returns free suggestions when taken. Admin-only;
+// the final uniqueness guard is the DB constraint at creation time
+// (a handle taken between check and submit fails with a retry message).
+export async function checkUsernameAvailability(
+  input: unknown
+): Promise<
+  | { ok: true; available: boolean; suggestions: string[] }
+  | { ok: false; error: string }
+> {
+  if (!(await requireAdmin())) return { ok: false, error: "Not authorized." };
+  const parsed = usernameSchema.safeParse(input);
+  if (!parsed.success)
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid username." };
+  const available = !(await isUsernameTaken(parsed.data));
+  return {
+    ok: true,
+    available,
+    suggestions: available ? [] : await suggestUsernames(parsed.data),
+  };
 }
