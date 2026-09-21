@@ -181,10 +181,13 @@ async function main() {
     await db
       .insert(queueConfigurations)
       .values(
+        // Roomy cap: E2E booking specs consume tokens on the dev DB
+        // every run (cancelled tokens still occupy numbers), so the
+        // default must comfortably exceed a day of testing + demo use.
         allDoctors.map((doc) => ({
           doctorId: doc.id,
           slotDurationMinutes: 15,
-          maxTokensPerDay: 40,
+          maxTokensPerDay: 100,
         }))
       )
       .onConflictDoNothing();

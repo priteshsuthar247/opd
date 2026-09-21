@@ -358,6 +358,14 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     read-only `PatientPickerTable` (search/sort/paginate/mobile
     cards, View → `?patientId=`); search picker stays as the switcher
     once selected. Seed "null with fever" complaints repaired. [user]
+90. **Shared helpers live in lib, not components** — `ageOn` moved to
+    `lib/dates.ts` after a cross-component import broke at runtime
+    under Turbopack (tsc-clean, browser-dead). Rule: never import
+    helpers across client components. [agent]
+91. **Seed cap raised for test headroom** — E2E booking runs consume
+    day-tokens on the dev DB (cancelled tokens still occupy numbers),
+    exhausting the 40/day cap; default is now 100. Suite flakes
+    otherwise. [agent]
 
 ## 2026-09-21 — pdfcn invoice PDFs
 
