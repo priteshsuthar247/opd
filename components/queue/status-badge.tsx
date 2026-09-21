@@ -26,7 +26,7 @@ export function StatusBadge({ status }: { status: QueueStatus }) {
   if (status === "completed")
     return (
       <Badge variant="secondary">
-        <Check className="size-3" /> {labels[status]}
+        <Check data-icon="inline-start" /> {labels[status]}
       </Badge>
     );
   if (status === "no_show")

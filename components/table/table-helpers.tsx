@@ -94,11 +94,14 @@ function SortButton({ column, label }: { column: SortableColumn; label: string }
           <Button variant="ghost" size="sm" className="-ml-2">
             {label}
             {dir === "asc" ? (
-              <ArrowUpIcon className="size-3" />
+              <ArrowUpIcon data-icon="inline-end" />
             ) : dir === "desc" ? (
-              <ArrowDownIcon className="size-3" />
+              <ArrowDownIcon data-icon="inline-end" />
             ) : (
-              <ChevronsUpDownIcon className="size-3 text-muted-foreground" />
+              <ChevronsUpDownIcon
+                data-icon="inline-end"
+                className="text-muted-foreground"
+              />
             )}
           </Button>
         }

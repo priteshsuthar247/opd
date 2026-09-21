@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { FormSelect } from "@/components/ui/form-select";
@@ -204,7 +205,8 @@ export function InvoiceManager({
             }))}
             placeholder="Add a charge…"
           />
-          <dl className="flex flex-col gap-1 border-t pt-3">
+          <Separator />
+          <dl className="flex flex-col gap-1 pt-3">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Discount</dt>
               <dd>₹{money(invoice.discount)}</dd>

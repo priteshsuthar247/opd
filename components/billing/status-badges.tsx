@@ -8,7 +8,7 @@ export function PaymentBadge({ status }: { status: string }) {
   if (status === "paid")
     return (
       <Badge variant="secondary">
-        <Check className="size-3" /> Paid
+        <Check data-icon="inline-start" /> Paid
       </Badge>
     );
   return <Badge variant="outline">Pending</Badge>;
@@ -20,7 +20,7 @@ export function PrescriptionBadge({ status }: { status: string }) {
   if (status === "finalized")
     return (
       <Badge variant="secondary">
-        <Check className="size-3" /> Finalized
+        <Check data-icon="inline-start" /> Finalized
       </Badge>
     );
   return <Badge variant="outline">Draft</Badge>;

@@ -20,7 +20,10 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -212,11 +215,15 @@ export function PrescriptionBuilder({
                         <SelectValue placeholder="Pick…" />
                       </SelectTrigger>
                       <SelectContent>
-                        {medicines.map((m) => (
-                          <SelectItem key={m.id} value={String(m.id)}>
-                            {m.name}
-                          </SelectItem>
-                        ))}
+                        <SelectGroup>
+                          <SelectLabel>Medicines</SelectLabel>
+                          {medicines.map((m) => (
+                            <SelectItem key={m.id} value={String(m.id)}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectSeparator />
                         <SelectItem value={FREE_TEXT}>
                           Other (type name)…
                         </SelectItem>

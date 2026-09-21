@@ -191,7 +191,7 @@ export function DataTable<TData extends RowData>({
           </span>
           <span className="ml-auto flex gap-2">
             <Button variant="outline" size="sm" onClick={exportSelected}>
-              <DownloadIcon />
+              <DownloadIcon data-icon="inline-start" />
               Export CSV
             </Button>
             <Button
@@ -199,7 +199,7 @@ export function DataTable<TData extends RowData>({
               size="sm"
               onClick={() => table.resetRowSelection()}
             >
-              <XIcon />
+              <XIcon data-icon="inline-start" />
               Clear
             </Button>
           </span>

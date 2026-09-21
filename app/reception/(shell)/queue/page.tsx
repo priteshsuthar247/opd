@@ -14,7 +14,9 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -64,12 +66,15 @@ export default async function QueuePage({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All doctors</SelectItem>
-              {activeDoctors.map((d) => (
-                <SelectItem key={d.id} value={String(d.id)}>
-                  {d.user.name}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectLabel>Doctors</SelectLabel>
+                <SelectItem value="all">All doctors</SelectItem>
+                {activeDoctors.map((d) => (
+                  <SelectItem key={d.id} value={String(d.id)}>
+                    {d.user.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </FilterField>

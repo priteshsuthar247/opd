@@ -2,32 +2,40 @@
 
 import { useState } from "react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { cn } from "cn";
 
-// Password field with a show/hide toggle. Spreads onto Input so it drops
-// into React Hook Form via {...register()} unchanged.
+// Password field with a show/hide toggle, composed from InputGroup
+// primitives instead of hand-rolled absolute positioning. Spreads onto
+// InputGroupInput so it drops into React Hook Form via {...register()}
+// unchanged.
 export function PasswordInput({
   className,
   ...props
-}: React.ComponentProps<typeof Input>) {
+}: React.ComponentProps<typeof InputGroupInput>) {
   const [visible, setVisible] = useState(false);
 
   return (
-    <span className={cn("relative block w-full", className)}>
-      <Input
+    <InputGroup className={className}>
+      <InputGroupInput
         type={visible ? "text" : "password"}
         {...props}
-        className="pr-9"
+        className={cn("pr-1")}
       />
-      <button
-        type="button"
-        aria-label={visible ? "Hide password" : "Show password"}
-        onClick={() => setVisible((v) => !v)}
-        className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
-      >
-        {visible ? <EyeIcon className="size-4" /> : <EyeOffIcon className="size-4" />}
-      </button>
-    </span>
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton
+          size="icon-xs"
+          aria-label={visible ? "Hide password" : "Show password"}
+          onClick={() => setVisible((v) => !v)}
+        >
+          {visible ? <EyeIcon /> : <EyeOffIcon />}
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
   );
 }

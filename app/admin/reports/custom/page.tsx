@@ -13,7 +13,9 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -101,12 +103,15 @@ export default async function CustomReportPage({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              {departments.map((d) => (
-                <SelectItem key={d.id} value={String(d.id)}>
-                  {d.name}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectLabel>Departments</SelectLabel>
+                <SelectItem value="all">All</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={String(d.id)}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </label>
@@ -124,12 +129,15 @@ export default async function CustomReportPage({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              {doctors.map((d) => (
-                <SelectItem key={d.id} value={String(d.id)}>
-                  {d.user.name}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectLabel>Doctors</SelectLabel>
+                <SelectItem value="all">All</SelectItem>
+                {doctors.map((d) => (
+                  <SelectItem key={d.id} value={String(d.id)}>
+                    {d.user.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </label>
@@ -159,12 +167,15 @@ export default async function CustomReportPage({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              {statuses.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectLabel>Status</SelectLabel>
+                <SelectItem value="all">All</SelectItem>
+                {statuses.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </label>
