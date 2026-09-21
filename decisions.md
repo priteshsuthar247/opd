@@ -336,3 +336,8 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     never reach the workspace, so the button was unreachable where it
     matters most); light header query carries prescription existence.
     Takumi WASM needs `serverExternalPackages` or dev 500s globally. [agent]
+84. **Full pdfcn blocks, not Text-only** — the first document rendered
+    but read hand-rolled (newline-joined medicines). Now: PageHeader,
+    KeyValue, Section, real Table, Divider, PdfSignatureBlock,
+    PageFooter. Verified by text extraction incl. a 25-item
+    multi-page stress render. [user]
