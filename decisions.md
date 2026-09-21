@@ -342,6 +342,19 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     PageFooter. Verified by text extraction incl. a 25-item
     multi-page stress render. [user]
 
+## 2026-09-21 — Combobox clip fix + visit timeline
+
+87. **Dropdowns were clipped, not missing** — the shared `Command`
+    root carries palette-panel styles (`overflow-hidden`); all three
+    inline pickers rendered options into a 48px box. New
+    `inlineCommandClassName` override (tailwind-merge resolves);
+    palette untouched. Proven by screenshot this time, not just the
+    a11y tree — which is exactly what masked it through E2E. [agent]
+88. **Visit history is a timeline** — fixed status rail (badge + date
+    + token + doctor), clinical sections grouped, billing behind a
+    divider, cancelled/no-show collapsed to one line. Same section
+    boundary, same data. [user]
+
 ## 2026-09-21 — pdfcn invoice PDFs
 
 85. **Invoice joins prescriptions on pdfcn** — `InvoicePdf` (header,

@@ -68,61 +68,87 @@ export async function PatientVisitsSection({
           filename={`patient-${patientId}-visits`}
         />
       </div>
-      <div className="flex flex-col gap-3">
+      {/* Timeline: fixed status rail on the left, clinical narrative
+      then financial line grouped on the right. Cancelled and no-show
+      visits collapse to one line — they carry no clinical content. */}
+      <ol className="flex flex-col gap-3">
         {visits.map((v) => (
-          <div key={v.id} className="border p-3 text-xs">
-            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-              <span className="font-medium">
-                {v.date} · Token {v.tokenNumber} · {v.doctor.user.name}
-              </span>
+          <li key={v.id} className="flex gap-3">
+            <div className="flex w-28 shrink-0 flex-col gap-1">
               <StatusBadge status={v.status} />
+              <span className="text-xs text-muted-foreground">{v.date}</span>
+              <span className="text-xs text-muted-foreground">
+                Token {v.tokenNumber} · {v.doctor.user.name}
+              </span>
             </div>
-            {v.consultation ? (
-              <dl className="flex flex-col gap-1 text-muted-foreground">
-                {v.consultation.chiefComplaint && (
-                  <div>
-                    <dt className="font-medium text-foreground">Complaint</dt>
-                    <dd>{v.consultation.chiefComplaint}</dd>
-                  </div>
-                )}
-                {v.consultation.diagnosis && (
-                  <div>
-                    <dt className="font-medium text-foreground">Diagnosis</dt>
-                    <dd>{v.consultation.diagnosis}</dd>
-                  </div>
-                )}
-                {v.consultation.prescription &&
-                  v.consultation.prescription.items.length > 0 && (
-                    <div>
-                      <dt className="flex items-center gap-2 font-medium text-foreground">
-                        Medicines{" "}
-                        <PrescriptionBadge
-                          status={v.consultation.prescription.status}
-                        />
-                      </dt>
-                      <dd>
-                        {v.consultation.prescription.items
-                          .map(
-                            (i) =>
-                              `${i.medicine?.name ?? i.freeTextName ?? "—"} ${i.dosage} ${i.frequency} × ${i.duration}`
-                          )
-                          .join("; ")}
-                      </dd>
-                    </div>
+            <div className="min-w-0 flex-1 border p-3 text-xs">
+              {v.status === "cancelled" || v.status === "no_show" ? (
+                <p className="text-muted-foreground">
+                  {v.status === "cancelled"
+                    ? "Appointment cancelled."
+                    : "Patient did not show up."}
+                </p>
+              ) : (
+                <>
+                  {v.consultation ? (
+                    <dl className="flex flex-col gap-2">
+                      {v.consultation.chiefComplaint && (
+                        <div>
+                          <dt className="font-medium text-foreground">
+                            Complaint
+                          </dt>
+                          <dd className="text-muted-foreground">
+                            {v.consultation.chiefComplaint}
+                          </dd>
+                        </div>
+                      )}
+                      {v.consultation.diagnosis && (
+                        <div>
+                          <dt className="font-medium text-foreground">
+                            Diagnosis
+                          </dt>
+                          <dd className="text-muted-foreground">
+                            {v.consultation.diagnosis}
+                          </dd>
+                        </div>
+                      )}
+                      {v.consultation.prescription &&
+                        v.consultation.prescription.items.length > 0 && (
+                          <div>
+                            <dt className="flex items-center gap-2 font-medium text-foreground">
+                              Medicines{" "}
+                              <PrescriptionBadge
+                                status={v.consultation.prescription.status}
+                              />
+                            </dt>
+                            <dd className="text-muted-foreground">
+                              {v.consultation.prescription.items
+                                .map(
+                                  (i) =>
+                                    `${i.medicine?.name ?? i.freeTextName ?? "—"} ${i.dosage} ${i.frequency} × ${i.duration}`
+                                )
+                                .join("; ")}
+                            </dd>
+                          </div>
+                        )}
+                    </dl>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No consultation recorded.
+                    </p>
                   )}
-              </dl>
-            ) : (
-              <p className="text-muted-foreground">No consultation recorded.</p>
-            )}
-            {v.invoice && (
-              <p className="mt-1 flex items-center gap-2 text-muted-foreground">
-                Billed ₹{Number(v.invoice.totalAmount).toFixed(2)} ·{" "}
-                <PaymentBadge status={v.invoice.paymentStatus} />
-              </p>
-            )}
-          </div>
+                  {v.invoice && (
+                    <p className="mt-2 flex items-center gap-2 border-t pt-2 text-muted-foreground">
+                      Billed ₹{Number(v.invoice.totalAmount).toFixed(2)} ·{" "}
+                      <PaymentBadge status={v.invoice.paymentStatus} />
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </li>
         ))}
-      </div>
+      </ol>
     </>
   );
 }

@@ -291,13 +291,13 @@ export function DoctorDialog({
                 />
                 <FieldError errors={[errors.email]} />
               </Field>
-              <UsernameField
-                control={control}
-                setValue={setValue}
-                error={errors.username}
-                initial={doctor?.user.username ?? ""}
-              />
             </div>
+            <UsernameField
+              control={control}
+              setValue={setValue}
+              error={errors.username}
+              initial={doctor?.user.username ?? ""}
+            />
             <Field data-invalid={!!errors.password}>
               <FieldLabel htmlFor="doc-password">
                 {isEdit ? "New password (leave blank to keep)" : "Password"}
