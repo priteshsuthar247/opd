@@ -230,7 +230,18 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
 72. **Picker restores input focus on results** — async arrival could
     drop focus so arrows did nothing until re-click; the debounced
     callback refocuses `#book-patient` (by id — a ref stops at the
-    CommandInput wrapper). Verified ArrowDown+Enter with no re-click. [user] [joint]
+    CommandInput wrapper). Verified ArrowDown+Enter with no re-click. [user]
+
+## 2026-09-21 — Streaming for remaining pages
+
+73. **Same Suspense pattern everywhere left** — desk home (COUNT stats
+    + cached recent), daily/trend/performance/patient-visit reports
+    (filters/headers instant, aggregations stream), both queues
+    (filter shells instant; no-show flag stays blocking inside the
+    boundary), invoice page (header instant, manager streams).
+    Masters/patients/book/settings/print excluded (cheap or all-or-
+    nothing). One cached fetch shared per page, no duplicate heavy
+    queries. [joint] [joint]
 
 ## 2026-09-20 — Audit program close-out
 

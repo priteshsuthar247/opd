@@ -1,9 +1,10 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/roles";
-import { flagNoShows } from "@/lib/no-show";
-import { listDoctors } from "@/db/queries/doctors";
-import { listQueue } from "@/db/queries/appointments";
-import { QueueTable } from "@/components/queue/queue-table";
+import {
+  ReceptionQueueSection,
+  getActiveDoctors,
+} from "@/components/queue/queue-sections";
 import {
   FilterApply,
   FilterBar,
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TableSkeleton } from "@/components/shell/loading-blocks";
 import { todayStr } from "@/lib/dates";
 
 export default async function QueuePage({
@@ -36,31 +38,14 @@ export default async function QueuePage({
       ? Number(params.doctor)
       : undefined;
 
-  const [doctors, rows] = await Promise.all([
-    listDoctors(),
-    listQueue(date, doctorId),
-  ]);
-  const activeDoctors = doctors.filter((d) => d.status === "active");
-  // Lazy no-show pass over the visible scope before rendering.
-  const flagged = (
-    await Promise.all(
-      (doctorId !== undefined
-        ? activeDoctors.filter((d) => d.id === doctorId)
-        : activeDoctors
-      ).map((d) => flagNoShows(d.id, date))
-    )
-  ).reduce((s, n) => s + n, 0);
-  const rowsAfterFlag =
-    flagged > 0 ? await listQueue(date, doctorId) : rows;
+  // Cheap masters query: title + filters paint while the flag pass and
+  // queue table stream inside the section below.
+  const activeDoctors = await getActiveDoctors();
 
   return (
     <main className="w-full px-4 lg:px-6 py-4 md:py-6">
       <div className="mb-4">
         <h1 className="text-lg font-semibold">Queue Board</h1>
-        <p className="text-xs text-muted-foreground">
-          {rowsAfterFlag.length} appointment{rowsAfterFlag.length === 1 ? "" : "s"} · {date}
-          {flagged > 0 && ` · ${flagged} marked no-show`}
-        </p>
       </div>
       {/* Plain GET form: filter without client JS. */}
       <FilterBar action="/reception/queue">
@@ -93,7 +78,9 @@ export default async function QueuePage({
         </FilterField>
         <FilterApply />
       </FilterBar>
-      <QueueTable data={rowsAfterFlag} />
+      <Suspense fallback={<TableSkeleton rows={8} />}>
+        <ReceptionQueueSection date={date} doctorId={doctorId} />
+      </Suspense>
     </main>
   );
 }

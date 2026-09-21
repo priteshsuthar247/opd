@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import {
   FilterApply,
   FilterBar,
@@ -5,22 +6,10 @@ import {
 } from "@/components/ui/filter-bar";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/roles";
-import {
-  avg,
-  listAppointmentsInRange,
-  waitMinutes,
-  type DateRange,
-} from "@/db/queries/reports";
-import { ExportCsvButton } from "@/components/admin/export-csv-button";
+import type { DateRange } from "@/db/queries/reports";
+import { PerformanceSection } from "@/components/admin/report-sections";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableSkeleton } from "@/components/shell/loading-blocks";
 
 function rangeParams(params: {
   from?: string;
@@ -45,64 +34,8 @@ export default async function DoctorPerformancePage({
 }) {
   if (!(await requireRole("admin"))) redirect("/");
   const range = rangeParams(await searchParams);
-  const rows = await listAppointmentsInRange(range);
-
-  const byDoctor = new Map<
-    number,
-    {
-      name: string;
-      department: string;
-      seen: number;
-      total: number;
-      noShows: number;
-      waits: number[];
-      days: Set<string>;
-    }
-  >();
-  for (const r of rows) {
-    const e = byDoctor.get(r.doctorId) ?? {
-      name: r.doctor.user.name,
-      department: r.doctor.department.name,
-      seen: 0,
-      total: 0,
-      noShows: 0,
-      waits: [] as number[],
-      days: new Set<string>(),
-    };
-    e.total++;
-    e.days.add(r.date);
-    if (r.status === "completed") e.seen++;
-    if (r.status === "no_show") e.noShows++;
-    const w = waitMinutes(r.statusLogs);
-    if (w !== null) e.waits.push(w);
-    byDoctor.set(r.doctorId, e);
-  }
-  const perfRows = [...byDoctor.values()].map((d) => ({
-    Doctor: d.name,
-    Department: d.department,
-    "Active days": d.days.size,
-    Seen: d.seen,
-    "Seen/day":
-      d.days.size === 0 ? "—" : (Math.round((d.seen / d.days.size) * 10) / 10).toFixed(1),
-    "No-show %":
-      d.total === 0 ? "—" : `${Math.round((d.noShows / d.total) * 100)}%`,
-    "Avg wait (min)": avg(d.waits) ?? "—",
-  }));
-
   return (
     <main className="w-full px-4 lg:px-6 py-4 md:py-6">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-lg font-semibold">Doctor Performance</h1>
-          <p className="text-xs text-muted-foreground">
-            {range.from} → {range.to}
-          </p>
-        </div>
-        <ExportCsvButton
-          rows={perfRows}
-          filename={`doctor-performance-${range.from}-${range.to}`}
-        />
-      </div>
       <FilterBar action="/admin/reports/doctor-performance">
         <FilterField label="From">
           <Input type="date" name="from" defaultValue={range.from} className="w-40" />
@@ -112,42 +45,9 @@ export default async function DoctorPerformancePage({
         </FilterField>
         <FilterApply />
       </FilterBar>
-      {perfRows.length === 0 ? (
-        <div className="border py-12 text-center text-sm text-muted-foreground">
-          No appointments in this range.
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Doctor</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Active days</TableHead>
-              <TableHead>Seen</TableHead>
-              <TableHead>Seen/day</TableHead>
-              <TableHead>No-show %</TableHead>
-              <TableHead>Avg wait (min)</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {perfRows.map((d) => (
-              <TableRow key={String(d.Doctor)}>
-                <TableCell>
-                  <span className="font-medium">{String(d.Doctor)}</span>
-                </TableCell>
-                <TableCell>{String(d.Department)}</TableCell>
-                <TableCell>{d["Active days"]}</TableCell>
-                <TableCell>{d.Seen}</TableCell>
-                <TableCell>{d["Seen/day"]}</TableCell>
-                <TableCell>{d["No-show %"]}</TableCell>
-                <TableCell>{String(d["Avg wait (min)"])}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        </div>
-      )}
+      <Suspense fallback={<TableSkeleton rows={8} />}>
+        <PerformanceSection from={range.from} to={range.to} />
+      </Suspense>
     </main>
   );
 }
