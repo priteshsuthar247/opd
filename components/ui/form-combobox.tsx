@@ -1,23 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  inlineCommandClassName,
-} from "@/components/ui/command";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 
 export type ComboOption = { value: string; label: string };
 
-// THE select for every form in the app. One cmdk combobox owns the full
-// contract — type-to-filter, Enter/click to pick, Esc to dismiss,
-// blur-reconcile, invalid-state, accessible name — so future forms get
+// THE select for every form in the app. Built on the official shadcn
+// Combobox (Base UI, portal-positioned popup) — not a hand-rolled cmdk
+// inline list, which clips inside dialogs. One parent owns the contract
+// (type-to-filter, pick, invalid, accessible name) so future forms get
 // it by importing this, never by reimplementing picker logic per form.
-// (Replaces FormSelect: same value/options shape, searchable trigger.)
 export function FormCombobox({
   value,
   onValueChange,
@@ -35,96 +33,36 @@ export function FormCombobox({
   invalid?: boolean;
   id?: string;
 }) {
-  const [open, setOpen] = useState(false);
+  // Object items with label mapping (no createItems collection needed
+  // for static option lists); the string value maps back on select.
   const selected = options.find((o) => o.value === value) ?? null;
-  // Free typing filters; the input always displays the selection, not
-  // the draft — drafts live here until picked or reverted.
-  const [draft, setDraft] = useState<string | null>(null);
-  const shown = draft ?? selected?.label ?? "";
-
-  function pick(next: string) {
-    onValueChange(next);
-    setDraft(null);
-    setOpen(false);
-  }
-
-  // Blur reconcile: text matching no option reverts to the selection
-  // (empty stays empty) so free text can never leak an invalid value
-  // into a Zod enum downstream.
-  function reconcile(text: string) {
-    if (text.trim() === "") {
-      if (value !== "") pick("");
-      return;
-    }
-    const match = options.find(
-      (o) =>
-        o.label.toLowerCase() === text.trim().toLowerCase() ||
-        o.value === text.trim()
-    );
-    if (match) {
-      if (match.value !== value) pick(match.value);
-      else setDraft(null);
-    } else {
-      setDraft(null);
-    }
-  }
 
   return (
-    <Command
-      shouldFilter={false}
-      label={label}
-      className={inlineCommandClassName}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) {
-          reconcile(draft ?? shown);
-          setOpen(false);
-        }
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          setDraft(null);
-          setOpen(false);
-        }
-      }}
+    <Combobox
+      items={options}
+      itemToStringLabel={(o: ComboOption) => o.label}
+      value={selected}
+      onValueChange={(item) =>
+        onValueChange(item ? (item as ComboOption).value : "")
+      }
     >
-      <CommandInput
+      <ComboboxInput
         id={id}
-        placeholder={placeholder}
-        value={shown}
-        onValueChange={(text) => {
-          setDraft(text);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        autoComplete="off"
-        aria-invalid={invalid || undefined}
+        placeholder={placeholder ?? (selected ? selected.label : "Pick…")}
         aria-label={label}
+        aria-invalid={invalid || undefined}
+        autoComplete="off"
       />
-      {open && (
-        <CommandList className="absolute inset-x-0 top-full z-10 mt-1 max-h-60 overflow-y-auto border bg-popover shadow-md">
-          <CommandEmpty>No matches.</CommandEmpty>
-          <CommandGroup>
-            {options
-              .filter(
-                (o) =>
-                  draft === null ||
-                  draft.trim() === "" ||
-                  o.label.toLowerCase().includes(draft.trim().toLowerCase()) ||
-                  o.value.toLowerCase().includes(draft.trim().toLowerCase())
-              )
-              .map((o) => (
-                <CommandItem
-                  key={o.value}
-                  value={o.value}
-                  keywords={[o.label]}
-                  onSelect={() => pick(o.value)}
-                >
-                  {o.label}
-                </CommandItem>
-              ))}
-          </CommandGroup>
-        </CommandList>
-      )}
-    </Command>
+      <ComboboxContent>
+        <ComboboxEmpty>No matches.</ComboboxEmpty>
+        <ComboboxList>
+          {(item: ComboOption) => (
+            <ComboboxItem key={item.value} value={item}>
+              {item.label}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   );
 }

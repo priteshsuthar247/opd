@@ -342,6 +342,25 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     PageFooter. Verified by text extraction incl. a 25-item
     multi-page stress render. [user]
 
+## 2026-09-21 — Skill-first rule + combobox redo
+
+92. **Skills load before implementation, stated in the plan** — audits
+    used skills, builds didn't (combobox, pdfcn, streaming, username,
+    seed). New standing rule: check for a matching skill (loaded or
+    via find-skills) before building; name them in the plan or state
+    explicitly that none matches. [user]
+93. **FormCombobox rebuilt on the official primitive** — the shadcn
+    skill lists Combobox as first-class and forbids reinventing: the
+    hand-rolled cmdk inline list is gone, replaced by the registry
+    `@shadcn/combobox` (Base UI, portal popup — unclippable by
+    design). Same parent API, same 9 call sites. `createItems`
+    skipped (not exported from the subpath types); object items +
+    `itemToStringLabel` instead. [agent]
+94. **Streaming rechecked against nextjs-app-router-patterns** —
+    blocking shell + Suspense + skeletons matches the skill; Suspense
+    re-suspends on param navigation by default, no `key` needed.
+    Auth/seed have no matching skill beyond what's applied. [agent]
+
 ## 2026-09-21 — Combobox clip fix + visit timeline
 
 87. **Dropdowns were clipped, not missing** — the shared `Command`
