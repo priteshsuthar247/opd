@@ -181,12 +181,9 @@ export function BookingForm({ doctors }: { doctors: DoctorOption[] }) {
                 {pickerOpen && searched && (
                   <CommandList className="absolute inset-x-0 top-full z-10 mt-1 max-h-60 border bg-popover shadow-md">
                     <CommandEmpty>
-                      No patients found —{" "}
-                      <Link
-                        href="/reception/patients"
-                        className="underline"
-                      >
-                        register them first
+                      No patients found. Try a different name or phone, or{" "}
+                      <Link href="/reception/patients" className="underline">
+                        register a new patient
                       </Link>
                       .
                     </CommandEmpty>

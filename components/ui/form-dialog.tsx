@@ -40,8 +40,6 @@ export function FormDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  // Omit the trigger for externally controlled dialogs (e.g. opened from
-  // a table row action instead of their own button).
   triggerLabel?: ReactNode;
   triggerVariant?: "default" | "outline" | "ghost";
   title: ReactNode;
@@ -74,20 +72,23 @@ export function FormDialog({
             <DialogDescription>{description}</DialogDescription>
           )}
         </DialogHeader>
-        {footer ? (
-          <>
-            {children}
-            {footer}
-          </>
-        ) : (
-          <form onSubmit={onSubmit}>
-            {children}
-            <DialogFooter className="mt-4">
-              <Button type="submit" disabled={busy}>
-                {busy ? busyLabel : submitLabel}
-              </Button>
-            </DialogFooter>
-          </form>
+        {/* Mount children only when open to ensure RHF resets on close */}
+        {open && (
+          footer ? (
+            <>
+              {children}
+              {footer}
+            </>
+          ) : (
+            <form onSubmit={onSubmit}>
+              {children}
+              <DialogFooter className="mt-4">
+                <Button type="submit" disabled={busy}>
+                  {busy ? busyLabel : submitLabel}
+                </Button>
+              </DialogFooter>
+            </form>
+          )
         )}
       </DialogContent>
     </Dialog>

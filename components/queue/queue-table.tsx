@@ -175,8 +175,8 @@ export function QueueTable({
       <div className="flex flex-col items-center gap-3 rounded-md border py-12 text-center">
         <p className="text-sm text-muted-foreground">
           {isReception
-            ? "Queue is empty for this selection."
-            : "No appointments today. New bookings appear here live."}
+            ? "No patients in queue for this doctor or date. Book a new appointment or adjust filters."
+            : "No appointments scheduled for today. New bookings will appear here automatically."}
         </p>
       </div>
     );

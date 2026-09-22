@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -79,6 +79,20 @@ export function PrescriptionBuilder({
   }
 
   const items = prescription?.items ?? [];
+
+  // Reset form when consultation changes (new consult) to avoid stale values.
+  useEffect(() => {
+    reset({
+      consultationId,
+      medicineId: undefined,
+      freeTextName: "",
+      dosage: "",
+      frequency: "",
+      duration: "",
+      instructions: "",
+    });
+    setFreeText(false);
+  }, [consultationId, reset]);
 
   async function onAdd(data: PrescriptionItemFormValues) {
     const result = await addPrescriptionItem(data);
