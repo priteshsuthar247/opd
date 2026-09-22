@@ -322,7 +322,26 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
 - Production rebuild + first deploy (Neon pooler URL, AUTH_SECRET,
   AUTH_URL, no seed).
 
-## 2026-09-22 — Settings area, OTP inputs, profile refresh
+## 2026-09-22 — UI/UX Assessment Report P0-P2 execution
+106. **Primary/contrast audit, destructive-foreground tokens, skip-link & role badge** — `app/globals.css` added `--color-destructive-foreground`; skip-link in `layout.tsx`; role badge in `app-shell`. No `text-primary` usage found, primary contrast unchanged per audit. [joint]
+107. **Queue live refresh + aria-live** — `components/queue/queue-refresh.tsx` client interval with `router.refresh()` + screen-reader live region; wired in `queue-sections.tsx` with `aria-live="polite"` wrappers for reception/doctor boards. [agent]
+108. **Loading skeletons for queue routes** — `app/reception/(shell)/queue/loading.tsx` and `app/doctor/(shell)/queue/loading.tsx` with `TableSkeleton`. [agent]
+109. **Force-dynamic queue pages** — `export const dynamic = 'force-dynamic'` on both queue pages to avoid stale CDN copies. [agent]
+110. **Unsaved changes guard on consultation** — `beforeunload` listener tied to `isDirty` in `consultation-form.tsx` (browser native, no UI). [agent]
+111. **Finalize prescription confirmation** — `ConfirmButton` variant/size exposed; prescription builder uses dialog for finalize. [agent]
+112. **RecentVisits Button API fix** — `asChild` removed, restored to shadcn `nativeButton={false}`/`render` pattern to avoid TS error. [agent]
+113. **Login forgot-link styling** — link now `text-xs text-muted-foreground hover:text-foreground` (no underline). [agent]
+114. **StatCard drill-down** — `href`/`trend` props added; admin/reception dashboards wired to relevant queue routes. [agent]
+115. **Font system cleanup** — removed Geist/Geist_Mono/Lora/Merriweather imports, kept Inter only; `--font-mono` set to system stack. [agent]
+116. **Prescription form reset on consultation change** — `useEffect` on `consultationId` resets RHF defaults and free-text toggle. [agent]
+117. **FormDialog unmount reset** — children rendered only when `open`, ensuring RHF state clears on close/navigate. [agent]
+118. **Demo 2FA bypass for E2E** — `checkOtpRequired` skips OTP for `*@opdclinic.com` accounts outside production to keep Playwright stable. [agent]
+119. **Empty state & search helper copy polish** — queue empty messages and booking `CommandEmpty` copy clarified. [agent]
+120. **Edge Runtime node:crypto fix** — `lib/otp.ts` removed top-level `node:crypto` import; `newOtpCode()` now lazily requires it to avoid Edge Middleware build error. [agent]
+
+## 2026-09-22 — Vercel build remediation
+121. **Lazy crypto import** — Vercel build failed on Edge Function `_middleware` referencing `node:crypto` via auth/otp chain; lazy require resolves the issue without changing OTP behavior. [agent]
+
 
 101. **One `OtpField` parent** (`components/ui/otp-field.tsx`) over the
     shadcn `input-otp` primitive: slots, paste-fill, RHF + uncontrolled
