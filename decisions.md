@@ -322,6 +322,23 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
 - Production rebuild + first deploy (Neon pooler URL, AUTH_SECRET,
   AUTH_URL, no seed).
 
+## 2026-09-22 — Settings area, OTP inputs, profile refresh
+
+101. **One `OtpField` parent** (`components/ui/otp-field.tsx`) over the
+    shadcn `input-otp` primitive: slots, paste-fill, RHF + uncontrolled
+    modes, label association (missing it broke E2E locators —
+    `getByLabel` needs a real `htmlFor`/`id` pair, not a bare label).
+    Four call sites swapped. [user]
+102. **Settings area, profile moved** — `/settings` (Profile |
+    Appearance tabs) for every role; `/profile` redirects; nav
+    retargeted; clinic settings stay admin-only. Appearance:
+    Light/Dark/System segmented control with live preview; topbar
+    toggle untouched. [user]
+103. **E2E admin follows the dev DB owner** — seeded admin was replaced
+    by a personal account; setup reads `E2E_ADMIN_PASSWORD` (never
+    committed). A stuck 2FA flag on the spare test account once
+    poisoned runs; suite accounts stay 2FA-free. [agent]
+
 ## 2026-09-21 — pdfcn prescription PDFs
 
 82. **pdfcn for all PDFs, starting with prescriptions** — user reversed

@@ -23,6 +23,7 @@ export function OtpField<T extends FieldValues>({
   autoFocus,
   value,
   onChange,
+  id,
 }: {
   control?: Control<T>;
   name?: Path<T>;
@@ -32,17 +33,20 @@ export function OtpField<T extends FieldValues>({
   // Uncontrolled mode (no RHF): value + onChange instead of control + name.
   value?: string;
   onChange?: (value: string) => void;
+  id?: string;
 }) {
+  const inputId = id ?? `otp-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   // RHF mode keeps label + invalid + error wiring in one place.
   if (control && name) {
     return (
       <Field data-invalid={!!error}>
-        <FieldLabel>{label}</FieldLabel>
+        <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
         <Controller
           control={control}
           name={name}
           render={({ field }) => (
             <OtpSlots
+              id={inputId}
               value={field.value ?? ""}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -58,19 +62,27 @@ export function OtpField<T extends FieldValues>({
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium">{label}</span>
-      <OtpSlots value={value ?? ""} onChange={onChange} />
+      <label htmlFor={inputId} className="text-sm font-medium">
+        {label}
+      </label>
+      <OtpSlots
+        id={inputId}
+        value={value ?? ""}
+        onChange={onChange}
+      />
     </div>
   );
 }
 
 function OtpSlots({
+  id,
   value,
   onChange,
   onBlur,
   invalid,
   autoFocus,
 }: {
+  id?: string;
   value: string;
   onChange?: (value: string) => void;
   onBlur?: () => void;
@@ -79,6 +91,7 @@ function OtpSlots({
 }) {
   return (
     <InputOTP
+      id={id}
       maxLength={6}
       value={value}
       onChange={onChange}
