@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getSession, signIn } from "next-auth/react";
 import { toast } from "sonner";
-import { checkTotpRequired } from "@/app/(auth)/login/actions";
+import { checkOtpRequired } from "@/app/(auth)/login/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,7 +35,7 @@ const roleHome: Record<string, string> = {
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [totpRequired, setTotpRequired] = useState(false);
+  const [otpRequired, setOtpRequired] = useState(false);
   const {
     register,
     handleSubmit,
@@ -43,7 +43,7 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { identifier: "", password: "", totpCode: "" },
+    defaultValues: { identifier: "", password: "", otpCode: "" },
   });
 
   async function onSubmit(data: LoginInput) {
@@ -52,11 +52,11 @@ export function LoginForm() {
     // Totp-enabled accounts reveal a second step only after the password
     // proves via a rate-limited pre-check (Auth.js v5 sanitizes errors
     // thrown from authorize, so no typed error can travel back).
-    const submit = async (totpCode?: string) => {
+    const submit = async (otpCode?: string) => {
       const result = await signIn("credentials", {
         identifier: data.identifier,
         password: data.password,
-        totpCode,
+        otpCode,
         redirect: false,
       });
       if (!result || result.error) {
@@ -72,8 +72,8 @@ export function LoginForm() {
       router.refresh();
     };
 
-    if (!totpRequired) {
-      const check = await checkTotpRequired({
+    if (!otpRequired) {
+      const check = await checkOtpRequired({
         identifier: data.identifier,
         password: data.password,
       });
@@ -81,14 +81,14 @@ export function LoginForm() {
         toast.error(check.error);
         return;
       }
-      if (check.totpRequired) {
-        setTotpRequired(true);
-        setValue("totpCode", "");
-        toast.message("Enter your authenticator code.");
+      if (check.otpRequired) {
+        setOtpRequired(true);
+        setValue("otpCode", "");
+        toast.message("Enter the code emailed to you.");
         return;
       }
     }
-    await submit(data.totpCode || undefined);
+    await submit(data.otpCode || undefined);
   }
 
   return (
@@ -124,18 +124,18 @@ export function LoginForm() {
               />
               <FieldError errors={[errors.password]} />
             </Field>
-            {totpRequired && (
+            {otpRequired && (
               <Field>
-                <FieldLabel htmlFor="totpCode">
-                  Authenticator code
+                <FieldLabel htmlFor="otpCode">
+                  Email code
                 </FieldLabel>
                 <Input
-                  id="totpCode"
+                  id="otpCode"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   autoFocus
                   placeholder="123456"
-                  {...register("totpCode")}
+                  {...register("otpCode")}
                 />
               </Field>
             )}

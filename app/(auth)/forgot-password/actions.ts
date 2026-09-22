@@ -1,11 +1,12 @@
 "use server";
 
-import { randomInt, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { compare, hash } from "bcryptjs";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
 import { passwordOtps, passwordResets, users } from "@/db/schema";
+import { issueOtp, consumeOtp } from "@/lib/otp";
 import { normalizeUsername } from "@/lib/usernames";
 import { takeLoginAttempt } from "@/lib/rate-limit";
 import { sendOtpEmail } from "@/lib/mailer";
@@ -22,8 +23,6 @@ async function clientIp(): Promise<string> {
   );
 }
 
-const OTP_TTL_MS = 10 * 60 * 1000;
-const OTP_MAX_ATTEMPTS = 5;
 const RESET_TTL_MS = 15 * 60 * 1000;
 // Tighter than login: unauthenticated account-touching endpoints.
 const RESET_RATE_MAX = 3;
@@ -57,17 +56,7 @@ export async function requestOtp(input: unknown): Promise<OtpRequestResult> {
   // Silent no-op keeps unknown/inactive accounts indistinguishable.
   if (!user || user.status !== "active") return { ok: true };
 
-  const otp = String(randomInt(100000, 1000000));
-  const now = new Date();
-  await db.transaction(async (tx) => {
-    await tx.delete(passwordOtps).where(eq(passwordOtps.userId, user.id));
-    await tx.insert(passwordOtps).values({
-      userId: user.id,
-      otpHash: await hash(otp, 10),
-      expiresAt: new Date(now.getTime() + OTP_TTL_MS),
-      attempts: 0,
-    });
-  });
+  const otp = await issueOtp(user.id, "reset");
   const sent = await sendOtpEmail(user.email, otp);
   if (!sent.ok) return sent;
   return { ok: true };
@@ -86,31 +75,12 @@ export async function verifyOtp(input: unknown): Promise<OtpVerifyResult> {
   const user = await findUser(identifier);
   if (!user || user.status !== "active")
     return { ok: false, error: "Invalid or expired code." };
-  const row = await db.query.passwordOtps.findFirst({
-    where: and(
-      eq(passwordOtps.userId, user.id),
-      gt(passwordOtps.expiresAt, new Date())
-    ),
-  });
-  if (!row) return { ok: false, error: "Invalid or expired code." };
-  const attempts = (row.attempts ?? 0) + 1;
-  const valid = await compare(otp, row.otpHash);
-  if (!valid) {
-    if (attempts >= OTP_MAX_ATTEMPTS) {
-      await db.delete(passwordOtps).where(eq(passwordOtps.id, row.id));
-    } else {
-      await db
-        .update(passwordOtps)
-        .set({ attempts })
-        .where(eq(passwordOtps.id, row.id));
-    }
-    return { ok: false, error: "Invalid or expired code." };
-  }
+  const checked = await consumeOtp(user.id, "reset", otp);
+  if (!checked.ok) return { ok: false, error: "Invalid or expired code." };
 
   const resetToken = randomBytes(32).toString("hex");
   const now = new Date();
   await db.transaction(async (tx) => {
-    await tx.delete(passwordOtps).where(eq(passwordOtps.userId, user.id));
     await tx.delete(passwordResets).where(eq(passwordResets.userId, user.id));
     await tx.insert(passwordResets).values({
       userId: user.id,

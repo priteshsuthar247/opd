@@ -4,6 +4,7 @@ import { compare, hash } from "bcryptjs";
 import { and, eq, gt } from "drizzle-orm";
 import { randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { passwordOtps, users } from "@/db/schema";
@@ -224,4 +225,102 @@ export async function checkOwnUsername(
     available,
     suggestions: available ? [] : await suggestUsernames(parsed.data),
   };
+}
+
+// Email-OTP second factor: enabling sends a code to the account email;
+// confirming it flips the flag. Disabling needs the password (and bumps
+// sessions, like every credential change).
+export async function requestTwoFactorCode(): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: "Not authorized." };
+  const userId = Number(session.user.id);
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { email: true },
+  });
+  if (!user) return { ok: false, error: "Account not found." };
+  const { issueOtp } = await import("@/lib/otp");
+  const otp = await issueOtp(userId, "login_2fa");
+  const sent = await sendOtpEmail(user.email, otp);
+  if (!sent.ok) return sent;
+  return { ok: true };
+}
+
+export async function confirmTwoFactor(input: unknown): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: "Not authorized." };
+  const parsed = z
+    .object({ code: z.string().regex(/^\d{6}$/) })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Enter the 6-digit code." };
+  const userId = Number(session.user.id);
+  const { consumeOtp } = await import("@/lib/otp");
+  const checked = await consumeOtp(userId, "login_2fa", parsed.data.code);
+  if (!checked.ok) return { ok: false, error: "Invalid or expired code." };
+  await db
+    .update(users)
+    .set({ emailOtp2fa: true })
+    .where(eq(users.id, userId));
+  await logActivity(userId, "totp_enabled");
+  revalidatePath("/profile", "layout");
+  return { ok: true };
+}
+
+export async function disableTwoFactor(
+  input: unknown
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: "Not authorized." };
+  const parsed = z.object({ password: z.string().min(1) }).safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Enter your password." };
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, Number(session.user.id)),
+  });
+  if (!user) return { ok: false, error: "Account not found." };
+  if (!(await compare(parsed.data.password, user.passwordHash)))
+    return { ok: false, error: "Password is incorrect." };
+  await db
+    .update(users)
+    .set({ emailOtp2fa: false, passwordChangedAt: new Date() })
+    .where(eq(users.id, user.id));
+  await logActivity(user.id, "totp_disabled");
+  return { ok: true };
+}
+
+// "Sign out everywhere": bump the session marker; every JWT (including
+// this browser's) dies at the next 5-minute revalidation. The caller
+// signs out immediately client-side.
+export async function signOutEverywhere(): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: "Not authorized." };
+  const userId = Number(session.user.id);
+  await db
+    .update(users)
+    .set({ passwordChangedAt: new Date() })
+    .where(eq(users.id, userId));
+  await logActivity(userId, "sessions_revoked");
+  return { ok: true };
+}
+
+// Self-deactivation (danger zone): locks the login, then the client
+// signs out. Admins deactivate others from the doctors table.
+export async function deactivateOwnAccount(
+  input: unknown
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: "Not authorized." };
+  const parsed = z.object({ password: z.string().min(1) }).safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Enter your password." };
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, Number(session.user.id)),
+  });
+  if (!user) return { ok: false, error: "Account not found." };
+  if (!(await compare(parsed.data.password, user.passwordHash)))
+    return { ok: false, error: "Password is incorrect." };
+  await db
+    .update(users)
+    .set({ status: "inactive", passwordChangedAt: new Date() })
+    .where(eq(users.id, user.id));
+  await logActivity(user.id, "account_deactivated");
+  return { ok: true };
 }

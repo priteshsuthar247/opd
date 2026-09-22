@@ -21,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         identifier: { label: "Username or email", type: "text" },
         password: { label: "Password", type: "password" },
-        totpCode: { label: "Authenticator code", type: "text" },
+        otpCode: { label: "Authenticator code", type: "text" },
       },
       // Returning null (not throwing) on any failure is deliberate —
       // never leak whether it was the identifier or the password that was wrong.
@@ -57,19 +57,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!isValid) return null;
 
-        // Second factor: accounts with TOTP enabled need a code (or an
-        // unused backup code) in the same call. The form pre-checks via
-        // checkTotpRequired (Auth.js v5 sanitizes thrown errors, so no
-        // typed error can travel back); a missing or wrong code fails
-        // exactly like a wrong password. Lazily imported: totp pulls
-        // node:crypto, which the Edge middleware importing this module
-        // cannot evaluate. authorize only runs server-side.
-        const { checkLoginTotp } = await import("@/lib/totp-login");
-        const totp = await checkLoginTotp(
-          user.id,
-          credentials.totpCode as string | undefined
-        );
-        if (totp !== "ok") return null;
+        // Second factor: accounts with email-OTP 2FA need the code
+        // mailed by checkOtpRequired in the same call. The form
+        // pre-checks via that action (Auth.js v5 sanitizes thrown
+        // errors, so no typed error can travel back); a missing or
+        // wrong code fails exactly like a wrong password. Lazily
+        // imported: otp pulls node:crypto-adjacent paths the Edge
+        // middleware importing this module cannot evaluate. authorize
+        // only runs server-side.
+        const { checkLoginOtp } = await import("@/lib/login-otp");
+        if (
+          !(await checkLoginOtp(
+            user.id,
+            credentials.otpCode as string | undefined
+          ))
+        )
+          return null;
 
         // Fire-and-forget login audit + stamp; neither blocks sign-in.
         const { logActivity } = await import("@/lib/activity");

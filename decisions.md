@@ -359,6 +359,16 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     2FA events). Edge middleware broke on static node:crypto imports
     — totp/activity load lazily inside authorize only. [agent]
 
+## 2026-09-22 — OTP-based 2FA (replaces TOTP)
+
+100. **No authenticator app** — second factor is an emailed code:
+    `email_otp_2fa` flag (migrations 0009/0010, TOTP columns dropped;
+    zero live users affected), one shared `lib/otp.ts` for
+    reset/change/login codes, login pre-check mails the code, QR and
+    backup codes deleted with `qrcode`. Full code-entry loop needs a
+    real mailbox — E2E covers enable/wrong-code; consume shares the
+    proven helper. [user]
+
 ## 2026-09-21 — Forgot password via OTP
 
 95. **Three steps, zero enumeration** — identifier → 6-digit OTP

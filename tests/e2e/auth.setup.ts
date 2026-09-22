@@ -15,7 +15,9 @@ async function loginAs(page: Page, identifier: string) {
 }
 
 setup("authenticate as admin", async ({ page }) => {
-  await loginAs(page, "admin@opdclinic.com");
+  // Dev-DB admin (the seeded admin@ was replaced by a personal account
+  // on this database; fresh seeds use admin@opdclinic.com instead).
+  await loginAs(page, "pritesh.suthar247@gmail.com");
   await page.context().storageState({ path: authFile("admin") });
 });
 

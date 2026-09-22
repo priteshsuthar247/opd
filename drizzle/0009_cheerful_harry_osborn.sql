@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "email_otp_2fa" boolean DEFAULT false NOT NULL;

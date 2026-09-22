@@ -22,25 +22,22 @@ import {
 } from "@/lib/validations/profile";
 import { changePassword } from "@/app/profile/actions";
 import {
-  beginTotpSetup,
-  confirmTotpSetup,
+  confirmTwoFactor,
   deactivateOwnAccount,
-  disableTotp,
-  regenerateBackupCodes,
+  disableTwoFactor,
+  requestTwoFactorCode,
   signOutEverywhere,
-} from "@/app/profile/totp-actions";
+} from "@/app/profile/actions";
 
-// Security card: password change (existing flow), TOTP two-factor
-// lifecycle, sign-out-everywhere, and the self-deactivation danger zone.
-export function SecurityCard({ totpEnabled }: { totpEnabled: boolean }) {
+// Security card: password change (existing flow), email-OTP two-factor,
+// sign-out-everywhere, and the self-deactivation danger zone.
+export function SecurityCard({ twoFactorEnabled }: { twoFactorEnabled: boolean }) {
   const passForm = useForm<PasswordChangeInput>({
     resolver: zodResolver(passwordChangeSchema),
     defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
   });
 
-  const [qrSvg, setQrSvg] = useState<string | null>(null);
-  const [manualSecret, setManualSecret] = useState<string | null>(null);
-  const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
+  const [codeSent, setCodeSent] = useState(false);
   const [confirmCode, setConfirmCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [pw, setPw] = useState("");
@@ -56,17 +53,16 @@ export function SecurityCard({ totpEnabled }: { totpEnabled: boolean }) {
     await signOut({ redirectTo: "/login" });
   }
 
-  async function onBeginSetup() {
+  async function onRequestCode() {
     setBusy(true);
     try {
-      const result = await beginTotpSetup();
+      const result = await requestTwoFactorCode();
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
-      setQrSvg(result.qrSvg);
-      setManualSecret(result.secret);
-      setBackupCodes(null);
+      setCodeSent(true);
+      toast.success("A code was emailed to you.");
     } finally {
       setBusy(false);
     }
@@ -75,55 +71,30 @@ export function SecurityCard({ totpEnabled }: { totpEnabled: boolean }) {
   async function onConfirmSetup() {
     setBusy(true);
     try {
-      const result = await confirmTotpSetup({ code: confirmCode });
+      const result = await confirmTwoFactor({ code: confirmCode });
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
-      setBackupCodes(result.backupCodes);
-      setQrSvg(null);
-      setManualSecret(null);
-      setConfirmCode("");
       toast.success("Two-factor enabled.");
+      window.location.reload();
     } finally {
       setBusy(false);
     }
   }
 
-  async function onNewBackupCodes() {
+  async function onDisableTwoFactor() {
     if (!pw) {
       toast.error("Enter your password first.");
       return;
     }
     setBusy(true);
     try {
-      const result = await regenerateBackupCodes(pw);
+      const result = await disableTwoFactor({ password: pw });
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
-      setBackupCodes(result.backupCodes);
-      setPw("");
-      toast.success("New backup codes issued. Old ones are dead.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onDisableTotp() {
-    if (!pw) {
-      toast.error("Enter your password first.");
-      return;
-    }
-    setBusy(true);
-    try {
-      const result = await disableTotp({ password: pw });
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
-      }
-      // Server state flipped (enabled=false); reload so the card swaps
-      // back to the Enable CTA instead of showing stale actions.
       window.location.reload();
     } finally {
       setBusy(false);
@@ -199,42 +170,32 @@ export function SecurityCard({ totpEnabled }: { totpEnabled: boolean }) {
         <CardHeader>
           <CardTitle>Two-factor authentication</CardTitle>
           <CardDescription>
-            {totpEnabled
-              ? "Authenticator app required at every sign-in."
-              : "Add an authenticator app as a second step."}
+            {twoFactorEnabled
+              ? "A code is emailed to you at every sign-in."
+              : "Get an emailed code as a second step."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          {!totpEnabled && qrSvg === null && (
+          {!twoFactorEnabled && !codeSent && (
             <Button
               className="w-fit"
               variant="outline"
               disabled={busy}
-              onClick={onBeginSetup}
+              onClick={onRequestCode}
             >
               Enable two-factor
             </Button>
           )}
-          {qrSvg !== null && (
+          {!twoFactorEnabled && codeSent && (
             <div className="flex flex-col gap-2">
               <p className="text-xs text-muted-foreground">
-                Scan with your authenticator app, then enter the code.
+                We emailed you a 6-digit code — enter it to confirm.
               </p>
-              <div
-                className="w-fit border bg-white p-2"
-                // SVG generated server-side from our own otpauth URL.
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-              />
-              {manualSecret && (
-                <p className="text-xs text-muted-foreground">
-                  Manual entry: <code>{manualSecret}</code>
-                </p>
-              )}
               <div className="flex gap-2">
                 <Input
                   inputMode="numeric"
                   placeholder="123456"
-                  aria-label="Authenticator code"
+                  aria-label="Email code"
                   value={confirmCode}
                   onChange={(e) => setConfirmCode(e.target.value)}
                   className="max-w-40"
@@ -245,41 +206,21 @@ export function SecurityCard({ totpEnabled }: { totpEnabled: boolean }) {
               </div>
             </div>
           )}
-          {backupCodes !== null && (
-            <div className="flex flex-col gap-2 border p-3">
-              <p className="text-xs font-medium">
-                Backup codes — shown once, store them safely:
-              </p>
-              <ul className="grid grid-cols-2 gap-1 font-mono text-xs">
-                {backupCodes.map((c) => (
-                  <li key={c}>{c}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {totpEnabled && (
+          {twoFactorEnabled && (
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  className="w-fit"
-                  disabled={busy}
-                  onClick={onNewBackupCodes}
-                >
-                  New backup codes
-                </Button>
                 <Button
                   variant="destructive"
                   className="w-fit"
                   disabled={busy}
-                  onClick={onDisableTotp}
+                  onClick={onDisableTwoFactor}
                 >
                   Disable two-factor
                 </Button>
               </div>
               <Field>
                 <FieldLabel htmlFor="sec-password">
-                  Password (for the actions above)
+                  Password (to disable)
                 </FieldLabel>
                 <PasswordInput
                   id="sec-password"
@@ -294,7 +235,6 @@ export function SecurityCard({ totpEnabled }: { totpEnabled: boolean }) {
           )}
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Sessions</CardTitle>

@@ -21,7 +21,7 @@ export default async function ProfilePage() {
       username: true,
       role: true,
       avatarColor: true,
-      totpEnabled: true,
+      emailOtp2fa: true,
       lastLoginAt: true,
       createdAt: true,
     },
@@ -58,7 +58,7 @@ export default async function ProfilePage() {
           lastLogin={fmt(user.lastLoginAt)}
           avatarColor={user.avatarColor}
         />
-        <SecurityCard totpEnabled={user.totpEnabled} />
+        <SecurityCard twoFactorEnabled={user.emailOtp2fa} />
         <ActivityCard activity={activity} />
       </div>
     </main>

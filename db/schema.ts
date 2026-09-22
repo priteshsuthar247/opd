@@ -73,11 +73,10 @@ export const users = pgTable("users", {
   // Avatar color swatch (hex) — no blob storage, so identity color
   // instead of photo uploads.
   avatarColor: varchar("avatar_color", { length: 7 }),
-  // TOTP 2FA: AES-GCM encrypted secret (AUTH_SECRET-derived key),
-  // bcrypt-hashed backup codes, last successful login stamp.
-  totpSecret: text("totp_secret"),
-  totpBackup: jsonb("totp_backup").$type<string[]>(),
-  totpEnabled: boolean("totp_enabled").notNull().default(false),
+  // Email-OTP second factor (replaces the earlier TOTP experiment —
+  // no authenticator app, no secrets to store; codes live in
+  // password_otps like all other OTPs).
+  emailOtp2fa: boolean("email_otp_2fa").notNull().default(false),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 });
