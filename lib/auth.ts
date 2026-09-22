@@ -62,6 +62,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           role: user.role,
           active: true,
+          pwdTs: user.passwordChangedAt
+            ? new Date(user.passwordChangedAt).getTime()
+            : 0,
         };
       },
     }),
@@ -77,6 +80,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.role = (user as { role: "admin" | "doctor" | "receptionist" }).role;
         token.active = true;
+        token.pwdTs = user.pwdTs;
         token.checkedAt = Date.now();
         return token;
       }
@@ -86,10 +90,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (stale && typeof token.id === "string") {
         const fresh = await db.query.users.findFirst({
           where: eq(users.id, Number(token.id)),
-          columns: { role: true, status: true },
+          columns: { role: true, status: true, passwordChangedAt: true },
         });
         token.checkedAt = Date.now();
-        if (!fresh || fresh.status !== "active") {
+        const freshTs = fresh?.passwordChangedAt
+          ? new Date(fresh.passwordChangedAt).getTime()
+          : 0;
+        // Password changed elsewhere (e.g. forgot-password reset) — kill
+        // this session along with every other live one.
+        if (!fresh || fresh.status !== "active" || freshTs !== token.pwdTs) {
           token.active = false;
         } else {
           token.role = fresh.role;

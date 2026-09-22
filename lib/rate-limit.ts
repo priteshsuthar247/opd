@@ -7,10 +7,10 @@ const MAX_ATTEMPTS = 5;
 
 const hits = new Map<string, number[]>();
 
-export function takeLoginAttempt(key: string): boolean {
+export function takeLoginAttempt(key: string, max = MAX_ATTEMPTS): boolean {
   const now = Date.now();
   const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (recent.length >= MAX_ATTEMPTS) {
+  if (recent.length >= max) {
     hits.set(key, recent);
     return false;
   }

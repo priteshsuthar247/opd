@@ -50,6 +50,13 @@
       "when": 1789980212092,
       "tag": "0006_naive_martin_li",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790062175725,
+      "tag": "0007_chemical_starhawk",
+      "breakpoints": true
     }
   ]
 }

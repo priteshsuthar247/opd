@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getSession, signIn } from "next-auth/react";
@@ -98,6 +99,11 @@ export function LoginForm() {
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing in…" : "Sign in"}
             </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              <Link href="/forgot-password" className="underline">
+                Forgot password?
+              </Link>
+            </p>
           </FieldGroup>
         </form>
       </CardContent>

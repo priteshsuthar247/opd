@@ -80,7 +80,12 @@ export async function updateDoctor(input: unknown): Promise<ActionResult> {
           name,
           email,
           username,
-          ...(password ? { passwordHash: await hash(password, 10) } : {}),
+          ...(password
+            ? {
+                passwordHash: await hash(password, 10),
+                passwordChangedAt: new Date(),
+              }
+            : {}),
         })
         .where(eq(users.id, existing.userId));
       await tx.update(doctors).set(profile).where(eq(doctors.id, id));

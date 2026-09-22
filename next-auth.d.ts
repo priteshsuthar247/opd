@@ -16,6 +16,7 @@ declare module "next-auth" {
   interface User {
     role: "admin" | "doctor" | "receptionist";
     active: boolean;
+    pwdTs: number;
   }
 }
 

@@ -66,6 +66,10 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   role: roleEnum("role").notNull(),
   status: statusEnum("status").default("active").notNull(),
+  // Bumped on every password change; JWTs carry the value from login
+  // time so a reset invalidates all existing sessions (see auth jwt
+  // callback revalidation).
+  passwordChangedAt: timestamp("password_changed_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 });
 
@@ -488,3 +492,36 @@ export const queueStatusLogsRelations = relations(queueStatusLogs, ({ one }) => 
     references: [users.id],
   }),
 }));
+
+// One-time email OTPs for password reset. Secrets are bcrypt-hashed like
+// passwords; rows are deleted on use/expiry rather than kept as history.
+export const passwordOtps = pgTable(
+  "password_otps",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    otpHash: text("otp_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => [index("password_otps_user_idx").on(t.userId)]
+);
+
+// Single-use reset tokens minted after OTP verification (15-min life).
+export const passwordResets = pgTable(
+  "password_resets",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true, mode: "date" }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => [index("password_resets_user_idx").on(t.userId)]
+);

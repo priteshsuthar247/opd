@@ -342,6 +342,19 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     PageFooter. Verified by text extraction incl. a 25-item
     multi-page stress render. [user]
 
+## 2026-09-21 — Forgot password via OTP
+
+95. **Three steps, zero enumeration** — identifier → 6-digit OTP
+    (10-min, 5 strikes, bcrypt-hashed) → single-use 15-min reset
+    token. Unknown/inactive accounts get success-shaped replies;
+    all three actions rate-limited 3/min. [user]
+96. **Reset kills all sessions** — `users.passwordChangedAt` bumped
+    by reset, profile change, and admin password edits; the existing
+    5-min jwt revalidation compares it and flips `active=false` on
+    mismatch. Nodemailer supports SMTP_* or Gmail MY_EMAIL shorthand
+    (the actual `.env` names). E2E covers negative paths only — no
+    real mail in tests. [joint]
+
 ## 2026-09-21 — Skill-first rule + combobox redo
 
 92. **Skills load before implementation, stated in the plan** — audits

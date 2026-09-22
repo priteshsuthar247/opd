@@ -44,7 +44,10 @@ export async function changePassword(input: unknown): Promise<ActionResult> {
   if (!matches) return { ok: false, error: "Current password is incorrect." };
   await db
     .update(users)
-    .set({ passwordHash: await hash(parsed.data.newPassword, 10) })
+    .set({
+      passwordHash: await hash(parsed.data.newPassword, 10),
+      passwordChangedAt: new Date(),
+    })
     .where(eq(users.id, user.id));
   return { ok: true };
 }
