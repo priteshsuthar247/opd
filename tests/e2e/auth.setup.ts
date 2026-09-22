@@ -17,15 +17,9 @@ async function loginAs(page: Page, identifier: string, password?: string) {
 }
 
 setup("authenticate as admin", async ({ page }) => {
-  // Dev-DB admin (the seeded admin@ was replaced by a personal account
-  // on this database; fresh seeds use admin@opdclinic.com instead).
-  // Password comes from E2E_ADMIN_PASSWORD so personal credentials are
-  // never committed; defaults to the demo password.
-  await loginAs(
-    page,
-    "pritesh.suthar247@gmail.com",
-    process.env.E2E_ADMIN_PASSWORD
-  );
+  // Dev-DB admin uses the demo password (see E2E_ADMIN_PASSWORD override
+  // in git history for personal-account databases).
+  await loginAs(page, "pritesh.suthar247@gmail.com");
   await page.context().storageState({ path: authFile("admin") });
 });
 

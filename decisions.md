@@ -339,6 +339,18 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     committed). A stuck 2FA flag on the spare test account once
     poisoned runs; suite accounts stay 2FA-free. [agent]
 
+## 2026-09-22 — Profile accordion + settings consolidation
+
+104. **Profile reads as summaries, edits on demand** — identity items
+    (name/username/email/avatar) and security groups (password/2FA/
+    sessions/danger) are accordion rows showing current values;
+    activity timeline unchanged. Research-backed (progressive
+    disclosure, danger last). [user]
+105. **Appearance owns theme, preview deleted, topbar toggle removed** —
+    Light/Dark/System segmented control under `/settings/appearance`;
+    `/profile` redirects; nav retargeted; E2E admin password back to
+    the demo default. [user]
+
 ## 2026-09-21 — pdfcn prescription PDFs
 
 82. **pdfcn for all PDFs, starting with prescriptions** — user reversed

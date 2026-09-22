@@ -7,6 +7,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -103,16 +109,21 @@ export function SecurityCard({ twoFactorEnabled }: { twoFactorEnabled: boolean }
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Change password</CardTitle>
-          <CardDescription>
-            You will be signed out on every device and asked to sign in
-            again.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <Card>
+      <CardHeader>
+        <CardTitle>Security</CardTitle>
+        <CardDescription>
+          Password, two-factor sign-in, sessions, and deactivation.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Accordion className="flex flex-col gap-2">
+          <AccordionItem value="password" className="border px-3">
+            <AccordionTrigger>Change password</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-2 text-xs text-muted-foreground">
+                You will be signed out on every device.
+              </p>
           <form onSubmit={passForm.handleSubmit(onPassword)}>
             <FieldGroup>
               <Field data-invalid={!!passForm.formState.errors.currentPassword}>
@@ -164,19 +175,16 @@ export function SecurityCard({ twoFactorEnabled }: { twoFactorEnabled: boolean }
               </Button>
             </FieldGroup>
           </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Two-factor authentication</CardTitle>
-          <CardDescription>
-            {twoFactorEnabled
-              ? "A code is emailed to you at every sign-in."
-              : "Get an emailed code as a second step."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="2fa" className="border px-3">
+            <AccordionTrigger>
+              Two-factor authentication
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                {twoFactorEnabled ? "On" : "Off"}
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-3">
           {!twoFactorEnabled && !codeSent && (
             <Button
               className="w-fit"
@@ -231,17 +239,11 @@ export function SecurityCard({ twoFactorEnabled }: { twoFactorEnabled: boolean }
               </Field>
             </div>
           )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Sessions</CardTitle>
-          <CardDescription>
-            Sign-in uses stateless tokens, so individual devices cannot be
-            listed — but one action kills them all.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="sessions" className="border px-3">
+            <AccordionTrigger>Sessions</AccordionTrigger>
+            <AccordionContent>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
               One action kills every live token, including this browser.
@@ -268,17 +270,16 @@ export function SecurityCard({ twoFactorEnabled }: { twoFactorEnabled: boolean }
               Sign out everywhere
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-destructive/50">
-        <CardHeader>
-          <CardTitle className="text-destructive">Danger zone</CardTitle>
-          <CardDescription>
-            Deactivating locks this login immediately on every device.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem
+            value="danger"
+            className="border border-destructive/50 px-3"
+          >
+            <AccordionTrigger className="text-destructive">
+              Danger zone
+            </AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-2">
           {!showDanger ? (
             <Button
               variant="destructive"
@@ -336,8 +337,10 @@ export function SecurityCard({ twoFactorEnabled }: { twoFactorEnabled: boolean }
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
-    </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </CardContent>
+    </Card>
   );
 }

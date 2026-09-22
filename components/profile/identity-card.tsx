@@ -15,7 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { OtpField } from "@/components/ui/otp-field";
@@ -187,63 +192,84 @@ export function IdentityCard({
           {role}
         </Badge>
       </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+      <CardContent className="flex flex-col gap-4">
         <p className="text-xs text-muted-foreground">
           Member since {memberSince} · Last sign-in {lastLogin}
         </p>
-        <Separator />
-        <section aria-label="Avatar color" className="flex flex-col gap-2">
-          <h3 className="text-sm font-medium">Avatar color</h3>
-          <div className="flex flex-wrap gap-1.5">
-            {AVATAR_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                title={c}
-                aria-label={`Avatar color ${c}`}
-                aria-pressed={avatarColor === c}
-                onClick={() => void pickColor(c)}
-                className="size-6 rounded-full border-2 border-transparent data-[active=true]:border-foreground"
-                style={{ backgroundColor: c }}
-                data-active={avatarColor === c}
+        {/* Summary rows with inline edit: values read at a glance,
+        forms open only on demand (progressive disclosure). */}
+        <Accordion className="flex flex-col gap-2">
+          <AccordionItem value="name" className="border px-3">
+            <AccordionTrigger>Display name</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Current:{" "}
+                <span className="font-medium text-foreground">{name}</span>
+              </p>
+              <NameForm form={nameForm} onSubmit={onName} />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="username" className="border px-3">
+            <AccordionTrigger>Username</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Current:{" "}
+                <span className="font-medium text-foreground">
+                  @{username}
+                </span>
+              </p>
+              <UsernameForm
+                form={usernameForm}
+                onSubmit={onUsername}
+                availability={availability}
+                onType={handleUsernameChange}
+                onPickSuggestion={(s) => {
+                  usernameForm.setValue("username", s, {
+                    shouldValidate: true,
+                  });
+                  setAvailability({ state: "free" });
+                }}
               />
-            ))}
-          </div>
-        </section>
-        <Separator />
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <section aria-label="Display name">
-            <h3 className="mb-2 text-sm font-medium">Display name</h3>
-            <NameForm form={nameForm} onSubmit={onName} />
-          </section>
-          <section aria-label="Username">
-            <h3 className="mb-2 text-sm font-medium">Username</h3>
-            <UsernameForm
-              form={usernameForm}
-              onSubmit={onUsername}
-              availability={availability}
-              onType={handleUsernameChange}
-              onPickSuggestion={(s) => {
-                usernameForm.setValue("username", s, {
-                  shouldValidate: true,
-                });
-                setAvailability({ state: "free" });
-              }}
-            />
-          </section>
-        </div>
-        <Separator />
-        <section aria-label="Email address">
-          <h3 className="mb-2 text-sm font-medium">Email address</h3>
-          <EmailForm
-            email={email}
-            emailStep={emailStep}
-            emailForm={emailForm}
-            otpForm={otpForm}
-            onEmailRequest={onEmailRequest}
-            onEmailConfirm={onEmailConfirm}
-          />
-        </section>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="email" className="border px-3">
+            <AccordionTrigger>Email address</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Current:{" "}
+                <span className="font-medium text-foreground">{email}</span>
+              </p>
+              <EmailForm
+                email={email}
+                emailStep={emailStep}
+                emailForm={emailForm}
+                otpForm={otpForm}
+                onEmailRequest={onEmailRequest}
+                onEmailConfirm={onEmailConfirm}
+              />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="avatar" className="border px-3">
+            <AccordionTrigger>Avatar color</AccordionTrigger>
+            <AccordionContent>
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Avatar color">
+                {AVATAR_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    title={c}
+                    aria-label={`Avatar color ${c}`}
+                    aria-pressed={avatarColor === c}
+                    onClick={() => void pickColor(c)}
+                    className="size-6 rounded-full border-2 border-transparent data-[active=true]:border-foreground"
+                    style={{ backgroundColor: c }}
+                    data-active={avatarColor === c}
+                  />
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </CardContent>
     </Card>
   );

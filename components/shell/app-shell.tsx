@@ -24,7 +24,6 @@ import {
   type PaletteItem,
 } from "@/components/shell/command-palette";
 import { NotificationsBell } from "@/components/shell/notifications-bell";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { NotificationRow } from "@/db/queries/notifications";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -230,7 +229,6 @@ export function AppShell({
                 unreadCount={unreadCount}
                 items={notifications}
               />
-              <ThemeToggle />
             </div>
           </div>
         </header>

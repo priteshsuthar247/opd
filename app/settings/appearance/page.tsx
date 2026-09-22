@@ -2,8 +2,6 @@
 
 import { LaptopIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "cn";
 
 const MODES = [
@@ -64,21 +61,6 @@ export default function AppearancePage() {
                 </button>
               );
             })}
-          </div>
-          <Separator />
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-medium text-muted-foreground">
-              Preview
-            </p>
-            <div className="flex flex-wrap items-center gap-2 border p-3">
-              <Badge>Primary</Badge>
-              <Badge variant="secondary">Secondary</Badge>
-              <Badge variant="outline">Outline</Badge>
-              <Button size="sm">Button</Button>
-              <Button size="sm" variant="outline">
-                Outline
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
