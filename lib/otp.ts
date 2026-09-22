@@ -1,4 +1,3 @@
-import { randomInt } from "node:crypto";
 import { compare, hash } from "bcryptjs";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
@@ -13,6 +12,7 @@ export const OTP_MAX_ATTEMPTS = 5;
 export type OtpPurpose = "reset" | "email_change" | "login_2fa";
 
 export function newOtpCode(): string {
+  const { randomInt } = require("node:crypto");
   return String(randomInt(100000, 1000000));
 }
 
