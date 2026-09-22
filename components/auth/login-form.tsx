@@ -137,11 +137,9 @@ export function LoginForm() {
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing in…" : "Sign in"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              <Link href="/forgot-password" className="underline">
-                Forgot password?
-              </Link>
-            </p>
+            <div className="flex justify-center">
+              <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">Forgot password?</Link>
+            </div>
           </FieldGroup>
         </form>
       </CardContent>

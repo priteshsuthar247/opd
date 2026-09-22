@@ -31,7 +31,7 @@ export default async function ReceptionHome() {
   return (
     <div className="flex flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Booked today" value={String(booked)} icon={CalendarPlusIcon} />
+        <StatCard title="Booked today" value={String(booked)} icon={CalendarPlusIcon} href="/reception/queue" />
         <StatCard title="Waiting" value={String(waiting)} icon={ListChecksIcon} />
         <StatCard title="Completed" value={String(done)} icon={CircleCheckIcon} />
       </div>

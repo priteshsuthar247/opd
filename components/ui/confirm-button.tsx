@@ -69,20 +69,24 @@ export function ConfirmButton({
   description,
   confirmLabel = "Confirm",
   onConfirm,
+  variant = "ghost",
+  size = "sm",
 }: {
   label: string;
   title: string;
   description: string;
   confirmLabel?: string;
   onConfirm: () => void | Promise<void>;
+  variant?: "ghost" | "outline" | "default" | "destructive";
+  size?: "sm" | "default" | "icon-sm";
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button
-        variant="ghost"
-        size="sm"
+        variant={variant}
+        size={size}
         onClick={() => setOpen(true)}
       >
         {label}

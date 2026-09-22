@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,7 +46,7 @@ export function ConsultationForm({
     control,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<ConsultationFormValues>({
     resolver: zodResolver(consultationSchema),
     defaultValues: {
@@ -65,6 +66,17 @@ export function ConsultationForm({
   });
   const followUpRequired = watch("followUpRequired");
   const router = useRouter();
+
+  // Browser-native unsaved-changes guard: doctors navigate mid-entry
+  // (queue board, interruptions). Zero UI, just works.
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   async function onSubmit(data: ConsultationFormValues) {
     const result = await saveConsultation(data);

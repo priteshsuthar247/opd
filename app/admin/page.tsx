@@ -29,9 +29,9 @@ export default async function AdminHome() {
   return (
     <div className="flex flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Seen today" value={String(seen)} icon={CircleCheckIcon} />
-        <StatCard title="In queue" value={String(inQueue)} icon={ListChecksIcon} />
-        <StatCard title="No-shows" value={String(noShows)} icon={CircleXIcon} />
+        <StatCard title="Seen today" value={String(seen)} icon={CircleCheckIcon} href="/doctor/queue" />
+        <StatCard title="In queue" value={String(inQueue)} icon={ListChecksIcon} href="/reception/queue" />
+        <StatCard title="No-shows" value={String(noShows)} icon={CircleXIcon} href="/reception/queue" />
       </div>
 
       <Suspense fallback={<TableSkeleton rows={5} />}>

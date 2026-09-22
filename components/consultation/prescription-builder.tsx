@@ -133,9 +133,14 @@ export function PrescriptionBuilder({
             </CardDescription>
           </div>
           {prescription && !finalized && items.length > 0 && (
-            <Button variant="outline" size="sm" onClick={onFinalize}>
-              Finalize
-            </Button>
+            <ConfirmButton
+              label="Finalize"
+              title="Finalize prescription?"
+              description="All items will become read-only. This cannot be undone."
+              confirmLabel="Yes, finalize"
+              onConfirm={onFinalize}
+              variant="outline"
+            />
           )}
         </div>
       </CardHeader>

@@ -40,11 +40,13 @@ export function RecentVisits({
           variant="ghost"
           size="sm"
           nativeButton={false}
-          render={<Link href={viewAllHref}>{viewAllLabel}</Link>}
-        >
-          {viewAllLabel}
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
+          render={
+            <Link href={viewAllHref}>
+              {viewAllLabel}
+              <ArrowRightIcon data-icon="inline-end" />
+            </Link>
+          }
+        />
       </CardHeader>
       <CardContent>
         {visits.length === 0 ? (

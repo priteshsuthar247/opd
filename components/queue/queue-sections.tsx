@@ -9,6 +9,7 @@ import { listDoctors } from "@/db/queries/doctors";
 import { listQueue } from "@/db/queries/appointments";
 import { listDoctorQueue, listFollowUpsDue } from "@/db/queries/clinical";
 import { QueueTable } from "@/components/queue/queue-table";
+import { QueueRefresh } from "@/components/queue/queue-refresh";
 import { CallNextButton } from "@/components/consultation/call-next-button";
 import { StatCard } from "@/components/shell/stat-card";
 import {
@@ -55,7 +56,10 @@ export async function ReceptionQueueSection({
         {rows.length} appointment{rows.length === 1 ? "" : "s"} · {date}
         {flagged > 0 && ` · ${flagged} marked no-show`}
       </p>
-      <QueueTable data={rows} />
+      <div aria-live="polite" aria-atomic="false">
+        <QueueRefresh />
+        <QueueTable data={rows} />
+      </div>
     </>
   );
 }
@@ -94,7 +98,10 @@ export async function DoctorQueueSection({
         </p>
         <CallNextButton disabled={waiting === 0} />
       </div>
-      <QueueTable data={rows} variant="doctor" />
+      <QueueRefresh />
+      <div aria-live="polite" aria-atomic="false">
+        <QueueTable data={rows} variant="doctor" />
+      </div>
     </>
   );
 }

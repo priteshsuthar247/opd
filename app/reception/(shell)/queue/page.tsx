@@ -23,6 +23,9 @@ import {
 import { TableSkeleton } from "@/components/shell/loading-blocks";
 import { todayStr } from "@/lib/dates";
 
+// Live board: never serve a stale CDN copy in production.
+export const dynamic = 'force-dynamic';
+
 export default async function QueuePage({
   searchParams,
 }: {

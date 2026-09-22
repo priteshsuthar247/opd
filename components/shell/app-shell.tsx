@@ -26,6 +26,7 @@ import {
 import { NotificationsBell } from "@/components/shell/notifications-bell";
 import type { NotificationRow } from "@/db/queries/notifications";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
@@ -214,7 +215,10 @@ export function AppShell({
               orientation="vertical"
               className="mx-2 h-4 data-vertical:self-auto"
             />
-            <h1 className="text-base font-medium">{titleFor(pathname)}</h1>
+            <h1 className="text-base font-semibold tracking-tight">{titleFor(pathname)}</h1>
+            <Badge variant="outline" className="hidden text-xs capitalize sm:inline-flex">
+              {role}
+            </Badge>
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
               <Button
                 variant="ghost"
@@ -233,7 +237,7 @@ export function AppShell({
           </div>
         </header>
         <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
+          <div id="main-content" className="@container/main flex flex-1 flex-col gap-2">
             {children}
           </div>
         </div>
