@@ -18,7 +18,7 @@ test.describe("@auth email-OTP second factor", () => {
     page,
   }) => {
     await loginAs(page);
-    await page.goto("/profile");
+    await page.goto("/settings/profile");
 
     await page.getByRole("button", { name: "Enable two-factor" }).click();
     await expect(

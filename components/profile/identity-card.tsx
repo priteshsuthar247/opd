@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
@@ -15,8 +15,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { OtpField } from "@/components/ui/otp-field";
 import {
   emailChangeConfirmSchema,
   emailChangeRequestSchema,
@@ -185,180 +187,247 @@ export function IdentityCard({
           {role}
         </Badge>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className="flex flex-col gap-5">
         <p className="text-xs text-muted-foreground">
           Member since {memberSince} · Last sign-in {lastLogin}
         </p>
-        <div className="flex flex-wrap gap-1.5" aria-label="Avatar color">
-          {AVATAR_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              title={c}
-              aria-label={`Avatar color ${c}`}
-              aria-pressed={avatarColor === c}
-              onClick={() => void pickColor(c)}
-              className="size-6 rounded-full border-2 border-transparent data-[active=true]:border-foreground"
-              style={{ backgroundColor: c }}
-              data-active={avatarColor === c}
+        <Separator />
+        <section aria-label="Avatar color" className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">Avatar color</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {AVATAR_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                title={c}
+                aria-label={`Avatar color ${c}`}
+                aria-pressed={avatarColor === c}
+                onClick={() => void pickColor(c)}
+                className="size-6 rounded-full border-2 border-transparent data-[active=true]:border-foreground"
+                style={{ backgroundColor: c }}
+                data-active={avatarColor === c}
+              />
+            ))}
+          </div>
+        </section>
+        <Separator />
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <section aria-label="Display name">
+            <h3 className="mb-2 text-sm font-medium">Display name</h3>
+            <NameForm form={nameForm} onSubmit={onName} />
+          </section>
+          <section aria-label="Username">
+            <h3 className="mb-2 text-sm font-medium">Username</h3>
+            <UsernameForm
+              form={usernameForm}
+              onSubmit={onUsername}
+              availability={availability}
+              onType={handleUsernameChange}
+              onPickSuggestion={(s) => {
+                usernameForm.setValue("username", s, {
+                  shouldValidate: true,
+                });
+                setAvailability({ state: "free" });
+              }}
             />
-          ))}
+          </section>
         </div>
-        <form onSubmit={nameForm.handleSubmit(onName)}>
-          <FieldGroup>
-            <Field data-invalid={!!nameForm.formState.errors.name}>
-              <FieldLabel htmlFor="profile-name">Display name</FieldLabel>
-              <Input
-                id="profile-name"
-                aria-invalid={!!nameForm.formState.errors.name}
-                {...nameForm.register("name")}
-              />
-              <FieldError errors={[nameForm.formState.errors.name]} />
-            </Field>
-            <Button
-              type="submit"
-              disabled={nameForm.formState.isSubmitting}
-              className="w-fit"
-            >
-              {nameForm.formState.isSubmitting ? "Saving…" : "Save name"}
-            </Button>
-          </FieldGroup>
-        </form>
-        <form onSubmit={usernameForm.handleSubmit(onUsername)}>
-          <FieldGroup>
-            <Field data-invalid={!!usernameForm.formState.errors.username}>
-              <FieldLabel htmlFor="profile-username">Username</FieldLabel>
-              <Controller
-                control={usernameForm.control}
-                name="username"
-                render={({ field }) => (
-                  <Input
-                    id="profile-username"
-                    autoComplete="off"
-                    aria-invalid={
-                      !!usernameForm.formState.errors.username
-                    }
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      handleUsernameChange(e.target.value);
-                    }}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                )}
-              />
-              {availability.state === "checking" && (
-                <p className="text-xs text-muted-foreground">Checking…</p>
-              )}
-              {availability.state === "free" && (
-                <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <CircleCheckIcon data-icon="inline-start" />
-                  Available
-                </p>
-              )}
-              {availability.state === "invalid" && (
-                <p className="text-xs text-destructive">
-                  {availability.message}
-                </p>
-              )}
-              {availability.state === "taken" && (
-                <div className="flex flex-col gap-1">
-                  <p className="flex items-center gap-1 text-xs text-destructive">
-                    <CircleXIcon data-icon="inline-start" />
-                    Taken — try one of these:
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {availability.suggestions.map((s) => (
-                      <Button
-                        key={s}
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          usernameForm.setValue("username", s, {
-                            shouldValidate: true,
-                          });
-                          setAvailability({ state: "free" });
-                        }}
-                      >
-                        {s}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <FieldError errors={[usernameForm.formState.errors.username]} />
-            </Field>
-            <Button
-              type="submit"
-              disabled={usernameForm.formState.isSubmitting}
-              className="w-fit"
-            >
-              {usernameForm.formState.isSubmitting
-                ? "Saving…"
-                : "Save username"}
-            </Button>
-          </FieldGroup>
-        </form>
-        {emailStep === "idle" ? (
-          <form onSubmit={emailForm.handleSubmit(onEmailRequest)}>
-            <FieldGroup>
-              <Field data-invalid={!!emailForm.formState.errors.email}>
-                <FieldLabel htmlFor="profile-email">
-                  Change email (current: {email})
-                </FieldLabel>
-                <Input
-                  id="profile-email"
-                  type="email"
-                  placeholder="new@opdclinic.com"
-                  aria-invalid={!!emailForm.formState.errors.email}
-                  {...emailForm.register("email")}
-                />
-                <FieldError errors={[emailForm.formState.errors.email]} />
-              </Field>
-              <Button
-                type="submit"
-                disabled={emailForm.formState.isSubmitting}
-                className="w-fit"
-              >
-                {emailForm.formState.isSubmitting
-                  ? "Sending…"
-                  : "Send verification code"}
-              </Button>
-            </FieldGroup>
-          </form>
-        ) : (
-          <form onSubmit={otpForm.handleSubmit(onEmailConfirm)}>
-            <FieldGroup>
-              <Field data-invalid={!!otpForm.formState.errors.otp}>
-                <FieldLabel htmlFor="profile-email-otp">
-                  Code sent to the new address
-                </FieldLabel>
-                <Input
-                  id="profile-email-otp"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  placeholder="123456"
-                  aria-invalid={!!otpForm.formState.errors.otp}
-                  {...otpForm.register("otp")}
-                />
-                <FieldError errors={[otpForm.formState.errors.otp]} />
-              </Field>
-              <Button
-                type="submit"
-                disabled={otpForm.formState.isSubmitting}
-                className="w-fit"
-              >
-                {otpForm.formState.isSubmitting
-                  ? "Verifying…"
-                  : "Confirm new email"}
-              </Button>
-            </FieldGroup>
-          </form>
-        )}
+        <Separator />
+        <section aria-label="Email address">
+          <h3 className="mb-2 text-sm font-medium">Email address</h3>
+          <EmailForm
+            email={email}
+            emailStep={emailStep}
+            emailForm={emailForm}
+            otpForm={otpForm}
+            onEmailRequest={onEmailRequest}
+            onEmailConfirm={onEmailConfirm}
+          />
+        </section>
       </CardContent>
     </Card>
+  );
+}
+function NameForm({
+  form,
+  onSubmit,
+}: {
+  form: UseFormReturn<ProfileNameInput>;
+  onSubmit: (data: ProfileNameInput) => void;
+}) {
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)}>
+      <FieldGroup>
+        <Field data-invalid={!!form.formState.errors.name}>
+          <FieldLabel htmlFor="profile-name">Display name</FieldLabel>
+          <Input
+            id="profile-name"
+            aria-invalid={!!form.formState.errors.name}
+            {...form.register("name")}
+          />
+          <FieldError errors={[form.formState.errors.name]} />
+        </Field>
+        <Button
+          type="submit"
+          disabled={form.formState.isSubmitting}
+          className="w-fit"
+        >
+          {form.formState.isSubmitting ? "Saving…" : "Save name"}
+        </Button>
+      </FieldGroup>
+    </form>
+  );
+}
+
+function UsernameForm({
+  form,
+  onSubmit,
+  availability,
+  onType,
+  onPickSuggestion,
+}: {
+  form: UseFormReturn<ProfileUsernameInput>;
+  onSubmit: (data: ProfileUsernameInput) => void;
+  availability: Availability;
+  onType: (value: string) => void;
+  onPickSuggestion: (value: string) => void;
+}) {
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)}>
+      <FieldGroup>
+        <Field data-invalid={!!form.formState.errors.username}>
+          <FieldLabel htmlFor="profile-username">Username</FieldLabel>
+          <Controller
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <Input
+                id="profile-username"
+                autoComplete="off"
+                aria-invalid={!!form.formState.errors.username}
+                value={field.value ?? ""}
+                onChange={(e) => {
+                  field.onChange(e.target.value);
+                  onType(e.target.value);
+                }}
+                onBlur={field.onBlur}
+                name={field.name}
+                ref={field.ref}
+              />
+            )}
+          />
+          {availability.state === "checking" && (
+            <p className="text-xs text-muted-foreground">Checking…</p>
+          )}
+          {availability.state === "free" && (
+            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+              <CircleCheckIcon data-icon="inline-start" />
+              Available
+            </p>
+          )}
+          {availability.state === "invalid" && (
+            <p className="text-xs text-destructive">
+              {availability.message}
+            </p>
+          )}
+          {availability.state === "taken" && (
+            <div className="flex flex-col gap-1">
+              <p className="flex items-center gap-1 text-xs text-destructive">
+                <CircleXIcon data-icon="inline-start" />
+                Taken — try one of these:
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {availability.suggestions.map((s) => (
+                  <Button
+                    key={s}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPickSuggestion(s)}
+                  >
+                    {s}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+          <FieldError errors={[form.formState.errors.username]} />
+        </Field>
+        <Button
+          type="submit"
+          disabled={form.formState.isSubmitting}
+          className="w-fit"
+        >
+          {form.formState.isSubmitting ? "Saving…" : "Save username"}
+        </Button>
+      </FieldGroup>
+    </form>
+  );
+}
+
+function EmailForm({
+  email,
+  emailStep,
+  emailForm,
+  otpForm,
+  onEmailRequest,
+  onEmailConfirm,
+}: {
+  email: string;
+  emailStep: "idle" | "sent";
+  emailForm: UseFormReturn<EmailChangeRequestInput>;
+  otpForm: UseFormReturn<EmailChangeConfirmInput>;
+  onEmailRequest: (data: EmailChangeRequestInput) => void;
+  onEmailConfirm: (data: EmailChangeConfirmInput) => void;
+}) {
+  if (emailStep !== "idle") {
+    return (
+      <form onSubmit={otpForm.handleSubmit(onEmailConfirm)}>
+        <FieldGroup>
+          <OtpField
+            control={otpForm.control}
+            name="otp"
+            label="Code sent to the new address"
+            error={otpForm.formState.errors.otp}
+            autoFocus
+          />
+          <Button
+            type="submit"
+            disabled={otpForm.formState.isSubmitting}
+            className="w-fit"
+          >
+            {otpForm.formState.isSubmitting ? "Verifying…" : "Confirm new email"}
+          </Button>
+        </FieldGroup>
+      </form>
+    );
+  }
+  return (
+    <form onSubmit={emailForm.handleSubmit(onEmailRequest)}>
+      <FieldGroup>
+        <Field data-invalid={!!emailForm.formState.errors.email}>
+          <FieldLabel htmlFor="profile-email">
+            Change email (current: {email})
+          </FieldLabel>
+          <Input
+            id="profile-email"
+            type="email"
+            placeholder="new@opdclinic.com"
+            aria-invalid={!!emailForm.formState.errors.email}
+            {...emailForm.register("email")}
+          />
+          <FieldError errors={[emailForm.formState.errors.email]} />
+        </Field>
+        <Button
+          type="submit"
+          disabled={emailForm.formState.isSubmitting}
+          className="w-fit"
+        >
+          {emailForm.formState.isSubmitting
+            ? "Sending…"
+            : "Send verification code"}
+        </Button>
+      </FieldGroup>
+    </form>
   );
 }

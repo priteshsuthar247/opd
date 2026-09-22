@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
+import { OtpField } from "@/components/ui/otp-field";
 import { Input } from "@/components/ui/input";
 import {
   passwordChangeSchema,
@@ -191,14 +192,11 @@ export function SecurityCard({ twoFactorEnabled }: { twoFactorEnabled: boolean }
               <p className="text-xs text-muted-foreground">
                 We emailed you a 6-digit code — enter it to confirm.
               </p>
-              <div className="flex gap-2">
-                <Input
-                  inputMode="numeric"
-                  placeholder="123456"
-                  aria-label="Email code"
+              <div className="flex items-end gap-2">
+                <OtpField
+                  label="Email code"
                   value={confirmCode}
-                  onChange={(e) => setConfirmCode(e.target.value)}
-                  className="max-w-40"
+                  onChange={setConfirmCode}
                 />
                 <Button disabled={busy} onClick={onConfirmSetup} className="w-fit">
                   Confirm
@@ -244,27 +242,32 @@ export function SecurityCard({ twoFactorEnabled }: { twoFactorEnabled: boolean }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            variant="outline"
-            className="w-fit"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true);
-              try {
-                const result = await signOutEverywhere();
-                if (!result.ok) {
-                  toast.error(result.error);
-                  return;
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              One action kills every live token, including this browser.
+            </p>
+            <Button
+              variant="outline"
+              className="ml-auto w-fit shrink-0"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  const result = await signOutEverywhere();
+                  if (!result.ok) {
+                    toast.error(result.error);
+                    return;
+                  }
+                  toast.success("All sessions signed out.");
+                  await signOut({ redirectTo: "/login" });
+                } finally {
+                  setBusy(false);
                 }
-                toast.success("All sessions signed out.");
-                await signOut({ redirectTo: "/login" });
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            Sign out everywhere
-          </Button>
+              }}
+            >
+              Sign out everywhere
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

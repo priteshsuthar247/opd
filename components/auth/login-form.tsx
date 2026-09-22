@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { OtpField } from "@/components/ui/otp-field";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 
 const roleHome: Record<string, string> = {
@@ -38,6 +39,7 @@ export function LoginForm() {
   const [otpRequired, setOtpRequired] = useState(false);
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     formState: { errors, isSubmitting },
@@ -125,19 +127,12 @@ export function LoginForm() {
               <FieldError errors={[errors.password]} />
             </Field>
             {otpRequired && (
-              <Field>
-                <FieldLabel htmlFor="otpCode">
-                  Email code
-                </FieldLabel>
-                <Input
-                  id="otpCode"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  autoFocus
-                  placeholder="123456"
-                  {...register("otpCode")}
-                />
-              </Field>
+              <OtpField
+                control={control}
+                name="otpCode"
+                label="Email code"
+                autoFocus
+              />
             )}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing in…" : "Sign in"}

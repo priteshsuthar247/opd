@@ -6,10 +6,12 @@ import path from "path";
 const authFile = (role: string) =>
   path.resolve(__dirname, `../.auth/${role}.json`);
 
-async function loginAs(page: Page, identifier: string) {
+async function loginAs(page: Page, identifier: string, password?: string) {
   await page.goto("/login");
   await page.getByLabel("Username or email").fill(identifier);
-  await page.getByRole("textbox", { name: "Password" }).fill("password123");
+  await page
+    .getByRole("textbox", { name: "Password" })
+    .fill(password ?? "password123");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).not.toHaveURL(/login/, { timeout: 15000 });
 }
@@ -17,7 +19,13 @@ async function loginAs(page: Page, identifier: string) {
 setup("authenticate as admin", async ({ page }) => {
   // Dev-DB admin (the seeded admin@ was replaced by a personal account
   // on this database; fresh seeds use admin@opdclinic.com instead).
-  await loginAs(page, "pritesh.suthar247@gmail.com");
+  // Password comes from E2E_ADMIN_PASSWORD so personal credentials are
+  // never committed; defaults to the demo password.
+  await loginAs(
+    page,
+    "pritesh.suthar247@gmail.com",
+    process.env.E2E_ADMIN_PASSWORD
+  );
   await page.context().storageState({ path: authFile("admin") });
 });
 

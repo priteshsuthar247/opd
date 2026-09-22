@@ -16,6 +16,7 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { OtpField } from "@/components/ui/otp-field";
 import {
   otpVerifySchema,
   passwordResetSchema,
@@ -133,19 +134,13 @@ export function ResetPasswordForm() {
         {step === "verify" && (
           <form onSubmit={verifyForm.handleSubmit(onVerify)}>
             <FieldGroup>
-              <Field data-invalid={!!verifyForm.formState.errors.otp}>
-                <FieldLabel htmlFor="reset-otp">6-digit code</FieldLabel>
-                <Input
-                  id="reset-otp"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  autoFocus
-                  placeholder="123456"
-                  aria-invalid={!!verifyForm.formState.errors.otp}
-                  {...verifyForm.register("otp")}
-                />
-                <FieldError errors={[verifyForm.formState.errors.otp]} />
-              </Field>
+              <OtpField
+                control={verifyForm.control}
+                name="otp"
+                label="6-digit code"
+                error={verifyForm.formState.errors.otp}
+                autoFocus
+              />
               <Button
                 type="submit"
                 className="w-full"
