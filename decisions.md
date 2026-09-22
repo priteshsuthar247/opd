@@ -342,6 +342,23 @@ Attribution: `[user]` = decided by the user (explicit choice, correction, or sco
     PageFooter. Verified by text extraction incl. a 25-item
     multi-page stress render. [user]
 
+## 2026-09-22 — Social-grade profile
+
+97. **Identity is fully editable** — display name, username (live
+    availability + suggestions, self-service check action), email
+    change verified by OTP to the new address, avatar color swatches
+    (no blob storage exists, so color-not-photo). [user]
+98. **TOTP 2FA without new crypto deps** — RFC 6238 + AES-GCM + QR
+    SVG all hand-rolled on node:crypto (`qrcode` only for the image);
+    backup codes hashed; disable/regen bump sessions; login does
+    password-first pre-check because Auth.js v5 sanitizes thrown
+    authorize errors (verified in source + issues). [agent]
+99. **Stateless-session honesty** — no device list possible with JWTs:
+    "sign out everywhere" + last-login stamp instead; danger zone
+    self-deactivation; append-only activity timeline (login, changes,
+    2FA events). Edge middleware broke on static node:crypto imports
+    — totp/activity load lazily inside authorize only. [agent]
+
 ## 2026-09-21 — Forgot password via OTP
 
 95. **Three steps, zero enumeration** — identifier → 6-digit OTP

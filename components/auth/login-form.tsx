@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getSession, signIn } from "next-auth/react";
 import { toast } from "sonner";
+import { checkTotpRequired } from "@/app/(auth)/login/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,34 +35,60 @@ const roleHome: Record<string, string> = {
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [totpRequired, setTotpRequired] = useState(false);
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { identifier: "", password: "" },
+    defaultValues: { identifier: "", password: "", totpCode: "" },
   });
 
   async function onSubmit(data: LoginInput) {
     // Generic failure message is deliberate — never reveal whether the
     // identifier or the password was wrong (matches lib/auth.ts authorize).
-    const result = await signIn("credentials", {
-      identifier: data.identifier,
-      password: data.password,
-      redirect: false,
-    });
-    if (!result || result.error) {
-      toast.error("Invalid username or password.");
-      return;
+    // Totp-enabled accounts reveal a second step only after the password
+    // proves via a rate-limited pre-check (Auth.js v5 sanitizes errors
+    // thrown from authorize, so no typed error can travel back).
+    const submit = async (totpCode?: string) => {
+      const result = await signIn("credentials", {
+        identifier: data.identifier,
+        password: data.password,
+        totpCode,
+        redirect: false,
+      });
+      if (!result || result.error) {
+        toast.error("Invalid username or password.");
+        return;
+      }
+      const session = await getSession();
+      const role = session?.user?.role;
+      const callbackUrl = searchParams.get("callbackUrl");
+      const safeCallback =
+        callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : null;
+      router.push(safeCallback ?? (role ? roleHome[role] : "/"));
+      router.refresh();
+    };
+
+    if (!totpRequired) {
+      const check = await checkTotpRequired({
+        identifier: data.identifier,
+        password: data.password,
+      });
+      if (!check.ok) {
+        toast.error(check.error);
+        return;
+      }
+      if (check.totpRequired) {
+        setTotpRequired(true);
+        setValue("totpCode", "");
+        toast.message("Enter your authenticator code.");
+        return;
+      }
     }
-    const session = await getSession();
-    const role = session?.user?.role;
-    const callbackUrl = searchParams.get("callbackUrl");
-    const safeCallback =
-      callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : null;
-    router.push(safeCallback ?? (role ? roleHome[role] : "/"));
-    router.refresh();
+    await submit(data.totpCode || undefined);
   }
 
   return (
@@ -96,6 +124,21 @@ export function LoginForm() {
               />
               <FieldError errors={[errors.password]} />
             </Field>
+            {totpRequired && (
+              <Field>
+                <FieldLabel htmlFor="totpCode">
+                  Authenticator code
+                </FieldLabel>
+                <Input
+                  id="totpCode"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  placeholder="123456"
+                  {...register("totpCode")}
+                />
+              </Field>
+            )}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing in…" : "Sign in"}
             </Button>

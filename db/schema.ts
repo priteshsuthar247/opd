@@ -70,6 +70,15 @@ export const users = pgTable("users", {
   // time so a reset invalidates all existing sessions (see auth jwt
   // callback revalidation).
   passwordChangedAt: timestamp("password_changed_at", { withTimezone: true, mode: "date" }),
+  // Avatar color swatch (hex) — no blob storage, so identity color
+  // instead of photo uploads.
+  avatarColor: varchar("avatar_color", { length: 7 }),
+  // TOTP 2FA: AES-GCM encrypted secret (AUTH_SECRET-derived key),
+  // bcrypt-hashed backup codes, last successful login stamp.
+  totpSecret: text("totp_secret"),
+  totpBackup: jsonb("totp_backup").$type<string[]>(),
+  totpEnabled: boolean("totp_enabled").notNull().default(false),
+  lastLoginAt: timestamp("last_login_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 });
 
@@ -493,8 +502,10 @@ export const queueStatusLogsRelations = relations(queueStatusLogs, ({ one }) => 
   }),
 }));
 
-// One-time email OTPs for password reset. Secrets are bcrypt-hashed like
-// passwords; rows are deleted on use/expiry rather than kept as history.
+// One-time email OTPs for password reset AND email change (purpose
+// column; email-change rows carry the pending address in payload).
+// Secrets are bcrypt-hashed like passwords; rows are deleted on
+// use/expiry rather than kept as history.
 export const passwordOtps = pgTable(
   "password_otps",
   {
@@ -502,6 +513,8 @@ export const passwordOtps = pgTable(
     userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    purpose: varchar("purpose", { length: 20 }).notNull().default("reset"),
+    payload: text("payload"),
     otpHash: text("otp_hash").notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
     attempts: integer("attempts").notNull().default(0),
@@ -524,4 +537,21 @@ export const passwordResets = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
   },
   (t) => [index("password_resets_user_idx").on(t.userId)]
+);
+
+// Account activity timeline (logins, password/email/username changes,
+// 2FA events, failed logins). Append-only audit for the profile page;
+// never blocks the action it records.
+export const userActivity = pgTable(
+  "user_activity",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    action: varchar("action", { length: 50 }).notNull(),
+    meta: text("meta"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => [index("user_activity_user_idx").on(t.userId, t.createdAt)]
 );
