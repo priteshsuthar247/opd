@@ -2,6 +2,7 @@
 
 Walk-in registration → token queue → consultation → prescription → billing → reporting, for a multi-doctor clinic. One non-negotiable loop, working end-to-end before anything else.
 
+> [!TIP]
 > **Live demo:** https://opd-pearl.vercel.app/ — sign in with any demo account below.
 >
 > Quick links: [Walkthrough](#watch-the-walkthrough) · [Product tour](#product-tour) · [Setup](#getting-started) · [Roadmap](#roadmap)
@@ -10,13 +11,19 @@ Walk-in registration → token queue → consultation → prescription → billi
 
 ## Watch the walkthrough
 
-One recorded session per role, end to end:
+One recorded session per role, end to end. Click a poster to play the video:
 
-| Role | Session |
-|---|---|
-| Receptionist | <video src="media/recordings/reception-session.mp4" controls width="100%"></video> |
-| Doctor | <video src="media/recordings/doctor-session.mp4" controls width="100%"></video> |
-| Admin | <video src="media/recordings/admin-session.mp4" controls width="100%"></video> |
+### Receptionist session (1 min, 1.4 MB)
+
+[![Receptionist session — front desk home](media/screenshots/reception/desk-home.png)](media/recordings/reception-session.mp4)
+
+### Doctor session (3 min, 3.7 MB)
+
+[![Doctor session — queue and consultation](media/screenshots/doctor/doctor-queue.png)](media/recordings/doctor-session.mp4)
+
+### Admin session (9 min, 14 MB)
+
+[![Admin session — overview and masters](media/screenshots/admin/admin-overview.png)](media/recordings/admin-session.mp4)
 
 ## Product tour
 
@@ -148,31 +155,34 @@ Same accounts work on the [live demo](https://opd-pearl.vercel.app/).
 
 ## Roadmap
 
-Single status table — the spec's full feature list in one place (`OPD-SaaS-Spec.md` §6):
+The spec's full feature list (`OPD-SaaS-Spec.md` §6), tracked as checkboxes:
 
-| Feature | Status | Notes |
-|---|---|---|
-| Patient registration + phone-dedupe search | ✅ Done | Registry, cmdk booking picker |
-| Walk-in / scheduled booking | ✅ Done | Type facet on queue |
-| Concurrency-safe token assignment | ✅ Done | Row lock + unique index + race E2E |
-| Live queue board per doctor | ✅ Done | Auto-refresh, aria-live, mobile cards |
-| Cancel / reschedule | ✅ Done | Confirm dialogs, cap-aware retoken |
-| Doctor queue + Call Next | ✅ Done | `variant="doctor"`, follow-up callouts |
-| Consultation form (vitals → notes) | ✅ Done | One page, unsaved-changes guard |
-| Inline patient history | ✅ Done | Visit timeline beside the form |
-| Follow-up required + date | ✅ Done | Flags on date, feeds notifications |
-| Prescription builder + finalize → PDF | ✅ Done | Immutability enforced server-side |
-| Department / doctor / medicine / category masters | ✅ Done | CRUD + username availability |
-| Queue configuration | ✅ Done | Slot duration, max tokens/day |
-| Notification settings + in-app feed | ✅ Done | Scoped by role; email/SMS not built |
-| Daily summary / performance / patient-visit / diagnosis-trend reports | ✅ Done | CSV + PDF export |
-| Custom report builder | ✅ Done | Filters + CSV/PDF (Excel not built) |
-| Auto fee + ad-hoc items + payment tracking | ✅ Done | Server-side totals, invoice PDF |
-| Patient self-service portal | ❌ Out of scope | Spec §9 bonus, not started |
-| SMS/WhatsApp notifications | ❌ Out of scope | Spec §9 bonus, not started |
-| Leaderboards / analytics visuals | ❌ Out of scope | Spec §9 bonus, not started |
-| Multi-branch support | ❌ Out of scope | Needs tenant-id + RLS design first |
-| Excel export | ❌ Out of scope | CSV + PDF available |
+### Implemented
+
+- [x] Patient registration + phone-dedupe search (registry, cmdk booking picker)
+- [x] Walk-in / scheduled booking (type facet on queue)
+- [x] Concurrency-safe token assignment (row lock + unique index + race E2E)
+- [x] Live queue board per doctor (auto-refresh, aria-live, mobile cards)
+- [x] Cancel / reschedule (confirm dialogs, cap-aware retoken)
+- [x] Doctor queue + Call Next (`variant="doctor"`, follow-up callouts)
+- [x] Consultation form, vitals to notes (one page, unsaved-changes guard)
+- [x] Inline patient history (visit timeline beside the form)
+- [x] Follow-up required + date (flags on date, feeds notifications)
+- [x] Prescription builder + finalize to PDF (immutability enforced server-side)
+- [x] Department / doctor / medicine / category masters (CRUD + username availability)
+- [x] Queue configuration (slot duration, max tokens/day)
+- [x] Notification settings + in-app feed (scoped by role)
+- [x] Daily summary, performance, patient-visit, diagnosis-trend reports (CSV + PDF export)
+- [x] Custom report builder (filters + CSV/PDF)
+- [x] Auto fee + ad-hoc items + payment tracking (server-side totals, invoice PDF)
+
+### Out of scope (spec §9 bonuses, not started)
+
+- [ ] Patient self-service portal
+- [ ] SMS/WhatsApp notifications (in-app only)
+- [ ] Leaderboards / analytics visuals
+- [ ] Multi-branch support (needs tenant-id + RLS design first)
+- [ ] Excel export (CSV + PDF available)
 
 ## Deploying
 
