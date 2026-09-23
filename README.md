@@ -11,19 +11,19 @@ Walk-in registration → token queue → consultation → prescription → billi
 
 ## Watch the walkthrough
 
-One recorded session per role, end to end. Click a poster to play the video:
+One recorded session per role, end to end. Click a poster to play on YouTube:
 
-### Receptionist session (1 min, 1.4 MB)
+### Receptionist session (1 min)
 
-[![Receptionist session — front desk home](media/screenshots/reception/desk-home.png)](media/recordings/reception-session.mp4)
+[![Receptionist session — front desk home](media/screenshots/reception/desk-home.png)](https://youtu.be/Uuc4joB1q9Q)
 
-### Doctor session (3 min, 3.7 MB)
+### Doctor session (3 min)
 
-[![Doctor session — queue and consultation](media/screenshots/doctor/doctor-queue.png)](media/recordings/doctor-session.mp4)
+[![Doctor session — queue and consultation](media/screenshots/doctor/doctor-queue.png)](https://youtu.be/nfdNfdM-J4Y)
 
-### Admin session (9 min, 14 MB)
+### Admin session (9 min)
 
-[![Admin session — overview and masters](media/screenshots/admin/admin-overview.png)](media/recordings/admin-session.mp4)
+[![Admin session — overview and masters](media/screenshots/admin/admin-overview.png)](https://youtu.be/axDpfIhczyQ)
 
 ## Product tour
 
