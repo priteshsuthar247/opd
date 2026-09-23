@@ -13,6 +13,8 @@ Walk-in registration → token queue → consultation → prescription → billi
 
 One recorded session per role, end to end. Click a poster to play on YouTube:
 
+> All raw media (screenshots, recordings, sample PDFs) is also available in [this Google Drive folder](https://drive.google.com/drive/folders/17PogVYsYWUGNSgIXtbY6APrlcpnQleSg?usp=sharing).
+
 ### Receptionist session (1 min)
 
 [![Receptionist session — front desk home](media/screenshots/reception/desk-home.png)](https://youtu.be/Uuc4joB1q9Q)
